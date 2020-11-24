@@ -31,7 +31,7 @@ class Home: AppCompatActivity() {
 
     @SuppressLint("RestrictedApi")
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.toolbar_menu, menu)
+        menuInflater.inflate(R.menu.home_menu, menu)
         if (menu is MenuBuilder) {
             menu.setOptionalIconsVisible(true)
         }

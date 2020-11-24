@@ -1,8 +1,15 @@
 package com.villagebanking
 
+import android.annotation.SuppressLint
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.Menu
+import android.view.MenuItem
+import android.widget.ArrayAdapter
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.view.menu.MenuBuilder
+import kotlinx.android.synthetic.main.dialog_add_account_holder.view.*
 
 class AccountHolders: AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -14,11 +21,59 @@ class AccountHolders: AppCompatActivity() {
         actionBar.setDisplayHomeAsUpEnabled(true)
 
 
-
-
     }
 
+
+    @SuppressLint("RestrictedApi")
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        return super.onCreateOptionsMenu(menu)
+        menuInflater.inflate(R.menu.account_holders_menu, menu)
+
+        if (menu is MenuBuilder) {
+            menu.setOptionalIconsVisible(true)
+        }
+        return true
     }
+
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val addAccountHolderDialogLayout = LayoutInflater.from(this).inflate(R.layout.dialog_add_account_holder, null)
+
+        when(item.itemId){
+            R.id.addAccountHolder ->{
+                val addAccountHolderDialog = AlertDialog.Builder(this)
+                        .setView(addAccountHolderDialogLayout)
+                        .setTitle("Add New Member")
+                val showAddAccountHolderDialog = addAccountHolderDialog.show()
+                addAccountHolderDialogLayout.etName.requestFocus()
+
+                val role = arrayOf(
+                        "SELECT ROLE...",
+                        "Chairperson",
+                        "Vice Chairperson",
+                        "Secretary",
+                        "Money Counter 1",
+                        "Money Counter 2",
+                        "Account Holder"
+                )
+                val arrayAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, role)
+                addAccountHolderDialogLayout.spAdministrators.adapter = arrayAdapter
+
+
+                addAccountHolderDialogLayout.btnCancel.setOnClickListener {
+                    showAddAccountHolderDialog.dismiss()
+                }
+
+
+            }
+        }
+
+
+
+
+
+        return true
+    }
+
+
+
 }
