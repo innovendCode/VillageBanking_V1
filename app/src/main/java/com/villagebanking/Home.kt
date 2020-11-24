@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
+import android.view.MenuItem
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
@@ -25,11 +26,7 @@ class Home: AppCompatActivity() {
             startActivity(intent)
         }
 
-
-
     }
-
-
 
 
     @SuppressLint("RestrictedApi")
@@ -38,6 +35,18 @@ class Home: AppCompatActivity() {
         if (menu is MenuBuilder) {
             menu.setOptionalIconsVisible(true)
         }
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId){
+            R.id.accountHolders ->{
+               val intent = Intent(this,AccountHolders::class.java)
+               startActivity(intent)
+            }
+        }
+
+
 
         return true
     }

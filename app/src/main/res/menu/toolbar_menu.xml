@@ -8,12 +8,12 @@
 
     <item
         android:id="@+id/admins"
-        android:icon="@drawable/ic_account_holders"
+        android:icon="@drawable/ic_admin"
         android:title="Administrators" />
 
     <item
         android:id="@+id/settings"
-        android:icon="@drawable/ic_account_holders"
+        android:icon="@drawable/ic_settings"
         android:title="Settings" />
 
 </menu>
