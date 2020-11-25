@@ -6,27 +6,36 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import kotlinx.android.synthetic.main.account_holders.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.home.*
 
 class Home: AppCompatActivity() {
+
+    companion object{
+        lateinit var dbHandler: DBHandler
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home)
 
+
+
+
+
         val actionBar = supportActionBar
         actionBar!!.title = "Home"
 
-        val btnNewActivity: Button = btnNewActivity
-
-        btnNewActivity.setOnClickListener {
-            val intent = Intent(this, AccountHolders::class.java)
-            startActivity(intent)
-        }
-
     }
+
+
+
 
 
     @SuppressLint("RestrictedApi")

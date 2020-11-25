@@ -6,9 +6,13 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.ArrayAdapter
+import android.widget.LinearLayout
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import kotlinx.android.synthetic.main.account_holders.*
 import kotlinx.android.synthetic.main.dialog_add_account_holder.view.*
 
 class AccountHolders: AppCompatActivity() {
@@ -16,12 +20,29 @@ class AccountHolders: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.account_holders)
 
+        Home.dbHandler = DBHandler(this, null, null, 1)
+
+        viewAccountHolders()
+
         val actionBar = supportActionBar
         actionBar!!.title = "Account Holders"
         actionBar.setDisplayHomeAsUpEnabled(true)
 
 
     }
+
+
+
+    @SuppressLint("WrongConstant")
+    private fun viewAccountHolders(){
+        val accountHoldersList = Home.dbHandler.getAccountHolders(this)
+        val adapter = CustomAdapter(this, accountHoldersList)
+        val rv: RecyclerView = recyclerView
+        rv.layoutManager = LinearLayoutManager(this, LinearLayout.VERTICAL, false) as RecyclerView.LayoutManager
+        rv.adapter = adapter
+    }
+
+
 
 
     @SuppressLint("RestrictedApi")
