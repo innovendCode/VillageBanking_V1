@@ -1,6 +1,8 @@
 package com.villagebanking
 
 import android.annotation.SuppressLint
+import android.content.ContentValues
+import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -16,11 +18,18 @@ import kotlinx.android.synthetic.main.account_holders.*
 import kotlinx.android.synthetic.main.dialog_add_account_holder.view.*
 
 class AccountHolders: AppCompatActivity() {
+
+    companion object{
+        lateinit var dbHandler: DBHandler
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.account_holders)
 
-        Home.dbHandler = DBHandler(this, null, null, 1)
+
+
+        dbHandler = DBHandler(this, null, null, 1)
 
         viewAccountHolders()
 
@@ -35,7 +44,7 @@ class AccountHolders: AppCompatActivity() {
 
     @SuppressLint("WrongConstant")
     private fun viewAccountHolders(){
-        val accountHoldersList = Home.dbHandler.getAccountHolders(this)
+        val accountHoldersList = dbHandler.getAccountHolders(this)
         val adapter = CustomAdapter(this, accountHoldersList)
         val rv: RecyclerView = recyclerView
         rv.layoutManager = LinearLayoutManager(this, LinearLayout.VERTICAL, false) as RecyclerView.LayoutManager
@@ -83,6 +92,17 @@ class AccountHolders: AppCompatActivity() {
                 addAccountHolderDialogLayout.btnCancel.setOnClickListener {
                     showAddAccountHolderDialog.dismiss()
                 }
+
+                addAccountHolderDialogLayout.btnAddAccountHolder.setOnClickListener {
+                    val accountHolderModel = AccountHolderModel()
+
+                    accountHolderModel.account_holders_name = addAccountHolderDialogLayout.etName.text.toString()
+
+
+                    dbHandler.addAccountHolder(this, accountHolderModel)
+
+                }
+
 
 
             }

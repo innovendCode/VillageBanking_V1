@@ -17,16 +17,11 @@ import kotlinx.android.synthetic.main.home.*
 
 class Home: AppCompatActivity() {
 
-    companion object{
-        lateinit var dbHandler: DBHandler
-    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home)
-
-
-
 
 
         val actionBar = supportActionBar

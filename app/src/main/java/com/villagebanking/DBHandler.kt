@@ -1,9 +1,13 @@
 package com.villagebanking
 
+import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.view.LayoutInflater
 import android.widget.Toast
+import kotlinx.android.synthetic.main.dialog_add_account_holder.view.*
+import java.lang.Exception
 import kotlin.coroutines.coroutineContext
 
 class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorFactory?, version: Int):
@@ -64,4 +68,23 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             db.close()
                 return accountHolderModel
     }
+
+    fun addAccountHolder (mContext: Context, accountHolderModel: AccountHolderModel){
+        val contentValues = ContentValues()
+        contentValues.put(ACCOUNT_HOLDERS_NAME_COL, accountHolderModel.account_holders_name)
+        contentValues.put(ACCOUNT_HOLDERS_ADMIN_COL, accountHolderModel.account_holders_admin)
+        contentValues.put(ACCOUNT_HOLDERS_PRESHARE_COL, accountHolderModel.account_holders_preshare)
+        contentValues.put(ACCOUNT_HOLDERS_LOANAPP_COL, accountHolderModel.account_holders_loanapp)
+
+        val db = this.writableDatabase
+        try {
+            db.insert(ACCOUNT_HOLDERS_TABLE, null, contentValues)
+            Toast.makeText(mContext, "Account Holder added",Toast.LENGTH_SHORT).show()
+        } catch (e : Exception){
+            Toast.makeText(mContext, e.message,Toast.LENGTH_SHORT).show()
+        }
+            db.close()
+    }
+
+
 }
