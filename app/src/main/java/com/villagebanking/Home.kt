@@ -7,6 +7,8 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,19 +19,40 @@ import kotlinx.android.synthetic.main.home.*
 
 class Home: AppCompatActivity() {
 
+    companion object{
+        lateinit var dbHandler: DBHandler
+    }
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home)
 
-
         val actionBar = supportActionBar
         actionBar!!.title = "Home"
+
+       dbHandler = DBHandler(this, null, null, 1)
+
+        getNoAccounts()
 
     }
 
 
+    override fun onRestart() {
+        getNoAccounts()
+        super.onRestart()
+    }
+
+
+
+    private fun getNoAccounts(){
+        val query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
+        val db = dbHandler.readableDatabase
+        val cursor = db.rawQuery(query, null)
+        val tvNoAccountHolders: TextView = tvNoAccountHolders
+        tvNoAccountHolders.text = "- Account Holders: ${cursor.count.toString()}"
+    }
 
 
 

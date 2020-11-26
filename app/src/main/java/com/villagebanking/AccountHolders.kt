@@ -1,21 +1,22 @@
 package com.villagebanking
 
 import android.annotation.SuppressLint
-import android.content.ContentValues
-import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.ArrayAdapter
-import android.widget.LinearLayout
+import android.view.View
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.android.synthetic.main.account_holders.*
+import kotlinx.android.synthetic.main.dialog_add_account_holder.*
 import kotlinx.android.synthetic.main.dialog_add_account_holder.view.*
+import kotlinx.android.synthetic.main.main_row_layout.*
 
 class AccountHolders: AppCompatActivity() {
 
@@ -23,11 +24,11 @@ class AccountHolders: AppCompatActivity() {
         lateinit var dbHandler: DBHandler
     }
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.account_holders)
-
-
 
         dbHandler = DBHandler(this, null, null, 1)
 
@@ -42,12 +43,20 @@ class AccountHolders: AppCompatActivity() {
 
 
 
-    @SuppressLint("WrongConstant")
     private fun viewAccountHolders(){
         val accountHoldersList = dbHandler.getAccountHolders(this)
         val adapter = CustomAdapter(this, accountHoldersList)
         val rv: RecyclerView = recyclerView
-        rv.layoutManager = LinearLayoutManager(this, LinearLayout.VERTICAL, false) as RecyclerView.LayoutManager
+        rv.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false) as RecyclerView.LayoutManager
+        rv.adapter = adapter
+    }
+
+
+    private fun viewAccountHoldersID(){
+        val accountHoldersList = dbHandler.getAccountHoldersExample(this)
+        val adapter = CustomAdapter(this, accountHoldersList)
+        val rv: RecyclerView = recyclerView
+        rv.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false) as RecyclerView.LayoutManager
         rv.adapter = adapter
     }
 
@@ -76,7 +85,7 @@ class AccountHolders: AppCompatActivity() {
                 val showAddAccountHolderDialog = addAccountHolderDialog.show()
                 addAccountHolderDialogLayout.etName.requestFocus()
 
-                val role = arrayOf(
+                val admin = arrayOf(
                         "SELECT ROLE...",
                         "Chairperson",
                         "Vice Chairperson",
@@ -85,8 +94,20 @@ class AccountHolders: AppCompatActivity() {
                         "Money Counter 2",
                         "Account Holder"
                 )
-                val arrayAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, role)
+                val arrayAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, admin)
                 addAccountHolderDialogLayout.spAdministrators.adapter = arrayAdapter
+
+                var selectedAdmin = ""
+
+                addAccountHolderDialogLayout.spAdministrators.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
+                    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                        selectedAdmin = admin[position]
+                    }
+
+                    override fun onNothingSelected(parent: AdapterView<*>?) {
+                    }
+
+                }
 
 
                 addAccountHolderDialogLayout.btnCancel.setOnClickListener {
@@ -94,18 +115,42 @@ class AccountHolders: AppCompatActivity() {
                 }
 
                 addAccountHolderDialogLayout.btnAddAccountHolder.setOnClickListener {
+                    if (addAccountHolderDialogLayout.etName.text.isEmpty()) {
+                        Toast.makeText(this, "Please type Full Name", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener}
+
+                    if (addAccountHolderDialogLayout.etContactNo.text.isEmpty()) {
+                        Toast.makeText(this, "Please enter contact number", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener}
+
+                    if (addAccountHolderDialogLayout.etAccountInfo.text.isEmpty()) {
+                        Toast.makeText(this, "Please enter account or mobile banking info", Toast.LENGTH_LONG).show()
+                        return@setOnClickListener}
+
+                    if (selectedAdmin.toString() == "SELECT ROLE...") {
+                        Toast.makeText(this, "Please select membership role", Toast.LENGTH_LONG).show()
+                        return@setOnClickListener}
+
+
                     val accountHolderModel = AccountHolderModel()
-
-                    accountHolderModel.account_holders_name = addAccountHolderDialogLayout.etName.text.toString()
-
-
+                    accountHolderModel.accountHoldersName = addAccountHolderDialogLayout.etName.text.toString()
+                    accountHolderModel.accountHoldersAdmin = selectedAdmin
                     dbHandler.addAccountHolder(this, accountHolderModel)
+                    viewAccountHolders()
+
+                    addAccountHolderDialogLayout.etName.text.clear()
+                    addAccountHolderDialogLayout.etContactNo.text.clear()
+                    addAccountHolderDialogLayout.etAccountInfo.text.clear()
 
                 }
-
-
-
             }
+            R.id.delAllAccountHolders ->{
+                //dbHandler.delAllAccountHolders(this)
+                //Toast.makeText(this, "All Accounts Deleted", Toast.LENGTH_SHORT).show()
+                //viewAccountHolders()
+                viewAccountHoldersID()
+            }
+
         }
 
 
@@ -114,6 +159,7 @@ class AccountHolders: AppCompatActivity() {
 
         return true
     }
+
 
 
 
