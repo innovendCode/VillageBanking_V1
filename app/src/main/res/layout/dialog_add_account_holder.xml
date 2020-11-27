@@ -10,12 +10,13 @@
 
 
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/etName"
-        android:hint="Full Names"
-        android:inputType="textCapWords"/>
+<EditText
+    android:id="@+id/etFullNames"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:hint="Ful Names"
+    android:ems="10"
+    android:inputType="textCapSentences"/>
 
 
     <EditText

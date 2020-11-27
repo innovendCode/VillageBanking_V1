@@ -9,19 +9,45 @@
         android:icon="@drawable/ic_add_account_holder"/>
 
     <item
-        android:id="@+id/ViewAll"
-        android:title="All Accounts"
-        android:icon="@drawable/ic_add_account_holder"/>
-
-    <item
-        android:id="@+id/ViewAdmins"
-        android:title="Admins"
-        android:icon="@drawable/ic_add_account_holder"/>
+        android:id="@+id/searchName"
+        android:icon="@drawable/ic_search_black_24dp"
+        android:title="Search"
+        app:showAsAction="always"/>
 
     <item
         android:id="@+id/delAllAccountHolders"
         android:title="Delete All"
         app:showAsAction="always"
         android:icon="@drawable/ic_delete_all"/>
+
+    <item
+        android:id="@+id/ViewAll"
+        android:title="All Accounts"
+        android:icon="@drawable/ic_view_all"/>
+
+    <item
+        android:id="@+id/ViewAdmins"
+        android:title="Admins"
+        android:icon="@drawable/ic_admin">
+    </item>
+
+    <item
+        android:id="@+id/outstanding"
+        android:title="Balances">
+        <menu>
+            <item
+                android:id="@+id/outstanding_share"
+                android:title="outstanding Share"/>
+            <item
+                android:id="@+id/outstanding_loan"
+                android:title="outstanding Loans"/>
+            <item
+                android:id="@+id/outstanding_penalties"
+                android:title="Outstanding Penalties"/>
+        </menu>
+    </item>
+
+
+
 
 </menu>

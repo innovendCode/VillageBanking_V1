@@ -1,7 +1,6 @@
 package com.villagebanking
 
 import android.annotation.SuppressLint
-import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -16,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.account_holders.*
 import kotlinx.android.synthetic.main.dialog_add_account_holder.*
 import kotlinx.android.synthetic.main.dialog_add_account_holder.view.*
+import kotlinx.android.synthetic.main.dialog_password.view.*
 import kotlinx.android.synthetic.main.main_row_layout.*
 
 class AccountHolders: AppCompatActivity() {
@@ -35,17 +35,23 @@ class AccountHolders: AppCompatActivity() {
        viewAccountHolders()
 
         val actionBar = supportActionBar
-        actionBar!!.title = "Account Holders"
+        actionBar!!.title = "Accounts"
         actionBar.setDisplayHomeAsUpEnabled(true)
 
     }
 
 
+    override fun onResume() {
+        super.onResume()
+        viewAccountHolders()
+    }
 
-    private fun viewAccountHolders(){
+
+   fun viewAccountHolders(){
         val accountHoldersList = dbHandler.getAccountHolders(this)
         val adapter = CustomAdapter(this, accountHoldersList)
         val rv: RecyclerView = recyclerView
+        rv.setHasFixedSize(true)
         rv.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false) as RecyclerView.LayoutManager
         rv.adapter = adapter
     }
@@ -79,7 +85,7 @@ class AccountHolders: AppCompatActivity() {
                         .setView(addAccountHolderDialogLayout)
                         .setTitle("Add New Member")
                 val showAddAccountHolderDialog = addAccountHolderDialog.show()
-                addAccountHolderDialogLayout.etName.requestFocus()
+                addAccountHolderDialogLayout.etFullNames.requestFocus()
 
                 val admin = arrayOf(
                         "SELECT ROLE...",
@@ -111,7 +117,7 @@ class AccountHolders: AppCompatActivity() {
                 }
 
                 addAccountHolderDialogLayout.btnAddAccountHolder.setOnClickListener {
-                    if (addAccountHolderDialogLayout.etName.text.isEmpty()) {
+                    if (addAccountHolderDialogLayout.etFullNames.text.isEmpty()) {
                         Toast.makeText(this, "Please type Full Name", Toast.LENGTH_SHORT).show()
                         return@setOnClickListener}
 
@@ -129,14 +135,14 @@ class AccountHolders: AppCompatActivity() {
 
 
                     val accountHolderModel = AccountHolderModel()
-                    accountHolderModel.accountHoldersName = addAccountHolderDialogLayout.etName.text.toString()
+                    accountHolderModel.accountHoldersName = addAccountHolderDialogLayout.etFullNames.text.toString()
                     accountHolderModel.accountHoldersAdmin = selectedAdmin
                     accountHolderModel.accountHolderContact = addAccountHolderDialogLayout.etContactNo.text.toString()
                     accountHolderModel.accountHolderBankInfo = addAccountHolderDialogLayout.etAccountInfo.text.toString()
                     dbHandler.addAccountHolder(this, accountHolderModel)
                     viewAccountHolders()
 
-                    addAccountHolderDialogLayout.etName.text.clear()
+                    addAccountHolderDialogLayout.etFullNames.text.clear()
                     addAccountHolderDialogLayout.etContactNo.text.clear()
                     addAccountHolderDialogLayout.etAccountInfo.text.clear()
 
@@ -147,26 +153,15 @@ class AccountHolders: AppCompatActivity() {
                 }
             }
             R.id.delAllAccountHolders ->{
-                val deleteAllAccounts = AlertDialog.Builder(this)
-                        .setTitle("Are you sure?")
-                        .setMessage("Delete all members and accounts")
-                        .setPositiveButton("Yes") { _: DialogInterface, _: Int ->
+                dbHandler.delAllAccountHolders(this)
+                viewAccountHolders()
 
 
 
-
-                            dbHandler.delAllAccountHolders(this)
-                            Toast.makeText(this, "All Accounts Deleted", Toast.LENGTH_SHORT).show()
-                            viewAccountHolders()
-
-
-
-                        }
-                        .setNegativeButton("No") {_: DialogInterface, _: Int ->}
-                deleteAllAccounts.show()
             }
             R.id.ViewAll ->{
                 viewAccountHolders()
+
             }
 
         }

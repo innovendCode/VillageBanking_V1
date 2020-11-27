@@ -1,11 +1,19 @@
 package com.villagebanking
 
+import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Context
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.view.LayoutInflater
+import android.widget.Button
 import android.widget.Toast
+import kotlinx.android.synthetic.main.activity_main.view.*
+import kotlinx.android.synthetic.main.activity_main.view.etPassword
+import kotlinx.android.synthetic.main.dialog_password.view.*
 import java.lang.Exception
+import kotlin.coroutines.coroutineContext
 
 class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorFactory?, version: Int):
         SQLiteOpenHelper(context, DATABASE_NAME, factory, DATABASE_VERSION) {
@@ -15,7 +23,6 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         private const val DATABASE_VERSION = 1
 
         const val ACCOUNT_HOLDERS_TABLE = "account_holders"
-
         const val ACCOUNT_HOLDERS_ID_COL = "_id"
         const val ACCOUNT_HOLDERS_NAME_COL = "name"
         const val ACCOUNT_HOLDERS_ADMIN_COL = "admin"
@@ -34,6 +41,9 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 "$ACCOUNT_HOLDERS_ID_COL INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "$ACCOUNT_HOLDERS_NAME_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_ADMIN_COL TEXT, " +
+                "$ACCOUNT_HOLDERS_PASSWORD_COL TEXT, " +
+                "$ACCOUNT_HOLDERS_PASSWORD_RECOVERY_COL TEXT, " +
+                "$ACCOUNT_HOLDERS_PASSWORD_ANSWER_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_CONTACT_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_BANK_INFO_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_SHARE_COL INTEGER, " +
@@ -62,7 +72,6 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             accountHolders.accountHoldersLoanApp = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_LOAN_APP_COL))
             accountHolderModel.add(accountHolders)
         }
-            Toast.makeText(mContext, "${cursor.count.toString()} Account Holders Found", Toast.LENGTH_SHORT).show()
         }
             cursor.close()
             db.close()
@@ -85,7 +94,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         val db = this.writableDatabase
         try {
             db.insert(ACCOUNT_HOLDERS_TABLE, null, contentValues)
-            Toast.makeText(mContext, "Account Holder added",Toast.LENGTH_SHORT).show()
+            Toast.makeText(mContext, "Member added",Toast.LENGTH_SHORT).show()
         } catch (e : Exception){
             Toast.makeText(mContext, e.message,Toast.LENGTH_SHORT).show()
         }
@@ -94,11 +103,17 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
 
 
+    fun delAllAccountHoldersPermissions(mContext: Context){
+        val db = this.readableDatabase
+        val query = "SELECT * FROM $ACCOUNT_HOLDERS_TABLE WHERE " +
+                "$ACCOUNT_HOLDERS_ADMIN_COL = 'Chairperson'"
+        val cursor = db.rawQuery(query, null)
+
+    }
+
+
+
     fun delAllAccountHolders(mContext: Context){
-
-
-
-
         val db = this.writableDatabase
         db.delete(ACCOUNT_HOLDERS_TABLE, null, null)
         db.close()
