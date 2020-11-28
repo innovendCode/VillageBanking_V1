@@ -1,6 +1,7 @@
 package com.villagebanking
 
 import android.annotation.SuppressLint
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -9,6 +10,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -70,6 +72,20 @@ class Home: AppCompatActivity() {
             R.id.accountHolders ->{
                val intent = Intent(this,AccountHolders::class.java)
                startActivity(intent)
+            }
+            R.id.logOff ->{
+
+                val logOff = AlertDialog.Builder(this)
+                        .setTitle("Log Off")
+                        .setMessage("Are you sure you want to log off?")
+                        .setPositiveButton("Yes") {_:DialogInterface, _: Int ->
+                            finish()
+                        }
+                        .setNegativeButton("No") {_:DialogInterface, _:Int ->
+                        }
+                        logOff.show()
+
+
             }
         }
 

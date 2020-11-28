@@ -15,6 +15,11 @@
         android:title="Account Holders"
         app:showAsAction="always"/>
 
+    <item
+        android:id="@+id/logOff"
+        android:icon="@drawable/ic_forward"
+        android:title="Log Off"/>
+
 
 
 </menu>

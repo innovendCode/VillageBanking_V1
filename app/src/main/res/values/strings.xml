@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Village Banking</string>
+    <string name="account_holder_name">Account Holder Name</string>
+    <string name="_4">4</string>
+    <string name="loan_application">Loan Application: </string>
+    <string name="_25000">25000</string>
+    <string name="shares">Shares: </string>
+    <string name="forgotPassword"><u>Forgot Password</u></string>
 </resources>

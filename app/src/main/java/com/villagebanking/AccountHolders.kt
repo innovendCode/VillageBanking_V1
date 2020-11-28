@@ -58,6 +58,15 @@ class AccountHolders: AppCompatActivity() {
         rv.adapter = adapter
     }
 
+    private fun viewAccountAdmins(){
+        val accountAdminList = dbHandler.getAccountAdmins(this)
+        val adapter = CustomAdapter(this, accountAdminList)
+        val rv: RecyclerView = recyclerView
+        rv.setHasFixedSize(true)
+        rv.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false) as RecyclerView.LayoutManager
+        rv.adapter = adapter
+    }
+
 
 
 
@@ -118,7 +127,11 @@ class AccountHolders: AppCompatActivity() {
                     showAddAccountHolderDialog.dismiss()
                 }
 
+
+
+
                 addAccountHolderDialogLayout.btnAddAccountHolder.setOnClickListener {
+
                     if (addAccountHolderDialogLayout.etFullNames.text.isEmpty()) {
                         Toast.makeText(this, "Please type Full Name", Toast.LENGTH_SHORT).show()
                         return@setOnClickListener}
@@ -172,7 +185,6 @@ class AccountHolders: AppCompatActivity() {
                             }
 
 
-
                             val accountHolderModel = AccountHolderModel()
                             accountHolderModel.accountHoldersName = addAccountHolderDialogLayout.etFullNames.text.toString()
                             accountHolderModel.accountHoldersAdmin = selectedAdmin
@@ -214,14 +226,13 @@ class AccountHolders: AppCompatActivity() {
                 dbHandler.delAllAccountHolders(this)
                 viewAccountHolders()
 
-
-
             }
             R.id.ViewAll ->{
                 viewAccountHolders()
-
             }
-
+            R.id.ViewAdmins ->{
+                viewAccountAdmins()
+            }
         }
 
 
@@ -231,10 +242,7 @@ class AccountHolders: AppCompatActivity() {
         return true
     }
 
-fun deleteAccountsPermission(){
 
-
-}
 
 
 }
