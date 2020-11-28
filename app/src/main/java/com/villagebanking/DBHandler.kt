@@ -1,19 +1,11 @@
 package com.villagebanking
 
-import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Context
-import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.view.LayoutInflater
-import android.widget.Button
 import android.widget.Toast
-import kotlinx.android.synthetic.main.activity_main.view.*
-import kotlinx.android.synthetic.main.activity_main.view.etPassword
-import kotlinx.android.synthetic.main.dialog_password.view.*
 import java.lang.Exception
-import kotlin.coroutines.coroutineContext
 
 class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorFactory?, version: Int):
         SQLiteOpenHelper(context, DATABASE_NAME, factory, DATABASE_VERSION) {
@@ -27,7 +19,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val ACCOUNT_HOLDERS_NAME_COL = "name"
         const val ACCOUNT_HOLDERS_ADMIN_COL = "admin"
         const val ACCOUNT_HOLDERS_PASSWORD_COL = "password"
-        const val ACCOUNT_HOLDERS_PASSWORD_RECOVERY_COL = "recovery_question"
+        const val ACCOUNT_HOLDERS_PASSWORD_QUESTION_COL = "recovery_question"
         const val ACCOUNT_HOLDERS_PASSWORD_ANSWER_COL = "recovery_answer"
         const val ACCOUNT_HOLDERS_CONTACT_COL = "contact_no"
         const val ACCOUNT_HOLDERS_BANK_INFO_COL = "account_info"
@@ -42,7 +34,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 "$ACCOUNT_HOLDERS_NAME_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_ADMIN_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_PASSWORD_COL TEXT, " +
-                "$ACCOUNT_HOLDERS_PASSWORD_RECOVERY_COL TEXT, " +
+                "$ACCOUNT_HOLDERS_PASSWORD_QUESTION_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_PASSWORD_ANSWER_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_CONTACT_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_BANK_INFO_COL TEXT, " +
@@ -88,6 +80,9 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         contentValues.put(ACCOUNT_HOLDERS_ADMIN_COL, accountHolderModel.accountHoldersAdmin)
         contentValues.put(ACCOUNT_HOLDERS_CONTACT_COL, accountHolderModel.accountHolderContact)
         contentValues.put(ACCOUNT_HOLDERS_BANK_INFO_COL, accountHolderModel.accountHolderBankInfo)
+        contentValues.put(ACCOUNT_HOLDERS_PASSWORD_COL, accountHolderModel.accountHolderPassword)
+        contentValues.put(ACCOUNT_HOLDERS_PASSWORD_QUESTION_COL, accountHolderModel.accountHolderQuestion)
+        contentValues.put(ACCOUNT_HOLDERS_PASSWORD_ANSWER_COL, accountHolderModel.accountHolderAnswer)
         contentValues.put(ACCOUNT_HOLDERS_SHARE_COL, accountHolderModel.accountHoldersShare)
         contentValues.put(ACCOUNT_HOLDERS_LOAN_APP_COL, accountHolderModel.accountHoldersLoanApp)
 

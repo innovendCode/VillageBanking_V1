@@ -13,8 +13,10 @@ import androidx.appcompat.view.menu.MenuBuilder
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.account_holders.*
+import kotlinx.android.synthetic.main.activity_main.view.*
 import kotlinx.android.synthetic.main.dialog_add_account_holder.*
 import kotlinx.android.synthetic.main.dialog_add_account_holder.view.*
+import kotlinx.android.synthetic.main.dialog_insert_password.view.*
 import kotlinx.android.synthetic.main.dialog_password.view.*
 import kotlinx.android.synthetic.main.main_row_layout.*
 
@@ -47,7 +49,7 @@ class AccountHolders: AppCompatActivity() {
     }
 
 
-   fun viewAccountHolders(){
+   private fun viewAccountHolders(){
         val accountHoldersList = dbHandler.getAccountHolders(this)
         val adapter = CustomAdapter(this, accountHoldersList)
         val rv: RecyclerView = recyclerView
@@ -134,21 +136,77 @@ class AccountHolders: AppCompatActivity() {
                         return@setOnClickListener}
 
 
-                    val accountHolderModel = AccountHolderModel()
-                    accountHolderModel.accountHoldersName = addAccountHolderDialogLayout.etFullNames.text.toString()
-                    accountHolderModel.accountHoldersAdmin = selectedAdmin
-                    accountHolderModel.accountHolderContact = addAccountHolderDialogLayout.etContactNo.text.toString()
-                    accountHolderModel.accountHolderBankInfo = addAccountHolderDialogLayout.etAccountInfo.text.toString()
-                    dbHandler.addAccountHolder(this, accountHolderModel)
-                    viewAccountHolders()
-
-                    addAccountHolderDialogLayout.etFullNames.text.clear()
-                    addAccountHolderDialogLayout.etContactNo.text.clear()
-                    addAccountHolderDialogLayout.etAccountInfo.text.clear()
-
                     if(selectedAdmin == "Chairperson" ){
                         Toast.makeText(this,"Please enter password",Toast.LENGTH_SHORT).show()
+                        val insertPasswordDialogLayout = LayoutInflater.from(this).inflate(R.layout.dialog_insert_password, null)
+                        val insertPasswordDialog = AlertDialog.Builder(this)
+                                .setTitle("Type Password")
+                                .setMessage("Chairperson password required")
+                                .setView(insertPasswordDialogLayout)
+                        val showInsertPasswordDialog = insertPasswordDialog.show()
+
+                        insertPasswordDialogLayout.btnEnterPassword.setOnClickListener {
+                            if(insertPasswordDialogLayout.etPasswordInsert.text.isEmpty()){
+                                Toast.makeText(this,"Please type password", Toast.LENGTH_SHORT).show()
+                                return@setOnClickListener
+                            }
+
+                            if(insertPasswordDialogLayout.etPasswordRepeat.text.isEmpty()){
+                                Toast.makeText(this,"Please type repeat password", Toast.LENGTH_SHORT).show()
+                                return@setOnClickListener
+                            }
+
+                            if(insertPasswordDialogLayout.etRecoveryQuestion.text.isEmpty()){
+                                Toast.makeText(this,"Please type password recovery question", Toast.LENGTH_SHORT).show()
+                                return@setOnClickListener
+                            }
+
+                            if(insertPasswordDialogLayout.etRecoveryAnswer.text.isEmpty()){
+                                Toast.makeText(this,"Please type password recovery answer", Toast.LENGTH_SHORT).show()
+                                return@setOnClickListener
+                            }
+
+                            if(insertPasswordDialogLayout.etPasswordInsert.text.toString() != insertPasswordDialogLayout.etPasswordRepeat.text.toString()){
+                                Toast.makeText(this,"Password and Password repeat are not the same", Toast.LENGTH_LONG).show()
+                                return@setOnClickListener
+                            }
+
+
+
+                            val accountHolderModel = AccountHolderModel()
+                            accountHolderModel.accountHoldersName = addAccountHolderDialogLayout.etFullNames.text.toString()
+                            accountHolderModel.accountHoldersAdmin = selectedAdmin
+                            accountHolderModel.accountHolderContact = addAccountHolderDialogLayout.etContactNo.text.toString()
+                            accountHolderModel.accountHolderBankInfo = addAccountHolderDialogLayout.etAccountInfo.text.toString()
+                            accountHolderModel.accountHolderPassword = insertPasswordDialogLayout.etPasswordInsert.text.toString()
+                            accountHolderModel.accountHolderQuestion = insertPasswordDialogLayout.etRecoveryQuestion.text.toString()
+                            accountHolderModel.accountHolderAnswer = insertPasswordDialogLayout.etRecoveryAnswer.text.toString()
+                            dbHandler.addAccountHolder(this, accountHolderModel)
+                            viewAccountHolders()
+
+                            addAccountHolderDialogLayout.etFullNames.text.clear()
+                            addAccountHolderDialogLayout.etContactNo.text.clear()
+                            addAccountHolderDialogLayout.etAccountInfo.text.clear()
+                            addAccountHolderDialogLayout.etFullNames.requestFocus()
+                            showInsertPasswordDialog.dismiss()
+                        }
+
+                    }else {
+
+                        val accountHolderModel = AccountHolderModel()
+                        accountHolderModel.accountHoldersName = addAccountHolderDialogLayout.etFullNames.text.toString()
+                        accountHolderModel.accountHoldersAdmin = selectedAdmin
+                        accountHolderModel.accountHolderContact = addAccountHolderDialogLayout.etContactNo.text.toString()
+                        accountHolderModel.accountHolderBankInfo = addAccountHolderDialogLayout.etAccountInfo.text.toString()
+                        dbHandler.addAccountHolder(this, accountHolderModel)
+                        viewAccountHolders()
+
+                        addAccountHolderDialogLayout.etFullNames.text.clear()
+                        addAccountHolderDialogLayout.etContactNo.text.clear()
+                        addAccountHolderDialogLayout.etAccountInfo.text.clear()
+                        addAccountHolderDialogLayout.etFullNames.requestFocus()
                     }
+
 
                 }
             }
