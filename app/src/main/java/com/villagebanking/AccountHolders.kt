@@ -145,42 +145,43 @@ class AccountHolders: AppCompatActivity() {
                         return@setOnClickListener}
 
                     if (selectedAdmin == "SELECT ROLE...") {
-                        Toast.makeText(this, "Please select membership role", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this, "Please select admin role", Toast.LENGTH_LONG).show()
                         return@setOnClickListener}
 
 
                     if(selectedAdmin == "Chairperson" ){
-                        Toast.makeText(this,"Please enter password",Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this,"Create Chairperson PIN",Toast.LENGTH_SHORT).show()
                         val insertPasswordDialogLayout = LayoutInflater.from(this).inflate(R.layout.dialog_insert_password, null)
                         val insertPasswordDialog = AlertDialog.Builder(this)
-                                .setTitle("Type Password")
-                                .setMessage("Chairperson password required")
+                                .setTitle("Create PIN")
+                                .setMessage("Chairperson access PIN required")
                                 .setView(insertPasswordDialogLayout)
                         val showInsertPasswordDialog = insertPasswordDialog.show()
 
                         insertPasswordDialogLayout.btnEnterPassword.setOnClickListener {
                             if(insertPasswordDialogLayout.etPasswordInsert.text.isEmpty()){
-                                Toast.makeText(this,"Please type password", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this,"Please type PIN", Toast.LENGTH_SHORT).show()
                                 return@setOnClickListener
                             }
 
                             if(insertPasswordDialogLayout.etPasswordRepeat.text.isEmpty()){
-                                Toast.makeText(this,"Please type repeat password", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this,"Please type repeat PIN", Toast.LENGTH_SHORT).show()
                                 return@setOnClickListener
                             }
 
-                            if(insertPasswordDialogLayout.etRecoveryQuestion.text.isEmpty()){
-                                Toast.makeText(this,"Please type password recovery question", Toast.LENGTH_SHORT).show()
+                            if(insertPasswordDialogLayout.etPinHint.text.isEmpty()){
+                                Toast.makeText(this,"Please type hint", Toast.LENGTH_SHORT).show()
                                 return@setOnClickListener
                             }
 
-                            if(insertPasswordDialogLayout.etRecoveryAnswer.text.isEmpty()){
-                                Toast.makeText(this,"Please type password recovery answer", Toast.LENGTH_SHORT).show()
-                                return@setOnClickListener
-                            }
 
                             if(insertPasswordDialogLayout.etPasswordInsert.text.toString() != insertPasswordDialogLayout.etPasswordRepeat.text.toString()){
-                                Toast.makeText(this,"Password and Password repeat are not the same", Toast.LENGTH_LONG).show()
+                                Toast.makeText(this,"PIN and repeat PIN do not match. Re-type", Toast.LENGTH_LONG).show()
+                                return@setOnClickListener
+                            }
+
+                            if(insertPasswordDialogLayout.etPasswordInsert.text.length < 4){
+                                Toast.makeText(this,"PIN should be 4 digits", Toast.LENGTH_LONG).show()
                                 return@setOnClickListener
                             }
 
@@ -190,9 +191,8 @@ class AccountHolders: AppCompatActivity() {
                             accountHolderModel.accountHoldersAdmin = selectedAdmin
                             accountHolderModel.accountHolderContact = addAccountHolderDialogLayout.etContactNo.text.toString()
                             accountHolderModel.accountHolderBankInfo = addAccountHolderDialogLayout.etAccountInfo.text.toString()
-                            accountHolderModel.accountHolderPassword = insertPasswordDialogLayout.etPasswordInsert.text.toString()
-                            accountHolderModel.accountHolderQuestion = insertPasswordDialogLayout.etRecoveryQuestion.text.toString()
-                            accountHolderModel.accountHolderAnswer = insertPasswordDialogLayout.etRecoveryAnswer.text.toString()
+                            accountHolderModel.accountHolderPin = insertPasswordDialogLayout.etPasswordInsert.text.toString()
+                            accountHolderModel.accountHolderPinHint = insertPasswordDialogLayout.etPinHint.text.toString()
                             dbHandler.addAccountHolder(this, accountHolderModel)
                             viewAccountHolders()
 

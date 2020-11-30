@@ -5,5 +5,5 @@
     <string name="loan_application">Loan Application: </string>
     <string name="_25000">25000</string>
     <string name="shares">Shares: </string>
-    <string name="forgotPassword"><u>Forgot Password</u></string>
+    <string name="forgotPIN"><u>Forgot PIN</u></string>
 </resources>

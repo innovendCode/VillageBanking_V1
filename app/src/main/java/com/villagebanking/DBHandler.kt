@@ -6,8 +6,6 @@ import android.content.Context
 import android.content.DialogInterface
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.view.LayoutInflater
-import android.widget.EditText
 import android.widget.Toast
 import kotlinx.android.synthetic.main.dialog_add_account_holder.view.*
 import java.lang.Exception
@@ -25,12 +23,23 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val ACCOUNT_HOLDERS_ADMIN_COL = "admin"
         const val ACCOUNT_HOLDERS_PASSWORD_COL = "password"
         const val ACCOUNT_HOLDERS_PASSWORD_QUESTION_COL = "recovery_question"
-        const val ACCOUNT_HOLDERS_PASSWORD_ANSWER_COL = "recovery_answer"
         const val ACCOUNT_HOLDERS_CONTACT_COL = "contact_no"
         const val ACCOUNT_HOLDERS_BANK_INFO_COL = "account_info"
         const val ACCOUNT_HOLDERS_SHARE_COL = "pre_share"
         const val ACCOUNT_HOLDERS_LOAN_APP_COL = "loan_app"
 
+        const val TRANSACTION_TABLE = "account_holders"
+        const val TRANSACTION_ID_COL = "_id"
+        const val TRANSACTION_NAME_COL = "tr_name"
+        const val TRANSACTION_MONTH_COL = "month"
+        const val TRANSACTION_DATE_COL = "date"
+        const val TRANSACTION_SHARE_COL = "share"
+        const val TRANSACTION_LOAN_APP_COL = "loan"
+        const val TRANSACTION_LOAN_REPAYMENT_COL = "loan_repayment"
+        const val TRANSACTION_PENALTY_NAME_COL = "penalty"
+        const val TRANSACTION_PENALTY_COL = "penalty"
+        const val TRANSACTION_PENALTY_PAYMENT_COL = "penalty_repayment"
+        const val TRANSACTION_SHARE_OUT_COL = "current_share_out"
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
@@ -40,12 +49,25 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 "$ACCOUNT_HOLDERS_ADMIN_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_PASSWORD_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_PASSWORD_QUESTION_COL TEXT, " +
-                "$ACCOUNT_HOLDERS_PASSWORD_ANSWER_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_CONTACT_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_BANK_INFO_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_SHARE_COL INTEGER, " +
                 "$ACCOUNT_HOLDERS_LOAN_APP_COL DOUBLE(10,2))")
         db?.execSQL(createAccountHoldersTable)
+
+        val createTransactionTable = ("CREATE TABLE $TRANSACTION_TABLE (" +
+                "$TRANSACTION_ID_COL INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "$TRANSACTION_NAME_COL TEXT, " +
+                "$TRANSACTION_MONTH_COL DATE, " +
+                "$TRANSACTION_DATE_COL DATETIME, " +
+                "$TRANSACTION_SHARE_COL DOUBLE(10,2), " +
+                "$TRANSACTION_LOAN_APP_COL DOUBLE(10,2), " +
+                "$TRANSACTION_LOAN_REPAYMENT_COL DOUBLE(10,2), " +
+                "$TRANSACTION_PENALTY_NAME_COL DOUBLE(10,2), " +
+                "$TRANSACTION_PENALTY_COL DOUBLE(10,2), " +
+                "$TRANSACTION_PENALTY_PAYMENT_COL DOUBLE(10,2), " +
+                "$TRANSACTION_SHARE_OUT_COL DOUBLE(10,2))")
+        db?.execSQL(createTransactionTable)
     }
 
 
@@ -139,8 +161,26 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
             if (cursor.count > 0) {
                 val duplicateAdmin = AlertDialog.Builder(mContext)
-                        .setTitle("Duplicate Entry")
+                        .setTitle("Duplicate Admin")
                         .setMessage("You can only have one $admin")
+                        .setNegativeButton("Ok") { _: DialogInterface, _: Int ->
+                        }
+                duplicateAdmin.show()
+                return
+            }
+        }
+
+        //Adding first account
+        if (admin !== "Chairperson") {
+
+            val query = "SELECT * FROM $ACCOUNT_HOLDERS_TABLE"
+            val db = this.readableDatabase
+            val cursor = db.rawQuery(query, null)
+
+            if (cursor.count == 0) {
+                val duplicateAdmin = AlertDialog.Builder(mContext)
+                        .setTitle("Fist account")
+                        .setMessage("Chairperson must be the first account")
                         .setNegativeButton("Ok") { _: DialogInterface, _: Int ->
                         }
                 duplicateAdmin.show()
@@ -153,9 +193,8 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         contentValues.put(ACCOUNT_HOLDERS_ADMIN_COL, accountHolderModel.accountHoldersAdmin)
         contentValues.put(ACCOUNT_HOLDERS_CONTACT_COL, accountHolderModel.accountHolderContact)
         contentValues.put(ACCOUNT_HOLDERS_BANK_INFO_COL, accountHolderModel.accountHolderBankInfo)
-        contentValues.put(ACCOUNT_HOLDERS_PASSWORD_COL, accountHolderModel.accountHolderPassword)
-        contentValues.put(ACCOUNT_HOLDERS_PASSWORD_QUESTION_COL, accountHolderModel.accountHolderQuestion)
-        contentValues.put(ACCOUNT_HOLDERS_PASSWORD_ANSWER_COL, accountHolderModel.accountHolderAnswer)
+        contentValues.put(ACCOUNT_HOLDERS_PASSWORD_COL, accountHolderModel.accountHolderPin)
+        contentValues.put(ACCOUNT_HOLDERS_PASSWORD_QUESTION_COL, accountHolderModel.accountHolderPinHint)
         contentValues.put(ACCOUNT_HOLDERS_SHARE_COL, accountHolderModel.accountHoldersShare)
         contentValues.put(ACCOUNT_HOLDERS_LOAN_APP_COL, accountHolderModel.accountHoldersLoanApp)
 
@@ -179,10 +218,28 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
     }
 
 
+    fun postShare(mContext: Context, accountHolderModel: AccountHolderModel){
+        val contentValues = ContentValues()
+        contentValues.put(ACCOUNT_HOLDERS_SHARE_COL, accountHolderModel.accountHoldersShare)
+        val db = writableDatabase
+        db.insert(ACCOUNT_HOLDERS_TABLE, null,contentValues)
+        db.close()
+    }
+
+    fun postLoanApplication(mContext: Context, accountHolderModel: AccountHolderModel){
+        val contentValues = ContentValues()
+        contentValues.put(ACCOUNT_HOLDERS_LOAN_APP_COL, accountHolderModel.accountHoldersLoanApp)
+        val db = writableDatabase
+        db.insert(ACCOUNT_HOLDERS_TABLE, null,contentValues)
+        db.close()
+    }
+
 
     fun delAllAccountHolders(mContext: Context){
         val db = this.writableDatabase
         db.delete(ACCOUNT_HOLDERS_TABLE, null, null)
         db.close()
     }
+
+
 }
