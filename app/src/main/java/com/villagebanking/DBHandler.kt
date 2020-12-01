@@ -28,7 +28,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val ACCOUNT_HOLDERS_SHARE_COL = "pre_share"
         const val ACCOUNT_HOLDERS_LOAN_APP_COL = "loan_app"
 
-        const val TRANSACTION_TABLE = "account_holders"
+        const val TRANSACTION_TABLE = "transactions"
         const val TRANSACTION_ID_COL = "_id"
         const val TRANSACTION_NAME_COL = "tr_name"
         const val TRANSACTION_MONTH_COL = "month"
@@ -36,7 +36,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val TRANSACTION_SHARE_COL = "share"
         const val TRANSACTION_LOAN_APP_COL = "loan"
         const val TRANSACTION_LOAN_REPAYMENT_COL = "loan_repayment"
-        const val TRANSACTION_PENALTY_NAME_COL = "penalty"
+        const val TRANSACTION_PENALTY_NAME_COL = "penalty_name"
         const val TRANSACTION_PENALTY_COL = "penalty"
         const val TRANSACTION_PENALTY_PAYMENT_COL = "penalty_repayment"
         const val TRANSACTION_SHARE_OUT_COL = "current_share_out"
@@ -53,7 +53,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 "$ACCOUNT_HOLDERS_BANK_INFO_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_SHARE_COL INTEGER, " +
                 "$ACCOUNT_HOLDERS_LOAN_APP_COL DOUBLE(10,2))")
-        db?.execSQL(createAccountHoldersTable)
+
 
         val createTransactionTable = ("CREATE TABLE $TRANSACTION_TABLE (" +
                 "$TRANSACTION_ID_COL INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -67,12 +67,16 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 "$TRANSACTION_PENALTY_COL DOUBLE(10,2), " +
                 "$TRANSACTION_PENALTY_PAYMENT_COL DOUBLE(10,2), " +
                 "$TRANSACTION_SHARE_OUT_COL DOUBLE(10,2))")
+        db?.execSQL(createAccountHoldersTable)
         db?.execSQL(createTransactionTable)
     }
 
 
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
+        db?.execSQL("DROP TABLE IF EXISTS $ACCOUNT_HOLDERS_TABLE;")
+        db?.execSQL("DROP TABLE IF EXISTS $ACCOUNT_HOLDERS_TABLE;")
+        onCreate(db)
     }
 
 

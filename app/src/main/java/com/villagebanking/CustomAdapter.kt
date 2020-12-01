@@ -1,18 +1,16 @@
 package com.villagebanking
 
-import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.android.synthetic.main.main_row_layout.view.*
 import kotlinx.android.synthetic.main.main_row_layout.view.tvName
-import kotlinx.android.synthetic.main.posts_applications.view.*
 
 
 class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList<AccountHolderModel>): RecyclerView.Adapter<CustomAdapter.ViewHolder>() {
@@ -34,35 +32,9 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
         init {
             itemView.setOnClickListener {
 
-                    val postAndApplicationDialogLayout = LayoutInflater.from(itemView.context).inflate(R.layout.posts_applications, null)
-                    val postAndApplicationDialog = AlertDialog.Builder(itemView.context)
-                            .setView(postAndApplicationDialogLayout)
-                            .setTitle(tvName.text)
+               val intent = Intent(itemView.context, AccountDetails::class.java)
 
-                postAndApplicationDialogLayout.tvBankDetails.text = tvAccountInfo.text.toString()
-                postAndApplicationDialogLayout.tvContactNoDetails.text = tvContact.text.toString()
-                val showMemberDetailsDialog = postAndApplicationDialog.show()
-
-                val accountHolderModel = AccountHolderModel()
-                val etPreShare: EditText = postAndApplicationDialogLayout.etPreShare
-                var share = accountHolderModel.accountHoldersShare
-
-                postAndApplicationDialogLayout.btnPost.setOnClickListener {
-
-
-
-
-                }
-
-
-
-
-
-
-
-
-
-
+               itemView.context.startActivity(intent)
 
             }
             }
