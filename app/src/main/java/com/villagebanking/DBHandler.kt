@@ -213,31 +213,6 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
     }
 
 
-    fun delAllAccountHoldersPermissions(mContext: Context){
-        val db = this.readableDatabase
-        val query = "SELECT * FROM $ACCOUNT_HOLDERS_TABLE WHERE " +
-                "$ACCOUNT_HOLDERS_ADMIN_COL = 'Chairperson'"
-        val cursor = db.rawQuery(query, null)
-
-    }
-
-
-    fun postShare(mContext: Context, accountHolderModel: AccountHolderModel){
-        val contentValues = ContentValues()
-        contentValues.put(ACCOUNT_HOLDERS_SHARE_COL, accountHolderModel.accountHoldersShare)
-        val db = writableDatabase
-        db.insert(ACCOUNT_HOLDERS_TABLE, null,contentValues)
-        db.close()
-    }
-
-    fun postLoanApplication(mContext: Context, accountHolderModel: AccountHolderModel){
-        val contentValues = ContentValues()
-        contentValues.put(ACCOUNT_HOLDERS_LOAN_APP_COL, accountHolderModel.accountHoldersLoanApp)
-        val db = writableDatabase
-        db.insert(ACCOUNT_HOLDERS_TABLE, null,contentValues)
-        db.close()
-    }
-
 
     fun delAllAccountHolders(mContext: Context){
         val db = this.writableDatabase

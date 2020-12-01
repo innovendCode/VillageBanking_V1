@@ -73,6 +73,8 @@ class MainActivity : AppCompatActivity() {
             }else{
                 Toast.makeText(this, "Hint not found", Toast.LENGTH_LONG).show()
             }
+            cursor.close()
+            db.close()
         }
     }
 
@@ -89,6 +91,8 @@ class MainActivity : AppCompatActivity() {
                     .setNeutralButton("OK") { _:DialogInterface, _: Int -> }
             firstTimeAlert.show()
         }
+        cursor.close()
+        db.close()
     }
 
     private fun dbLogin(){
@@ -110,6 +114,8 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Invalid PIN", Toast.LENGTH_SHORT).show()
             etPIN.text.clear()
         }
+        cursor.close()
+        db.close()
     }
 
     private fun num1(){
