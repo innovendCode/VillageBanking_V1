@@ -195,16 +195,14 @@ class AccountHolders: AppCompatActivity() {
                             accountHolderModel.accountHolderPinHint = insertPasswordDialogLayout.etPinHint.text.toString()
                             dbHandler.addAccountHolder(this, accountHolderModel)
                             viewAccountHolders()
+                                    addAccountHolderDialogLayout.etFullNames.text.clear()
+                                    addAccountHolderDialogLayout.etContactNo.text.clear()
+                                    addAccountHolderDialogLayout.etAccountInfo.text.clear()
+                                    addAccountHolderDialogLayout.etFullNames.requestFocus()
+                                    showAddAccountHolderDialog.dismiss()
+                  }
 
-                            addAccountHolderDialogLayout.etFullNames.text.clear()
-                            addAccountHolderDialogLayout.etContactNo.text.clear()
-                            addAccountHolderDialogLayout.etAccountInfo.text.clear()
-                            addAccountHolderDialogLayout.etFullNames.requestFocus()
-                            showInsertPasswordDialog.dismiss()
-                        }
-
-                    }else {
-
+                    }else{
                         val accountHolderModel = AccountHolderModel()
                         accountHolderModel.accountHoldersName = addAccountHolderDialogLayout.etFullNames.text.toString()
                         accountHolderModel.accountHoldersAdmin = selectedAdmin
@@ -218,8 +216,6 @@ class AccountHolders: AppCompatActivity() {
                         addAccountHolderDialogLayout.etAccountInfo.text.clear()
                         addAccountHolderDialogLayout.etFullNames.requestFocus()
                     }
-
-
                 }
             }
             R.id.delAllAccountHolders ->{
@@ -241,7 +237,6 @@ class AccountHolders: AppCompatActivity() {
 
         return true
     }
-
 
 
 

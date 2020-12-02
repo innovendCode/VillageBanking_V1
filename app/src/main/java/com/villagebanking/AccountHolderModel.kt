@@ -1,6 +1,7 @@
 package com.villagebanking
 
 class AccountHolderModel {
+    var accountHoldersID: Int= 0
     var accountHoldersName: String = ""
     var accountHoldersAdmin: String = ""
     var accountHolderContact: String = ""

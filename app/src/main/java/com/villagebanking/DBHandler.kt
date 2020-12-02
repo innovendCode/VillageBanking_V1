@@ -6,6 +6,8 @@ import android.content.Context
 import android.content.DialogInterface
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
+import android.view.LayoutInflater
 import android.widget.Toast
 import kotlinx.android.synthetic.main.dialog_add_account_holder.view.*
 import java.lang.Exception
@@ -90,6 +92,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             Toast.makeText(mContext, "No Account Found", Toast.LENGTH_SHORT).show() else
         {while (cursor.moveToNext()){
             val accountHolders = AccountHolderModel()
+            accountHolders.accountHoldersID = cursor.getInt(cursor.getColumnIndex(ACCOUNT_HOLDERS_ID_COL))
             accountHolders.accountHoldersName = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_NAME_COL))
             accountHolders.accountHoldersAdmin = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ADMIN_COL))
             accountHolders.accountHoldersShare = cursor.getInt(cursor.getColumnIndex(ACCOUNT_HOLDERS_SHARE_COL))
@@ -117,6 +120,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             Toast.makeText(mContext, "No Account Found", Toast.LENGTH_SHORT).show() else
         {while (cursor.moveToNext()){
             val accountAdmins = AccountHolderModel()
+            accountAdmins.accountHoldersID = cursor.getInt(cursor.getColumnIndex(ACCOUNT_HOLDERS_ID_COL))
             accountAdmins.accountHoldersName = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_NAME_COL))
             accountAdmins.accountHoldersAdmin = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ADMIN_COL))
             accountAdmins.accountHoldersShare = cursor.getInt(cursor.getColumnIndex(ACCOUNT_HOLDERS_SHARE_COL))
@@ -137,7 +141,6 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
 
     fun addAccountHolder (mContext: Context, accountHolderModel: AccountHolderModel){
-
         val name = accountHolderModel.accountHoldersName
 
         //Check for duplicate Name
@@ -153,6 +156,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             duplicateName.show()
             return
         }
+
 
         //Check for duplicate Chairperson account
         val admin = accountHolderModel.accountHoldersAdmin
@@ -205,13 +209,40 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
        db = this.writableDatabase
         try {
             db.insert(ACCOUNT_HOLDERS_TABLE, null, contentValues)
-            Toast.makeText(mContext, "Member added",Toast.LENGTH_SHORT).show()
+            Toast.makeText(mContext, "Account Creation Successful",Toast.LENGTH_SHORT).show()
         } catch (e : Exception){
             Toast.makeText(mContext, e.message,Toast.LENGTH_SHORT).show()
         }
             db.close()
     }
 
+
+    fun submitShares(mContext: Context, accountHolderModel: AccountHolderModel){
+        val contentValues = ContentValues()
+        contentValues.put(TRANSACTION_NAME_COL, accountHolderModel.accountHoldersName)
+        contentValues.put(TRANSACTION_SHARE_COL, accountHolderModel.accountHoldersShare)
+
+        val db = this.writableDatabase
+
+        db.insert(TRANSACTION_TABLE, null, contentValues)
+        db.close()
+        Toast.makeText(mContext, "Share received",Toast.LENGTH_SHORT).show()
+    }
+
+
+
+    fun delAccount(AccountID : Int): Boolean {
+        val db = writableDatabase
+        var result : Boolean = false
+        try{
+            val cursor = db.delete(ACCOUNT_HOLDERS_TABLE, "$ACCOUNT_HOLDERS_ID_COL = ?", arrayOf(AccountID.toString()))
+            result = true
+        }catch (e : Exception){
+            Log.e(ContentValues.TAG, "Something ent wrong. Cannot Delete")
+        }
+        db.close()
+        return result
+    }
 
 
     fun delAllAccountHolders(mContext: Context){

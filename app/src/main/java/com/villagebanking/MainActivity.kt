@@ -1,6 +1,7 @@
 package com.villagebanking
 
 
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
@@ -273,5 +274,13 @@ class MainActivity : AppCompatActivity() {
             etPIN.text.clear()
         }
     }
+
+    fun delAll(){
+        val db = dbHandler.writableDatabase
+        db.delete(DBHandler.ACCOUNT_HOLDERS_TABLE, null, null)
+        db.close()
+    }
+
+
 
 }
