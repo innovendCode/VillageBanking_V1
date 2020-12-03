@@ -1,19 +1,21 @@
 package com.villagebanking
 
 
-import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.icu.text.SimpleDateFormat
+import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.dialog_insert_password.*
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -22,6 +24,7 @@ class MainActivity : AppCompatActivity() {
         lateinit var dbHandler: DBHandler
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -77,6 +80,24 @@ class MainActivity : AppCompatActivity() {
             cursor.close()
             db.close()
         }
+
+
+        btnTest.setOnClickListener {
+
+
+            val date = Calendar.getInstance().time
+            val formatter = SimpleDateFormat("MMMM yyyy") //or use getDateInstance()
+            val formattedDate = formatter.format(date)
+
+
+            //val c = Calendar.getInstance()
+            //val month = c.get(Calendar.MONTH)
+
+            Toast.makeText(this, formattedDate.toString(), Toast.LENGTH_SHORT).show()
+
+        }
+
+
     }
 
 

@@ -107,7 +107,7 @@ class AccountHolders: AppCompatActivity() {
                         "Money Counter 2",
                         "Account Holder"
                 )
-                val arrayAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, admin)
+                val arrayAdapter = ArrayAdapter(this, android.R.layout.simple_selectable_list_item, admin)
                 addAccountHolderDialogLayout.spAdministrators.adapter = arrayAdapter
 
                 var selectedAdmin = ""
@@ -157,6 +157,7 @@ class AccountHolders: AppCompatActivity() {
                                 .setMessage("Chairperson access PIN required")
                                 .setView(insertPasswordDialogLayout)
                         val showInsertPasswordDialog = insertPasswordDialog.show()
+                        insertPasswordDialogLayout.etPasswordInsert.requestFocus()
 
                         insertPasswordDialogLayout.btnEnterPassword.setOnClickListener {
                             if(insertPasswordDialogLayout.etPasswordInsert.text.isEmpty()){
@@ -174,7 +175,6 @@ class AccountHolders: AppCompatActivity() {
                                 return@setOnClickListener
                             }
 
-
                             if(insertPasswordDialogLayout.etPasswordInsert.text.toString() != insertPasswordDialogLayout.etPasswordRepeat.text.toString()){
                                 Toast.makeText(this,"PIN and repeat PIN do not match. Re-type", Toast.LENGTH_LONG).show()
                                 return@setOnClickListener
@@ -184,7 +184,6 @@ class AccountHolders: AppCompatActivity() {
                                 Toast.makeText(this,"PIN should be 4 digits", Toast.LENGTH_LONG).show()
                                 return@setOnClickListener
                             }
-
 
                             val accountHolderModel = AccountHolderModel()
                             accountHolderModel.accountHoldersName = addAccountHolderDialogLayout.etFullNames.text.toString()
@@ -200,6 +199,7 @@ class AccountHolders: AppCompatActivity() {
                                     addAccountHolderDialogLayout.etAccountInfo.text.clear()
                                     addAccountHolderDialogLayout.etFullNames.requestFocus()
                                     showAddAccountHolderDialog.dismiss()
+                                    showInsertPasswordDialog.dismiss()
                   }
 
                     }else{
