@@ -11,8 +11,8 @@ import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.android.synthetic.main.delete_confirmation.view.*
+import kotlinx.android.synthetic.main.dialog_posts.view.*
 import kotlinx.android.synthetic.main.main_row_layout.view.*
 import kotlinx.android.synthetic.main.main_row_layout.view.tvName
 
@@ -104,8 +104,39 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
         }
 
         holder.btnProcess?.setOnClickListener {
-            MainActivity.dbHandler.approveShares(mContext, accountHolderModelPosition)
+
+            val postsDialogLayout = LayoutInflater.from(mContext).inflate(R.layout.dialog_posts, null)
+            val etPostsShares : EditText = postsDialogLayout.etPostsShares
+            val etPostsLoanApplication : EditText = postsDialogLayout.etPostsLoanApplication
+            val tvPostsName = accountHolderModelPosition.accountHoldersName
+
+            etPostsShares.setText(accountHolderModelPosition.accountHoldersShare.toString())
+            etPostsLoanApplication.setText(accountHolderModelPosition.accountHoldersLoanApp.toString())
+
+            val alertDialog = AlertDialog.Builder(mContext)
+                    .setTitle(tvPostsName)
+                    .setIcon(R.drawable.ic_money)
+                    .setView(postsDialogLayout)
+                    .setPositiveButton("Post") {_:DialogInterface, _: Int ->
+
+                        val update : Boolean = MainActivity.dbHandler.acceptShare(accountHolderModelPosition.accountHoldersID.toString(),
+                                postsDialogLayout.etPostsShares.text.toString(),
+                                postsDialogLayout.etPostsLoanApplication.text.toString())
+
+                        if(update) {
+                            accountHolderModel[position].accountHoldersShare = etPostsShares.text.toString().toInt()
+                            accountHolderModel[position].accountHoldersLoanApp = etPostsLoanApplication.text.toString().toDouble()
+                        }
+                    }
+                    .setNegativeButton("Cancel") {_:DialogInterface, _: Int ->
+                    }
+            alertDialog.show()
         }
+
+
+
+
+
     }
 
 

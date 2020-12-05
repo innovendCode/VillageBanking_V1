@@ -9,12 +9,10 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.icu.text.SimpleDateFormat
 import android.os.Build
 import android.util.Log
-import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import kotlinx.android.synthetic.main.dialog_add_account_holder.view.*
-import java.lang.Exception
 import java.util.*
+import kotlin.Exception
 import kotlin.collections.ArrayList
 
 class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorFactory?, version: Int):
@@ -246,6 +244,33 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         db.delete(ACCOUNT_HOLDERS_TABLE, null, null)
         db.close()
     }
+
+
+
+
+
+
+
+    fun acceptShare(AccountID: String, sharePost: String, loanApplication: String) : Boolean {
+        val db = writableDatabase
+        val contentValues = ContentValues()
+        var result : Boolean = false
+        contentValues.put(ACCOUNT_HOLDERS_SHARE_COL, sharePost)
+        contentValues.put(ACCOUNT_HOLDERS_LOAN_APP_COL, loanApplication)
+        try {
+            db.update(ACCOUNT_HOLDERS_TABLE, contentValues, "$ACCOUNT_HOLDERS_ID_COL = ?", arrayOf(AccountID))
+        } catch (e: Exception){
+            Log.e(ContentValues.TAG, "Error accepting post")
+            result = false
+        }
+    return result
+    }
+
+
+
+
+
+
 
 
     @RequiresApi(Build.VERSION_CODES.N)

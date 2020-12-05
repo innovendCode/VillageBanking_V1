@@ -1,6 +1,7 @@
 package com.villagebanking
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -49,7 +50,7 @@ class AccountHolders: AppCompatActivity() {
     }
 
 
-   private fun viewAccountHolders(){
+   fun viewAccountHolders(){
         val accountHoldersList = dbHandler.getAccountHolders(this)
         val adapter = CustomAdapter(this, accountHoldersList)
         val rv: RecyclerView = recyclerView
@@ -122,12 +123,9 @@ class AccountHolders: AppCompatActivity() {
 
                 }
 
-
                 addAccountHolderDialogLayout.btnCancel.setOnClickListener {
                     showAddAccountHolderDialog.dismiss()
                 }
-
-
 
 
                 addAccountHolderDialogLayout.btnAddAccountHolder.setOnClickListener {

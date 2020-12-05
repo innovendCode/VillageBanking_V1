@@ -1,5 +1,8 @@
 package com.villagebanking
 
+import java.time.DateTimeException
+import java.util.*
+
 class AccountHolderModel {
     var accountHoldersID: Int= 0
     var accountHoldersName: String = ""
@@ -13,6 +16,7 @@ class AccountHolderModel {
 
     var transactionID: Int = 0
     var transactionName: String = ""
+    var transactionMonth: String = ""
 
 }
 
