@@ -97,7 +97,6 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
     }
 
 
-
     fun getAccountHolders(mContext: Context): ArrayList<AccountHolderModel>{
         val query = "SELECT * FROM $ACCOUNT_HOLDERS_TABLE"
         val db = this.readableDatabase
@@ -267,6 +266,27 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
     }
 
 
+
+
+
+    fun getTransactions(mContext2: Context): ArrayList<TransactionsModel>{
+        val query = "SELECT * FROM $TRANSACTION_TABLE"
+        val db = this.readableDatabase
+        val cursor = db.rawQuery(query, null)
+        val transactionsModel = ArrayList<TransactionsModel>()
+        if(cursor.count == 0)
+            Toast.makeText(mContext2, "No Transactions Found", Toast.LENGTH_SHORT).show() else
+        {while (cursor.moveToNext()){
+            val transactions = TransactionsModel()
+            transactions.transactionID = cursor.getInt(cursor.getColumnIndex(TRANSACTION_ID_COL))
+            transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(TRANSACTION_MONTH_COL))
+            transactionsModel.add(transactions)
+        }
+        }
+        cursor.close()
+        db.close()
+        return transactionsModel
+    }
 
 
 

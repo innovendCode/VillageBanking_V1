@@ -142,7 +142,7 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
 
 
     override fun getItemCount(): Int {
-        return  accountHolderModel.size
+        return accountHolderModel.size
     }
 
 

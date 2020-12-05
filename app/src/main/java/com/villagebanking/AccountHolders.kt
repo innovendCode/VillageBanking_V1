@@ -1,7 +1,6 @@
 package com.villagebanking
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -50,10 +49,10 @@ class AccountHolders: AppCompatActivity() {
     }
 
 
-   fun viewAccountHolders(){
+   private fun viewAccountHolders(){
         val accountHoldersList = dbHandler.getAccountHolders(this)
         val adapter = CustomAdapter(this, accountHoldersList)
-        val rv: RecyclerView = recyclerView
+        val rv: RecyclerView = recyclerView1
         rv.setHasFixedSize(true)
         rv.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false) as RecyclerView.LayoutManager
         rv.adapter = adapter
@@ -62,7 +61,7 @@ class AccountHolders: AppCompatActivity() {
     private fun viewAccountAdmins(){
         val accountAdminList = dbHandler.getAccountAdmins(this)
         val adapter = CustomAdapter(this, accountAdminList)
-        val rv: RecyclerView = recyclerView
+        val rv: RecyclerView = recyclerView1
         rv.setHasFixedSize(true)
         rv.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false) as RecyclerView.LayoutManager
         rv.adapter = adapter
