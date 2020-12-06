@@ -6,12 +6,8 @@ import android.content.Context
 import android.content.DialogInterface
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.icu.text.SimpleDateFormat
-import android.os.Build
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.RequiresApi
-import java.util.*
 import kotlin.Exception
 import kotlin.collections.ArrayList
 
@@ -37,7 +33,8 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val TRANSACTION_ID_COL = "_id"
         const val TRANSACTION_NAME_COL = "tr_name"
         const val TRANSACTION_MONTH_COL = "month"
-        const val TRANSACTION_DATE_COL = "date"
+        const val TRANSACTION_DATE_SHARE_COL = "share_date"
+        const val TRANSACTION_DATE_LOAN_COL = "Loan_date"
         const val TRANSACTION_SHARE_COL = "share"
         const val TRANSACTION_LOAN_APP_COL = "loan"
         const val TRANSACTION_LOAN_REPAYMENT_COL = "loan_repayment"
@@ -51,6 +48,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val SETTINGS_SHARE_VALUE_COL = "share_value"
         const val SETTINGS_INTEREST_RATE_COL = "interest_rate"
     }
+
 
     override fun onCreate(db: SQLiteDatabase?) {
         val createAccountHoldersTable = ("CREATE TABLE $ACCOUNT_HOLDERS_TABLE (" +
@@ -69,7 +67,8 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 "$TRANSACTION_ID_COL INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "$TRANSACTION_NAME_COL TEXT, " +
                 "$TRANSACTION_MONTH_COL DATE, " +
-                "$TRANSACTION_DATE_COL DATETIME, " +
+                "$TRANSACTION_DATE_SHARE_COL DATETIME, " +
+                "$TRANSACTION_DATE_LOAN_COL DATETIME, " +
                 "$TRANSACTION_SHARE_COL DOUBLE(10,2), " +
                 "$TRANSACTION_LOAN_APP_COL DOUBLE(10,2), " +
                 "$TRANSACTION_LOAN_REPAYMENT_COL DOUBLE(10,2), " +
@@ -87,7 +86,6 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         db?.execSQL(createAccountHoldersTable)
         db?.execSQL(createTransactionTable)
     }
-
 
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
@@ -241,13 +239,9 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
     fun delAllAccountHolders(mContext: Context){
         val db = this.writableDatabase
         db.delete(ACCOUNT_HOLDERS_TABLE, null, null)
+        db.delete(TRANSACTION_TABLE, null,null)
         db.close()
     }
-
-
-
-
-
 
 
     fun acceptShare(AccountID: String, sharePost: String, loanApplication: String) : Boolean {
@@ -269,64 +263,10 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
 
 
-    fun getTransactions(mContext2: Context): ArrayList<TransactionsModel>{
-        val query = "SELECT * FROM $TRANSACTION_TABLE"
-        val db = this.readableDatabase
-        val cursor = db.rawQuery(query, null)
-        val transactionsModel = ArrayList<TransactionsModel>()
-        if(cursor.count == 0)
-            Toast.makeText(mContext2, "No Transactions Found", Toast.LENGTH_SHORT).show() else
-        {while (cursor.moveToNext()){
-            val transactions = TransactionsModel()
-            transactions.transactionID = cursor.getInt(cursor.getColumnIndex(TRANSACTION_ID_COL))
-            transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(TRANSACTION_MONTH_COL))
-            transactionsModel.add(transactions)
-        }
-        }
-        cursor.close()
-        db.close()
-        return transactionsModel
-    }
 
 
 
 
-
-
-    @RequiresApi(Build.VERSION_CODES.N)
-    fun approveShares(mContext: Context, accountHolderModel: AccountHolderModel){
-
-        val date = Calendar.getInstance().time
-        val monthFormat = SimpleDateFormat("MMMM yyyy") //or use getDateInstance()
-        val transactionMonth = monthFormat.format(date)
-
-        val dateFormat = SimpleDateFormat.getDateInstance()
-        val transactionDate = dateFormat.format(date)
-
-        val name = accountHolderModel.accountHoldersName
-
-        val query = "SELECT * FROM $TRANSACTION_TABLE WHERE $TRANSACTION_NAME_COL = '$name' AND $TRANSACTION_MONTH_COL = '$transactionMonth'"
-        var db = this.readableDatabase
-        val cursor = db.rawQuery(query, null)
-
-        if(cursor.count > 0){
-            Toast.makeText(mContext, "$name has already been received", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-
-
-
-
-        val contentValues = ContentValues()
-        contentValues.put(TRANSACTION_NAME_COL, accountHolderModel.accountHoldersName)
-        contentValues.put(TRANSACTION_SHARE_COL, accountHolderModel.accountHoldersShare)
-        contentValues.put(TRANSACTION_MONTH_COL, transactionMonth)
-        contentValues.put(TRANSACTION_DATE_COL, transactionDate)
-
-        db = this.writableDatabase
-        db.insert(TRANSACTION_TABLE, null, contentValues)
-    }
 
 
 }

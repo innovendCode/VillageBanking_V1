@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/sharesPayment"
+        android:icon="@drawable/ic_settings"
+        android:title="Shares Collected"/>
+
+    <item
+        android:id="@+id/loanPayOut"
+        android:icon="@drawable/ic_forward"
+        android:title="Loan Payout"/>
+
+    <item
+        android:id="@+id/loanPayment"
+        android:icon="@drawable/ic_forward"
+        android:title="Loan Repayment"/>
+
+</menu>

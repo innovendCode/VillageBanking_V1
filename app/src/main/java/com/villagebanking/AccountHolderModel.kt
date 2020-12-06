@@ -13,6 +13,14 @@ class AccountHolderModel {
     var accountHolderPinHint: String = ""
     var accountHoldersShare: Int = 0
     var accountHoldersLoanApp: Double = 0.0
+
+    var transactionID: Int = 0
+    var transactionName: String = ""
+    var transactionMonth: String = ""
+    var transactionShares: Int = 0
+    var transactionShareDate: String = ""
+    var transactionLoan: Double = 0.0
+    var transactionLoanDate: String = ""
 }
 
 
