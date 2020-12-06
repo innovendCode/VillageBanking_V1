@@ -45,7 +45,7 @@ class AccountDetails : AppCompatActivity() {
         tvDetailsLoan.text = loan
 
         viewTransactions()
-
+        getBankingDetails()
 
         val actionBar = supportActionBar
         actionBar!!.title = "Transactions"
@@ -97,6 +97,8 @@ class AccountDetails : AppCompatActivity() {
             transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
             transactions.transactionShares = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
             transactions.transactionLoan = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
+            transactions.transactionLoanDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_DATE_LOAN_COL))
+            transactions.transactionShareDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_DATE_SHARE_COL))
             transactionsModel.add(transactions)
         }
         }
@@ -115,23 +117,34 @@ class AccountDetails : AppCompatActivity() {
     }
 
 
+
+    private fun getBankingDetails(){
+        val tvDetailsAccountInfo : TextView = tvDetailsAccountInfo
+        val name = tvDetailsName.text
+        val queue = "SELECT ${DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL} FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = '$name'"
+        val db = dbHandler.writableDatabase
+        val cursor = db.rawQuery(queue, null)
+
+        if (cursor.moveToFirst()){
+            val bankDetails = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL))
+            tvDetailsAccountInfo.text = bankDetails
+        }else{
+
+            Toast.makeText(this, "Error finding banking info", Toast.LENGTH_SHORT).show()
+        }
+
+
+
+    }
+
+
     @SuppressLint("SimpleDateFormat")
     @RequiresApi(Build.VERSION_CODES.N)
     fun shareCollected(accountHolderModel: AccountHolderModel){
 
         val name = tvDetailsName.text
         val loan = tvDetailsLoan.text
-        //Restrict Zero Share Contribution
-        //User alert dialog that could be seen
-        if(tvDetailsShares.text.toString() == "0"){
-            val alertDialog = AlertDialog.Builder(this)
-                    .setTitle("Information - (0)Zero Shares Error")
-                    .setMessage("You cannot submit (0)zero shares. Shares value must be a minimum of (1)one")
-                    .setIcon(R.drawable.ic_info)
-                    .setNegativeButton("OK") {_:DialogInterface, _: Int ->}
-            alertDialog.show()
-            return
-        }
+
             //Format date to Month Year
             //Get month to insert
         val date = Calendar.getInstance().time
@@ -157,6 +170,20 @@ class AccountDetails : AppCompatActivity() {
             Toast.makeText(this, "${tvDetailsName.text.toString()}'s shares already received", Toast.LENGTH_SHORT).show()
             return
         }
+
+
+        //Restrict Zero Share Contribution
+        //User alert dialog that could be seen
+        if(tvDetailsShares.text.toString() == "0"){
+            val alertDialog = AlertDialog.Builder(this)
+                    .setTitle("Information - (0)Zero Shares Error")
+                    .setMessage("You cannot submit (0)zero shares. Shares value must be a minimum of (1)one")
+                    .setIcon(R.drawable.ic_info)
+                    .setNegativeButton("OK") {_:DialogInterface, _: Int ->}
+            alertDialog.show()
+            return
+        }
+
             //Insert Shares for current month
             //To reverse shares month has to be deletes
             //Date and time included for zero loan. Loan is always an updated entry
@@ -166,7 +193,6 @@ class AccountDetails : AppCompatActivity() {
             contentValues.put(DBHandler.TRANSACTION_SHARE_COL, tvDetailsShares.text.toString())
             contentValues.put(DBHandler.TRANSACTION_MONTH_COL, transactionMonth)
             contentValues.put(DBHandler.TRANSACTION_DATE_SHARE_COL, transactionDate)
-            contentValues.put(DBHandler.TRANSACTION_LOAN_APP_COL, loan.toString())
             contentValues.put(DBHandler.TRANSACTION_DATE_LOAN_COL, transactionDate)
             db.insert(DBHandler.TRANSACTION_TABLE, null, contentValues)
             viewTransactions()
@@ -245,6 +271,7 @@ class AccountDetails : AppCompatActivity() {
         db.update(DBHandler.ACCOUNT_HOLDERS_TABLE, contentValues, "${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = '$name'", arrayOf())
         Toast.makeText(this, "$name 's loan application paid out", Toast.LENGTH_SHORT).show()
         db.close()
+        viewTransactions()
     }
 
 }

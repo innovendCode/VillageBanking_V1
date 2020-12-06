@@ -15,6 +15,8 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
         val tvTransactionMonth : TextView = itemView.tvTransactionMonth
         val tvTransactionShares : TextView = itemView.tvTransactionShares
         val tvTransactionLoan : TextView = itemView.tvTransactionLoan
+        val tvTransactionShareDate : TextView = itemView.tvTransactionShareDate
+        val tvTransactionLoanDate : TextView = itemView.tvTransactionLoanDate
 
     }
 
@@ -29,6 +31,8 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
         holder.tvTransactionMonth.text = transactionsModelPosition.transactionMonth
         holder.tvTransactionShares.text = transactionsModelPosition.transactionShares.toString()
         holder.tvTransactionLoan.text = transactionsModelPosition.transactionLoan.toString()
+        holder.tvTransactionLoanDate.text = transactionsModelPosition.transactionLoanDate
+        holder.tvTransactionShareDate.text = transactionsModelPosition.transactionShareDate
     }
 
     override fun getItemCount(): Int {
