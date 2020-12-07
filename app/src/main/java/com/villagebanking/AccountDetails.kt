@@ -157,7 +157,6 @@ class AccountDetails : AppCompatActivity() {
     fun shareCollected(accountHolderModel: AccountHolderModel){
 
         val name = tvDetailsName.text
-        val loan = tvDetailsLoan.text
 
             //Format date to Month Year
             //Get month to insert
@@ -273,6 +272,7 @@ class AccountDetails : AppCompatActivity() {
         db.update(DBHandler.ACCOUNT_HOLDERS_TABLE, contentValues, "${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = '$name'", arrayOf())
         Toast.makeText(this, "$name 's share investment submitted", Toast.LENGTH_SHORT).show()
         db.close()
+        tvDetailsShares.text = "0"
     }
 
 
@@ -286,6 +286,7 @@ class AccountDetails : AppCompatActivity() {
         Toast.makeText(this, "$name 's loan application paid out", Toast.LENGTH_SHORT).show()
         db.close()
         viewTransactions()
+        tvDetailsLoan.text = "0.0"
     }
 
 }

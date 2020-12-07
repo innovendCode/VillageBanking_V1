@@ -39,22 +39,4 @@
         android:id="@+id/spAdministrators"
         android:layout_marginTop="20dp"/>
 
-    <Button
-        android:id="@+id/btnAddAccountHolder"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:textSize="16dp"
-        android:textAllCaps="false"
-        android:text="Submit Details"
-        android:layout_marginTop="20dp"/>
-
-    <Button
-        android:id="@+id/btnCancel"
-        android:layout_width="match_parent"
-        android:textSize="16dp"
-        android:layout_height="60dp"
-        android:textAllCaps="false"
-        android:text="Cancel"
-        android:layout_marginTop="20dp"/>
-
 </LinearLayout>

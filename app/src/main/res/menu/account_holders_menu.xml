@@ -15,12 +15,6 @@
         app:showAsAction="always"/>
 
     <item
-        android:id="@+id/delAllAccountHolders"
-        android:title="Delete All"
-        app:showAsAction="always"
-        android:icon="@drawable/ic_delete_all"/>
-
-    <item
         android:id="@+id/ViewAll"
         android:title="All Accounts"
         android:icon="@drawable/ic_view_all"/>
@@ -47,7 +41,10 @@
         </menu>
     </item>
 
-
+    <item
+        android:id="@+id/delAllAccountHolders"
+        android:title="Delete All"
+        android:icon="@drawable/ic_delete_all"/>
 
 
 </menu>

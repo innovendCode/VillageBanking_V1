@@ -1,6 +1,8 @@
 package com.villagebanking
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -39,8 +41,8 @@ class AccountHolders: AppCompatActivity() {
         val actionBar = supportActionBar
         actionBar!!.title = "Accounts"
         actionBar.setDisplayHomeAsUpEnabled(true)
-
     }
+
 
 
     override fun onResume() {
@@ -49,7 +51,8 @@ class AccountHolders: AppCompatActivity() {
     }
 
 
-   private fun viewAccountHolders(){
+
+    private fun viewAccountHolders(){
         val accountHoldersList = dbHandler.getAccountHolders(this)
         val adapter = CustomAdapter(this, accountHoldersList)
         val rv: RecyclerView = recyclerView1
@@ -57,6 +60,8 @@ class AccountHolders: AppCompatActivity() {
         rv.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false) as RecyclerView.LayoutManager
         rv.adapter = adapter
     }
+
+
 
     private fun viewAccountAdmins(){
         val accountAdminList = dbHandler.getAccountAdmins(this)
@@ -69,7 +74,150 @@ class AccountHolders: AppCompatActivity() {
 
 
 
+    private fun addAccountHolder(yContext: Context){
+        val admin = arrayOf(
+                "SELECT ROLE...",
+                "Chairperson",
+                "Vice Chairperson",
+                "Secretary",
+                "Money Counter 1",
+                "Money Counter 2",
+                "Account Holder"
+        )
 
+        val addAccountHolderDialogLayout = LayoutInflater.from(this).inflate(R.layout.dialog_add_account_holder, null)
+
+        val arrayAdapter = ArrayAdapter(this, android.R.layout.simple_selectable_list_item, admin)
+        addAccountHolderDialogLayout.spAdministrators.adapter = arrayAdapter
+
+        var selectedAdmin = ""
+
+        addAccountHolderDialogLayout.spAdministrators.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                selectedAdmin = admin[position]
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+            }
+        }
+
+        AlertDialog.Builder(this)
+
+                .setView(addAccountHolderDialogLayout)
+                .setTitle("Add New Member")
+
+                .setPositiveButton("Submit", null)
+                .setNegativeButton("Cancel") {_,_ ->}
+                .create().apply {
+                    setOnShowListener{
+                        getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+
+                            if (addAccountHolderDialogLayout.etFullNames.text.isEmpty()) {
+                                Toast.makeText(yContext, "Please type Full Name", Toast.LENGTH_SHORT).show()
+                                return@setOnClickListener}
+
+                            if (addAccountHolderDialogLayout.etContactNo.text.isEmpty()) {
+                                Toast.makeText(yContext, "Please enter contact number", Toast.LENGTH_SHORT).show()
+                                return@setOnClickListener}
+
+                            if (addAccountHolderDialogLayout.etAccountInfo.text.isEmpty()) {
+                                Toast.makeText(yContext, "Please enter account or mobile banking info", Toast.LENGTH_LONG).show()
+                                return@setOnClickListener}
+
+                            if (selectedAdmin == "SELECT ROLE...") {
+                                Toast.makeText(yContext, "Please select admin role", Toast.LENGTH_LONG).show()
+                                return@setOnClickListener}
+
+                            if (selectedAdmin == "Chairperson" ){
+                                Toast.makeText(yContext,"Create Chairperson PIN",Toast.LENGTH_SHORT).show()
+                                val insertPasswordDialogLayout = LayoutInflater.from(yContext).inflate(R.layout.dialog_insert_password, null)
+                                val alert = AlertDialog.Builder(yContext)
+                                        .setTitle("Create PIN")
+                                        .setMessage("Chairperson access PIN required")
+                                        .setView(insertPasswordDialogLayout)
+                                        .setPositiveButton("Submit", null)
+                                        .setNegativeButton("Cancel") {_,_->}
+                                        .create().apply {
+                                            setOnShowListener {
+                                                getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+
+                                                    if(insertPasswordDialogLayout.etPasswordInsert.text.isEmpty()){
+                                                        Toast.makeText(yContext,"Please type PIN", Toast.LENGTH_SHORT).show()
+                                                        return@setOnClickListener}
+
+                                                    if(insertPasswordDialogLayout.etPasswordRepeat.text.isEmpty()){
+                                                        Toast.makeText(yContext,"Please type repeat PIN", Toast.LENGTH_SHORT).show()
+                                                        return@setOnClickListener}
+
+                                                    if(insertPasswordDialogLayout.etPinHint.text.isEmpty()){
+                                                        Toast.makeText(yContext,"Please type hint", Toast.LENGTH_SHORT).show()
+                                                        return@setOnClickListener}
+
+                                                    if(insertPasswordDialogLayout.etPasswordInsert.text.toString() != insertPasswordDialogLayout.etPasswordRepeat.text.toString()){
+                                                        Toast.makeText(yContext,"PIN and repeat PIN do not match. Re-type", Toast.LENGTH_LONG).show()
+                                                        return@setOnClickListener}
+
+                                                    if(insertPasswordDialogLayout.etPasswordInsert.text.length < 4){
+                                                        Toast.makeText(yContext,"PIN should be 4 digits", Toast.LENGTH_LONG).show()
+                                                        return@setOnClickListener}
+
+                                                    val accountHolderModel = AccountHolderModel()
+                                                    accountHolderModel.accountHoldersName = addAccountHolderDialogLayout.etFullNames.text.toString()
+                                                    accountHolderModel.accountHoldersAdmin = selectedAdmin
+                                                    accountHolderModel.accountHolderContact = addAccountHolderDialogLayout.etContactNo.text.toString()
+                                                    accountHolderModel.accountHolderBankInfo = addAccountHolderDialogLayout.etAccountInfo.text.toString()
+                                                    accountHolderModel.accountHolderPin = insertPasswordDialogLayout.etPasswordInsert.text.toString()
+                                                    accountHolderModel.accountHolderPinHint = insertPasswordDialogLayout.etPinHint.text.toString()
+                                                    dbHandler.addAccountHolder(yContext, accountHolderModel)
+                                                    viewAccountHolders()
+                                                    addAccountHolderDialogLayout.etFullNames.text.clear()
+                                                    addAccountHolderDialogLayout.etContactNo.text.clear()
+                                                    addAccountHolderDialogLayout.etAccountInfo.text.clear()
+                                                    addAccountHolderDialogLayout.etFullNames.requestFocus()
+                                                    dismiss()
+                                                }
+                                            }
+                                        }
+
+                                .show()
+                                insertPasswordDialogLayout.etPasswordInsert.requestFocus()
+                                dismiss()
+                            }else{
+                                val accountHolderModel = AccountHolderModel()
+                                accountHolderModel.accountHoldersName = addAccountHolderDialogLayout.etFullNames.text.toString()
+                                accountHolderModel.accountHoldersAdmin = selectedAdmin
+                                accountHolderModel.accountHolderContact = addAccountHolderDialogLayout.etContactNo.text.toString()
+                                accountHolderModel.accountHolderBankInfo = addAccountHolderDialogLayout.etAccountInfo.text.toString()
+                                dbHandler.addAccountHolder(yContext, accountHolderModel)
+                                viewAccountHolders()
+                                addAccountHolderDialogLayout.etFullNames.text.clear()
+                                addAccountHolderDialogLayout.etContactNo.text.clear()
+                                addAccountHolderDialogLayout.etAccountInfo.text.clear()
+                                addAccountHolderDialogLayout.etFullNames.requestFocus()
+                                dismiss()
+                            }
+                        }
+                    }
+                }
+                .show()
+        addAccountHolderDialogLayout.etFullNames.requestFocus()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    }
 
 
 
@@ -85,140 +233,14 @@ class AccountHolders: AppCompatActivity() {
 
 
 
-
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val addAccountHolderDialogLayout = LayoutInflater.from(this).inflate(R.layout.dialog_add_account_holder, null)
-
         when(item.itemId){
             R.id.addAccountHolder ->{
-                val addAccountHolderDialog = AlertDialog.Builder(this)
-                        .setView(addAccountHolderDialogLayout)
-                        .setTitle("Add New Member")
-                val showAddAccountHolderDialog = addAccountHolderDialog.show()
-                addAccountHolderDialogLayout.etFullNames.requestFocus()
-
-                val admin = arrayOf(
-                        "SELECT ROLE...",
-                        "Chairperson",
-                        "Vice Chairperson",
-                        "Secretary",
-                        "Money Counter 1",
-                        "Money Counter 2",
-                        "Account Holder"
-                )
-                val arrayAdapter = ArrayAdapter(this, android.R.layout.simple_selectable_list_item, admin)
-                addAccountHolderDialogLayout.spAdministrators.adapter = arrayAdapter
-
-                var selectedAdmin = ""
-
-                addAccountHolderDialogLayout.spAdministrators.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
-                    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                        selectedAdmin = admin[position]
-                    }
-
-                    override fun onNothingSelected(parent: AdapterView<*>?) {
-                    }
-
-                }
-
-                addAccountHolderDialogLayout.btnCancel.setOnClickListener {
-                    showAddAccountHolderDialog.dismiss()
-                }
-
-
-                addAccountHolderDialogLayout.btnAddAccountHolder.setOnClickListener {
-
-                    if (addAccountHolderDialogLayout.etFullNames.text.isEmpty()) {
-                        Toast.makeText(this, "Please type Full Name", Toast.LENGTH_SHORT).show()
-                        return@setOnClickListener}
-
-                    if (addAccountHolderDialogLayout.etContactNo.text.isEmpty()) {
-                        Toast.makeText(this, "Please enter contact number", Toast.LENGTH_SHORT).show()
-                        return@setOnClickListener}
-
-                    if (addAccountHolderDialogLayout.etAccountInfo.text.isEmpty()) {
-                        Toast.makeText(this, "Please enter account or mobile banking info", Toast.LENGTH_LONG).show()
-                        return@setOnClickListener}
-
-                    if (selectedAdmin == "SELECT ROLE...") {
-                        Toast.makeText(this, "Please select admin role", Toast.LENGTH_LONG).show()
-                        return@setOnClickListener}
-
-
-                    if(selectedAdmin == "Chairperson" ){
-                        Toast.makeText(this,"Create Chairperson PIN",Toast.LENGTH_SHORT).show()
-                        val insertPasswordDialogLayout = LayoutInflater.from(this).inflate(R.layout.dialog_insert_password, null)
-                        val insertPasswordDialog = AlertDialog.Builder(this)
-                                .setTitle("Create PIN")
-                                .setMessage("Chairperson access PIN required")
-                                .setView(insertPasswordDialogLayout)
-                        val showInsertPasswordDialog = insertPasswordDialog.show()
-                        insertPasswordDialogLayout.etPasswordInsert.requestFocus()
-
-                        insertPasswordDialogLayout.btnEnterPassword.setOnClickListener {
-                            if(insertPasswordDialogLayout.etPasswordInsert.text.isEmpty()){
-                                Toast.makeText(this,"Please type PIN", Toast.LENGTH_SHORT).show()
-                                return@setOnClickListener
-                            }
-
-                            if(insertPasswordDialogLayout.etPasswordRepeat.text.isEmpty()){
-                                Toast.makeText(this,"Please type repeat PIN", Toast.LENGTH_SHORT).show()
-                                return@setOnClickListener
-                            }
-
-                            if(insertPasswordDialogLayout.etPinHint.text.isEmpty()){
-                                Toast.makeText(this,"Please type hint", Toast.LENGTH_SHORT).show()
-                                return@setOnClickListener
-                            }
-
-                            if(insertPasswordDialogLayout.etPasswordInsert.text.toString() != insertPasswordDialogLayout.etPasswordRepeat.text.toString()){
-                                Toast.makeText(this,"PIN and repeat PIN do not match. Re-type", Toast.LENGTH_LONG).show()
-                                return@setOnClickListener
-                            }
-
-                            if(insertPasswordDialogLayout.etPasswordInsert.text.length < 4){
-                                Toast.makeText(this,"PIN should be 4 digits", Toast.LENGTH_LONG).show()
-                                return@setOnClickListener
-                            }
-
-                            val accountHolderModel = AccountHolderModel()
-                            accountHolderModel.accountHoldersName = addAccountHolderDialogLayout.etFullNames.text.toString()
-                            accountHolderModel.accountHoldersAdmin = selectedAdmin
-                            accountHolderModel.accountHolderContact = addAccountHolderDialogLayout.etContactNo.text.toString()
-                            accountHolderModel.accountHolderBankInfo = addAccountHolderDialogLayout.etAccountInfo.text.toString()
-                            accountHolderModel.accountHolderPin = insertPasswordDialogLayout.etPasswordInsert.text.toString()
-                            accountHolderModel.accountHolderPinHint = insertPasswordDialogLayout.etPinHint.text.toString()
-                            dbHandler.addAccountHolder(this, accountHolderModel)
-                            viewAccountHolders()
-                                    addAccountHolderDialogLayout.etFullNames.text.clear()
-                                    addAccountHolderDialogLayout.etContactNo.text.clear()
-                                    addAccountHolderDialogLayout.etAccountInfo.text.clear()
-                                    addAccountHolderDialogLayout.etFullNames.requestFocus()
-                                    showAddAccountHolderDialog.dismiss()
-                                    showInsertPasswordDialog.dismiss()
-                  }
-
-                    }else{
-                        val accountHolderModel = AccountHolderModel()
-                        accountHolderModel.accountHoldersName = addAccountHolderDialogLayout.etFullNames.text.toString()
-                        accountHolderModel.accountHoldersAdmin = selectedAdmin
-                        accountHolderModel.accountHolderContact = addAccountHolderDialogLayout.etContactNo.text.toString()
-                        accountHolderModel.accountHolderBankInfo = addAccountHolderDialogLayout.etAccountInfo.text.toString()
-                        dbHandler.addAccountHolder(this, accountHolderModel)
-                        viewAccountHolders()
-
-                        addAccountHolderDialogLayout.etFullNames.text.clear()
-                        addAccountHolderDialogLayout.etContactNo.text.clear()
-                        addAccountHolderDialogLayout.etAccountInfo.text.clear()
-                        addAccountHolderDialogLayout.etFullNames.requestFocus()
-                    }
-                }
+                addAccountHolder(this)
             }
             R.id.delAllAccountHolders ->{
                 dbHandler.delAllAccountHolders(this)
                 viewAccountHolders()
-
             }
             R.id.ViewAll ->{
                 viewAccountHolders()
