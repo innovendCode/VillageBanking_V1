@@ -6,4 +6,13 @@
     <string name="_25000">25000</string>
     <string name="shares">Shares: </string>
     <string name="forgotPIN"><u>Forgot PIN</u></string>
+    <string name="shares_payment">Shares</string>
+    <string name="penalty_payment">Penalty Payment</string>
+    <string name="loan_repayment">Loan Repayment</string>
+    <string name="cash_in">Cash In</string>
+    <string name="loan_payout">Loan Payout</string>
+    <string name="cash_out">Cash Out</string>
+    <string name="final_share_out">Final Share Out</string>
+    <string name="bank_account">Bank Account</string>
+    <string name="statement">Statement</string>
 </resources>

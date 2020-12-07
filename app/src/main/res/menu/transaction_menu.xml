@@ -1,19 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:title="@string/cash_in"
+        android:icon="@drawable/ic_down_arrow"
+        app:showAsAction="always">
+        <menu >
+            <item
+                android:id="@+id/sharesPayment"
+                android:title="@string/shares_payment" />
+            <item
+                android:id="@+id/loanRepayment"
+                android:title="@string/loan_repayment">
+
+            </item>
+            <item
+                android:id="@+id/penaltyPayment"
+                android:title="@string/penalty_payment" />
+        </menu>
+    </item>
+    <item
+        android:id="@+id/cash_out"
+        android:title="@string/cash_out"
+        android:icon="@drawable/ic_up_arrow"
+        app:showAsAction="ifRoom">
+        <menu >
+            <item
+                android:id="@+id/loanPayOut"
+                android:title="@string/loan_payout" />
+            <item
+                android:id="@+id/finalShareOut"
+                android:title="@string/final_share_out" />
+        </menu>
+    </item>
 
     <item
-        android:id="@+id/sharesPayment"
-        android:icon="@drawable/ic_settings"
-        android:title="Shares Collected"/>
-
+        android:id="@+id/statement"
+        android:title="@string/statement"/>
     <item
-        android:id="@+id/loanPayOut"
-        android:icon="@drawable/ic_forward"
-        android:title="Loan Payout"/>
-
-    <item
-        android:id="@+id/loanPayment"
-        android:icon="@drawable/ic_forward"
-        android:title="Loan Repayment"/>
+        android:id="@+id/bankAccount"
+        android:title="@string/bank_account"/>
 
 </menu>

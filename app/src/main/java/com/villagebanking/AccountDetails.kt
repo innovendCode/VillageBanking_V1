@@ -6,8 +6,10 @@ import android.content.DialogInterface
 import android.icu.text.SimpleDateFormat
 import android.os.Build
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -15,6 +17,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.account_details.*
+import kotlinx.android.synthetic.main.bank_info.view.*
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -69,7 +72,7 @@ class AccountDetails : AppCompatActivity() {
             R.id.loanPayOut -> {
                 loanPayout()
             }
-            R.id.loanPayment -> {
+            R.id.loanRepayment -> {
             }
         }
 
@@ -119,19 +122,30 @@ class AccountDetails : AppCompatActivity() {
 
 
     private fun getBankingDetails(){
-        val tvDetailsAccountInfo : TextView = tvDetailsAccountInfo
-        val name = tvDetailsName.text
-        val queue = "SELECT ${DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL} FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = '$name'"
-        val db = dbHandler.writableDatabase
-        val cursor = db.rawQuery(queue, null)
+        val btnDetailsBankInfo : Button = btnDetailsBankInfo
+        btnDetailsBankInfo.setOnClickListener {
+            val name = tvDetailsName.text
+            val queue = "SELECT ${DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL} FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = '$name'"
+            val db = dbHandler.writableDatabase
+            val cursor = db.rawQuery(queue, null)
 
-        if (cursor.moveToFirst()){
-            val bankDetails = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL))
-            tvDetailsAccountInfo.text = bankDetails
-        }else{
+            if (cursor.moveToFirst()){
+                val bankInfoDialogLayout = LayoutInflater.from(this).inflate(R.layout.bank_info, null)
+                val bankInfoDialog = AlertDialog.Builder(this)
+                        .setView(bankInfoDialogLayout)
+                        .setPositiveButton("OK") {_:DialogInterface, _: Int ->}
 
-            Toast.makeText(this, "Error finding banking info", Toast.LENGTH_SHORT).show()
+
+                val bankDetails = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL))
+                bankInfoDialogLayout.tvBankingInfo.setText(bankDetails)
+                bankInfoDialog.show()
+            }else{
+                Toast.makeText(this, "Error finding banking info", Toast.LENGTH_SHORT).show()
+            }
+
         }
+
+
 
 
 
