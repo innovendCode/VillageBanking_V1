@@ -2,7 +2,6 @@ package com.villagebanking
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -36,12 +35,53 @@ class AccountHolders: AppCompatActivity() {
 
         dbHandler = DBHandler(this, null, null, 1)
 
-       viewAccountHolders()
+        viewAccountHolders()
 
         val actionBar = supportActionBar
         actionBar!!.title = "Accounts"
         actionBar.setDisplayHomeAsUpEnabled(true)
     }
+
+
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
+    }
+
+
+
+    @SuppressLint("RestrictedApi")
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.account_holders_menu, menu)
+
+        if (menu is MenuBuilder) {
+            menu.setOptionalIconsVisible(true)
+        }
+        return true
+    }
+
+
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId){
+            R.id.addAccountHolder -> {
+                addAccountHolder(this)
+            }
+            R.id.delAllAccountHolders -> {
+                dbHandler.delAllAccountHolders(this)
+                viewAccountHolders()
+            }
+            R.id.ViewAll -> {
+                viewAccountHolders()
+            }
+            R.id.ViewAdmins -> {
+                viewAccountAdmins()
+            }
+        }
+        return true
+    }
+
 
 
 
@@ -106,7 +146,7 @@ class AccountHolders: AppCompatActivity() {
                 .setTitle("Add New Member")
 
                 .setPositiveButton("Submit", null)
-                .setNegativeButton("Cancel") {_,_ ->}
+                .setNegativeButton("Cancel") { _, _ ->}
                 .create().apply {
                     setOnShowListener{
                         getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
@@ -128,36 +168,36 @@ class AccountHolders: AppCompatActivity() {
                                 return@setOnClickListener}
 
                             if (selectedAdmin == "Chairperson" ){
-                                Toast.makeText(yContext,"Create Chairperson PIN",Toast.LENGTH_SHORT).show()
+                                Toast.makeText(yContext, "Create Chairperson PIN", Toast.LENGTH_SHORT).show()
                                 val insertPasswordDialogLayout = LayoutInflater.from(yContext).inflate(R.layout.dialog_insert_password, null)
                                 val alert = AlertDialog.Builder(yContext)
                                         .setTitle("Create PIN")
                                         .setMessage("Chairperson access PIN required")
                                         .setView(insertPasswordDialogLayout)
                                         .setPositiveButton("Submit", null)
-                                        .setNegativeButton("Cancel") {_,_->}
+                                        .setNegativeButton("Cancel") { _, _->}
                                         .create().apply {
                                             setOnShowListener {
                                                 getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
 
                                                     if(insertPasswordDialogLayout.etPasswordInsert.text.isEmpty()){
-                                                        Toast.makeText(yContext,"Please type PIN", Toast.LENGTH_SHORT).show()
+                                                        Toast.makeText(yContext, "Please type PIN", Toast.LENGTH_SHORT).show()
                                                         return@setOnClickListener}
 
                                                     if(insertPasswordDialogLayout.etPasswordRepeat.text.isEmpty()){
-                                                        Toast.makeText(yContext,"Please type repeat PIN", Toast.LENGTH_SHORT).show()
+                                                        Toast.makeText(yContext, "Please type repeat PIN", Toast.LENGTH_SHORT).show()
                                                         return@setOnClickListener}
 
                                                     if(insertPasswordDialogLayout.etPinHint.text.isEmpty()){
-                                                        Toast.makeText(yContext,"Please type hint", Toast.LENGTH_SHORT).show()
+                                                        Toast.makeText(yContext, "Please type hint", Toast.LENGTH_SHORT).show()
                                                         return@setOnClickListener}
 
                                                     if(insertPasswordDialogLayout.etPasswordInsert.text.toString() != insertPasswordDialogLayout.etPasswordRepeat.text.toString()){
-                                                        Toast.makeText(yContext,"PIN and repeat PIN do not match. Re-type", Toast.LENGTH_LONG).show()
+                                                        Toast.makeText(yContext, "PIN and repeat PIN do not match. Re-type", Toast.LENGTH_LONG).show()
                                                         return@setOnClickListener}
 
                                                     if(insertPasswordDialogLayout.etPasswordInsert.text.length < 4){
-                                                        Toast.makeText(yContext,"PIN should be 4 digits", Toast.LENGTH_LONG).show()
+                                                        Toast.makeText(yContext, "PIN should be 4 digits", Toast.LENGTH_LONG).show()
                                                         return@setOnClickListener}
 
                                                     val accountHolderModel = AccountHolderModel()
@@ -217,44 +257,6 @@ class AccountHolders: AppCompatActivity() {
 
 
 
-    }
-
-
-
-    @SuppressLint("RestrictedApi")
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.account_holders_menu, menu)
-
-        if (menu is MenuBuilder) {
-            menu.setOptionalIconsVisible(true)
-        }
-        return true
-    }
-
-
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId){
-            R.id.addAccountHolder ->{
-                addAccountHolder(this)
-            }
-            R.id.delAllAccountHolders ->{
-                dbHandler.delAllAccountHolders(this)
-                viewAccountHolders()
-            }
-            R.id.ViewAll ->{
-                viewAccountHolders()
-            }
-            R.id.ViewAdmins ->{
-                viewAccountAdmins()
-            }
-        }
-
-
-
-
-
-        return true
     }
 
 

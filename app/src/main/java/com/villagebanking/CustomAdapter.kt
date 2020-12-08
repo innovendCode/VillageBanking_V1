@@ -15,6 +15,7 @@ import kotlinx.android.synthetic.main.delete_confirmation.view.*
 import kotlinx.android.synthetic.main.dialog_posts.view.*
 import kotlinx.android.synthetic.main.main_row_layout.view.*
 import kotlinx.android.synthetic.main.main_row_layout.view.tvName
+import kotlin.coroutines.coroutineContext
 
 
 class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList<AccountHolderModel>): RecyclerView.Adapter<CustomAdapter.ViewHolder>() {
@@ -41,7 +42,7 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                 intent.putExtra("Name", name)
                 intent.putExtra("Shares", shares)
                 intent.putExtra("Loan", loan)
-               itemView.context.startActivity(intent)
+                itemView.context.startActivity(intent)
             }
             }
 
@@ -126,10 +127,10 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                         val update : Boolean = MainActivity.dbHandler.acceptShare(accountHolderModelPosition.accountHoldersID.toString(),
                                 postsDialogLayout.etPostsShares.text.toString(),
                                 postsDialogLayout.etPostsLoanApplication.text.toString())
-
                         if(update) {
                             accountHolderModel[position].accountHoldersShare = etPostsShares.text.toString().toInt()
                             accountHolderModel[position].accountHoldersLoanApp = etPostsLoanApplication.text.toString().toDouble()
+
                         }
                     }
                     .setNegativeButton("Cancel") {_:DialogInterface, _: Int ->

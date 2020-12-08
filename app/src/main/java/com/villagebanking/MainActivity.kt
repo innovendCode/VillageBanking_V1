@@ -82,20 +82,7 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-        btnTest.setOnClickListener {
 
-
-            val date = Calendar.getInstance().time
-            val formatter = SimpleDateFormat("MMMM yyyy") //or use getDateInstance()
-            val formattedDate = formatter.format(date)
-
-
-            //val c = Calendar.getInstance()
-            //val month = c.get(Calendar.MONTH)
-
-            Toast.makeText(this, formattedDate.toString(), Toast.LENGTH_SHORT).show()
-
-        }
 
 
     }

@@ -17,7 +17,6 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
         val tvTransactionLoan : TextView = itemView.tvTransactionLoan
         val tvTransactionShareDate : TextView = itemView.tvTransactionShareDate
         val tvTransactionLoanDate : TextView = itemView.tvTransactionLoanDate
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

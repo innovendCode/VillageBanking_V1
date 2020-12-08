@@ -57,6 +57,8 @@ class AccountDetails : AppCompatActivity() {
     }
 
 
+
+
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.transaction_menu, menu)
         return true
