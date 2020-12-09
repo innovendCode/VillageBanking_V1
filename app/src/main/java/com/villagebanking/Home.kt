@@ -31,8 +31,7 @@ class Home: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home)
 
-        val actionBar = supportActionBar
-        actionBar!!.title = "Home"
+
 
        dbHandler = DBHandler(this, null, null, 1)
 

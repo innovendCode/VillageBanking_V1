@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">Village Banking</string>
     <string name="account_holder_name">Account Holder Name</string>
-    <string name="_4">4</string>
+    <string name="main_share">4</string>
     <string name="loan_application">Loan Application: </string>
-    <string name="_25000">25000</string>
+    <string name="main_charges">25000</string>
     <string name="shares">Shares: </string>
     <string name="forgotPIN"><u>Forgot PIN</u></string>
     <string name="shares_payment">Shares</string>
@@ -15,4 +15,7 @@
     <string name="final_share_out">Final Share Out</string>
     <string name="bank_account">Bank Account</string>
     <string name="statement">Statement</string>
+    <string name="administrator">Administrator</string>
+    <string name="charges">Charges:</string>
+    <string name="main_id">ID</string>
 </resources>

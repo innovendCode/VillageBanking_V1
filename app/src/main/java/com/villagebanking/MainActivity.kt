@@ -3,7 +3,6 @@ package com.villagebanking
 
 import android.content.DialogInterface
 import android.content.Intent
-import android.icu.text.SimpleDateFormat
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
@@ -15,7 +14,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
 import kotlinx.android.synthetic.main.activity_main.*
-import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -72,7 +70,7 @@ class MainActivity : AppCompatActivity() {
             val cursor = db.rawQuery(query, null)
 
             if(cursor.moveToFirst()){
-               val pinHint = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_PASSWORD_QUESTION_COL))
+               val pinHint = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_PIN_HINT_COL))
                 Toast.makeText(this, "Your PIN Hint is: $pinHint", Toast.LENGTH_LONG).show()
             }else{
                 Toast.makeText(this, "Hint not found", Toast.LENGTH_LONG).show()
@@ -110,7 +108,7 @@ class MainActivity : AppCompatActivity() {
         val db = dbHandler.readableDatabase
 
         val query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE " +
-                "${DBHandler.ACCOUNT_HOLDERS_PASSWORD_COL}= '$password' AND " +
+                "${DBHandler.ACCOUNT_HOLDERS_PIN_COL}= '$password' AND " +
                 "${DBHandler.ACCOUNT_HOLDERS_ADMIN_COL} = 'Chairperson'"
 
         val cursor = db.rawQuery(query, null)

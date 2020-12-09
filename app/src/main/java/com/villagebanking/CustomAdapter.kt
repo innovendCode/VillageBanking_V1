@@ -15,7 +15,6 @@ import kotlinx.android.synthetic.main.delete_confirmation.view.*
 import kotlinx.android.synthetic.main.dialog_posts.view.*
 import kotlinx.android.synthetic.main.main_row_layout.view.*
 import kotlinx.android.synthetic.main.main_row_layout.view.tvName
-import kotlin.coroutines.coroutineContext
 
 
 class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList<AccountHolderModel>): RecyclerView.Adapter<CustomAdapter.ViewHolder>() {
@@ -28,8 +27,9 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
         val tvAdmin: TextView = itemView.tvAdmin
         val tvShares: TextView = itemView.tvShares
         val tvLoanApplication: TextView = itemView.tvLoanApplication
+        val tvCharges: TextView = itemView.tvCharges
 
-        val btnProcess: ImageButton? = itemView.btnProcess
+        val btnPosts: ImageButton? = itemView.btnProcess
         val btnDelete: ImageButton? = itemView.btnDelete
         val btnEdit: ImageButton? = itemView.btnEdit
 
@@ -68,6 +68,7 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
         holder.tvAdmin.text = accountHolderModelPosition.accountHoldersAdmin
         holder.tvShares.text = accountHolderModelPosition.accountHoldersShare.toString()
         holder.tvLoanApplication.text = accountHolderModelPosition.accountHoldersLoanApp.toString()
+        holder.tvCharges.text = accountHolderModelPosition.accountHoldersCharges.toString()
 
         holder.btnDelete?.setOnClickListener {
             val confirmDeleteDialogLayout = LayoutInflater.from(mContext).inflate(R.layout.delete_confirmation, null)
@@ -108,15 +109,16 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                 alertDialog.show()
         }
 
-        holder.btnProcess?.setOnClickListener {
-
+        holder.btnPosts?.setOnClickListener {
             val postsDialogLayout = LayoutInflater.from(mContext).inflate(R.layout.dialog_posts, null)
             val etPostsShares : EditText = postsDialogLayout.etPostsShares
             val etPostsLoanApplication : EditText = postsDialogLayout.etPostsLoanApplication
+            val etPostsCharges : EditText = postsDialogLayout.etPostsCharges
             val tvPostsName = accountHolderModelPosition.accountHoldersName
 
             etPostsShares.setText(accountHolderModelPosition.accountHoldersShare.toString())
             etPostsLoanApplication.setText(accountHolderModelPosition.accountHoldersLoanApp.toString())
+            etPostsCharges.setText(accountHolderModelPosition.accountHoldersCharges.toString())
 
             val alertDialog = AlertDialog.Builder(mContext)
                     .setTitle(tvPostsName)
@@ -126,11 +128,12 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
 
                         val update : Boolean = MainActivity.dbHandler.acceptShare(accountHolderModelPosition.accountHoldersID.toString(),
                                 postsDialogLayout.etPostsShares.text.toString(),
-                                postsDialogLayout.etPostsLoanApplication.text.toString())
+                                postsDialogLayout.etPostsLoanApplication.text.toString(),
+                                postsDialogLayout.etPostsCharges.text.toString())
                         if(update) {
                             accountHolderModel[position].accountHoldersShare = etPostsShares.text.toString().toInt()
                             accountHolderModel[position].accountHoldersLoanApp = etPostsLoanApplication.text.toString().toDouble()
-
+                            accountHolderModel[position].accountHoldersCharges = etPostsCharges.text.toString().toDouble()
                         }
                     }
                     .setNegativeButton("Cancel") {_:DialogInterface, _: Int ->

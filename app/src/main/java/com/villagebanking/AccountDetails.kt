@@ -53,7 +53,6 @@ class AccountDetails : AppCompatActivity() {
         val actionBar = supportActionBar
         actionBar!!.title = "Transactions"
         actionBar.setDisplayHomeAsUpEnabled(true)
-
     }
 
 
@@ -260,9 +259,6 @@ class AccountDetails : AppCompatActivity() {
         zeroLoanApplicationAccountHoldersTable()
         db.close()
     }
-
-
-
 
 
 

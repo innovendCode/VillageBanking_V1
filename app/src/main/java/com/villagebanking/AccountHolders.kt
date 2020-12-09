@@ -84,7 +84,6 @@ class AccountHolders: AppCompatActivity() {
 
 
 
-
     override fun onResume() {
         super.onResume()
         viewAccountHolders()
@@ -169,34 +168,34 @@ class AccountHolders: AppCompatActivity() {
 
                             if (selectedAdmin == "Chairperson" ){
                                 Toast.makeText(yContext, "Create Chairperson PIN", Toast.LENGTH_SHORT).show()
-                                val insertPasswordDialogLayout = LayoutInflater.from(yContext).inflate(R.layout.dialog_insert_password, null)
-                                val alert = AlertDialog.Builder(yContext)
+                                val insertPinDialogLayout = LayoutInflater.from(yContext).inflate(R.layout.dialog_insert_password, null)
+                                AlertDialog.Builder(yContext)
                                         .setTitle("Create PIN")
                                         .setMessage("Chairperson access PIN required")
-                                        .setView(insertPasswordDialogLayout)
+                                        .setView(insertPinDialogLayout)
                                         .setPositiveButton("Submit", null)
                                         .setNegativeButton("Cancel") { _, _->}
                                         .create().apply {
                                             setOnShowListener {
                                                 getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
 
-                                                    if(insertPasswordDialogLayout.etPasswordInsert.text.isEmpty()){
+                                                    if(insertPinDialogLayout.etInsertPIN.text.isEmpty()){
                                                         Toast.makeText(yContext, "Please type PIN", Toast.LENGTH_SHORT).show()
                                                         return@setOnClickListener}
 
-                                                    if(insertPasswordDialogLayout.etPasswordRepeat.text.isEmpty()){
+                                                    if(insertPinDialogLayout.etPasswordRepeat.text.isEmpty()){
                                                         Toast.makeText(yContext, "Please type repeat PIN", Toast.LENGTH_SHORT).show()
                                                         return@setOnClickListener}
 
-                                                    if(insertPasswordDialogLayout.etPinHint.text.isEmpty()){
+                                                    if(insertPinDialogLayout.etPinHint.text.isEmpty()){
                                                         Toast.makeText(yContext, "Please type hint", Toast.LENGTH_SHORT).show()
                                                         return@setOnClickListener}
 
-                                                    if(insertPasswordDialogLayout.etPasswordInsert.text.toString() != insertPasswordDialogLayout.etPasswordRepeat.text.toString()){
+                                                    if(insertPinDialogLayout.etInsertPIN.text.toString() != insertPinDialogLayout.etPasswordRepeat.text.toString()){
                                                         Toast.makeText(yContext, "PIN and repeat PIN do not match. Re-type", Toast.LENGTH_LONG).show()
                                                         return@setOnClickListener}
 
-                                                    if(insertPasswordDialogLayout.etPasswordInsert.text.length < 4){
+                                                    if(insertPinDialogLayout.etInsertPIN.text.length < 4){
                                                         Toast.makeText(yContext, "PIN should be 4 digits", Toast.LENGTH_LONG).show()
                                                         return@setOnClickListener}
 
@@ -205,8 +204,8 @@ class AccountHolders: AppCompatActivity() {
                                                     accountHolderModel.accountHoldersAdmin = selectedAdmin
                                                     accountHolderModel.accountHolderContact = addAccountHolderDialogLayout.etContactNo.text.toString()
                                                     accountHolderModel.accountHolderBankInfo = addAccountHolderDialogLayout.etAccountInfo.text.toString()
-                                                    accountHolderModel.accountHolderPin = insertPasswordDialogLayout.etPasswordInsert.text.toString()
-                                                    accountHolderModel.accountHolderPinHint = insertPasswordDialogLayout.etPinHint.text.toString()
+                                                    accountHolderModel.accountHolderPin = insertPinDialogLayout.etInsertPIN.text.toString()
+                                                    accountHolderModel.accountHolderPinHint = insertPinDialogLayout.etPinHint.text.toString()
                                                     dbHandler.addAccountHolder(yContext, accountHolderModel)
                                                     viewAccountHolders()
                                                     addAccountHolderDialogLayout.etFullNames.text.clear()
@@ -219,7 +218,7 @@ class AccountHolders: AppCompatActivity() {
                                         }
 
                                 .show()
-                                insertPasswordDialogLayout.etPasswordInsert.requestFocus()
+                                insertPinDialogLayout.etInsertPIN.requestFocus()
                                 dismiss()
                             }else{
                                 val accountHolderModel = AccountHolderModel()
