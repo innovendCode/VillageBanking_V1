@@ -8,64 +8,34 @@
 
 
     <TextView
-        android:id="@+id/textView12"
+        android:id="@+id/tvDetailsCharge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="17dp"
-        android:text="------------------------------------------------------------------------------"
+        android:text="@string/account_details_loan_application_amount"
+        android:textSize="16sp"
+        android:textStyle="normal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView7" />
+
+    <TextView
+        android:id="@+id/textView7"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:text="@string/account_details_charges"
+        android:textSize="16sp"
+        android:textStyle="normal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvDetailsLoan" />
-
-
-    <TextView
-        android:id="@+id/tvPenaltyPayments"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="30"
-        android:textSize="14dp"
-        android:textStyle="italic"
-        app:layout_constraintStart_toStartOf="@+id/textView11"
-        app:layout_constraintTop_toBottomOf="@+id/textView11" />
-
-    <TextView
-        android:id="@+id/textView11"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="end"
-        android:text="Penalty Payments"
-        android:textSize="14dp"
-        app:layout_constraintStart_toStartOf="@+id/tvDetailsTotalPenalties"
-        app:layout_constraintTop_toBottomOf="@+id/tvDetailsTotalPenalties" />
-
-    <TextView
-        android:id="@+id/tvDetailsTotalPenalties"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="300"
-        android:textSize="14dp"
-        android:textStyle="italic"
-        app:layout_constraintStart_toStartOf="@+id/textView10"
-        app:layout_constraintTop_toBottomOf="@+id/textView10" />
-
-    <TextView
-        android:id="@+id/textView10"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginLeft="10dp"
-        android:gravity="end"
-        android:text="Total Penalties"
-        android:textSize="14dp"
-        app:layout_constraintStart_toEndOf="@+id/btnDetailsBankInfo"
-        app:layout_constraintTop_toBottomOf="@+id/textView12" />
 
     <TextView
         android:id="@+id/tvDetailsName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
-        android:text="Account Name"
+        android:text="@string/account_details_name"
         android:textAllCaps="true"
         android:textSize="25sp"
         android:textStyle="normal|bold"
@@ -79,8 +49,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="6dp"
         android:gravity="center"
-        android:text="SHARES "
-        android:textSize="16dp"
+        android:text="@string/account_details_shares"
+        android:textSize="16sp"
         android:textStyle="normal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -92,8 +62,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:gravity="end"
-        android:text="LOAN APPLICATION"
-        android:textSize="16dp"
+        android:text="@string/account_details_loan_application"
+        android:textSize="16sp"
         android:textStyle="normal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -103,8 +73,8 @@
         android:id="@+id/tvDetailsShares"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="8"
-        android:textSize="16dp"
+        android:text="@string/account_details_share_value"
+        android:textSize="16sp"
         android:textStyle="normal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -114,79 +84,26 @@
         android:id="@+id/tvDetailsLoan"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="8000"
-        android:textSize="16dp"
+        android:text="@string/account_details_loan_application_amount"
+        android:textSize="16sp"
         android:textStyle="normal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textView4" />
 
-    <TextView
-        android:id="@+id/tvDetailsTotalLoan"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="10000"
-        android:textSize="14dp"
-        android:textStyle="italic"
-        app:layout_constraintEnd_toEndOf="@+id/textView6"
-        app:layout_constraintTop_toBottomOf="@+id/textView6" />
-
-    <TextView
-        android:id="@+id/textView7"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="end"
-        android:text="Loan Repayments"
-        android:textSize="14dp"
-        app:layout_constraintEnd_toEndOf="@+id/tvDetailsTotalLoan"
-        app:layout_constraintTop_toBottomOf="@+id/tvDetailsTotalLoan" />
-
-    <TextView
-        android:id="@+id/textView6"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="10dp"
-        android:layout_marginRight="10dp"
-        android:gravity="end"
-        android:text="Total Loans"
-        android:textSize="14dp"
-        app:layout_constraintEnd_toStartOf="@+id/btnDetailsBankInfo"
-        app:layout_constraintTop_toBottomOf="@+id/textView12" />
-
-    <TextView
-        android:id="@+id/tvDetailsLoanRepayments"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="1000"
-        android:textStyle="italic"
-        android:textSize="14dp"
-        app:layout_constraintEnd_toEndOf="@+id/textView7"
-        app:layout_constraintTop_toBottomOf="@+id/textView7" />
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView2"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginTop="240dp"
-        android:layout_marginBottom="50dp"
+        android:layout_height="555dp"
         android:background="#E3F3F6"
         android:clipToPadding="false"
         android:orientation="vertical"
         android:scrollbars="none"
         app:layoutManager="LinearLayoutManager"
-        app:reverseLayout="true"
-        app:stackFromEnd="true"
-        tools:layout_editor_absoluteX="16dp"
-        tools:layout_editor_absoluteY="194dp" />
-
-    <Button
-        android:id="@+id/btnDetailsBankInfo"
-        android:layout_width="87dp"
-        android:layout_height="81dp"
-        android:text="Bank Info"
-        android:textAllCaps="false"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView12" />
+        app:reverseLayout="true"
+        app:stackFromEnd="true" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

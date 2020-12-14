@@ -2,6 +2,7 @@ package com.villagebanking
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -20,12 +21,14 @@ import kotlinx.android.synthetic.main.dialog_add_account_holder.view.*
 import kotlinx.android.synthetic.main.dialog_insert_password.view.*
 import kotlinx.android.synthetic.main.dialog_password.view.*
 import kotlinx.android.synthetic.main.main_row_layout.*
+import java.util.*
 
 class AccountHolders: AppCompatActivity() {
 
     companion object{
         lateinit var dbHandler: DBHandler
     }
+
 
 
 
@@ -36,6 +39,7 @@ class AccountHolders: AppCompatActivity() {
         dbHandler = DBHandler(this, null, null, 1)
 
         viewAccountHolders()
+        securityWarning()
 
         val actionBar = supportActionBar
         actionBar!!.title = "Accounts"
@@ -54,10 +58,10 @@ class AccountHolders: AppCompatActivity() {
     @SuppressLint("RestrictedApi")
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.account_holders_menu, menu)
-
         if (menu is MenuBuilder) {
             menu.setOptionalIconsVisible(true)
         }
+
         return true
     }
 
@@ -77,6 +81,12 @@ class AccountHolders: AppCompatActivity() {
             }
             R.id.ViewAdmins -> {
                 viewAccountAdmins()
+            }
+            R.id.searchName -> {
+
+
+
+
             }
         }
         return true
@@ -114,6 +124,7 @@ class AccountHolders: AppCompatActivity() {
 
 
     private fun addAccountHolder(yContext: Context){
+        //Create Spinner Array
         val admin = arrayOf(
                 "SELECT ROLE...",
                 "Chairperson",
@@ -124,8 +135,11 @@ class AccountHolders: AppCompatActivity() {
                 "Account Holder"
         )
 
+        //Need to declare variables for the layout before adding array to it
+        //Otherwise the layout will not know what variables to place in the spinner
         val addAccountHolderDialogLayout = LayoutInflater.from(this).inflate(R.layout.dialog_add_account_holder, null)
 
+        //Add array to Spinner List in layout
         val arrayAdapter = ArrayAdapter(this, android.R.layout.simple_selectable_list_item, admin)
         addAccountHolderDialogLayout.spAdministrators.adapter = arrayAdapter
 
@@ -183,7 +197,7 @@ class AccountHolders: AppCompatActivity() {
                                                         Toast.makeText(yContext, "Please type PIN", Toast.LENGTH_SHORT).show()
                                                         return@setOnClickListener}
 
-                                                    if(insertPinDialogLayout.etPasswordRepeat.text.isEmpty()){
+                                                    if(insertPinDialogLayout.etPinRepeat.text.isEmpty()){
                                                         Toast.makeText(yContext, "Please type repeat PIN", Toast.LENGTH_SHORT).show()
                                                         return@setOnClickListener}
 
@@ -191,7 +205,7 @@ class AccountHolders: AppCompatActivity() {
                                                         Toast.makeText(yContext, "Please type hint", Toast.LENGTH_SHORT).show()
                                                         return@setOnClickListener}
 
-                                                    if(insertPinDialogLayout.etInsertPIN.text.toString() != insertPinDialogLayout.etPasswordRepeat.text.toString()){
+                                                    if(insertPinDialogLayout.etInsertPIN.text.toString() != insertPinDialogLayout.etPinRepeat.text.toString()){
                                                         Toast.makeText(yContext, "PIN and repeat PIN do not match. Re-type", Toast.LENGTH_LONG).show()
                                                         return@setOnClickListener}
 
@@ -199,7 +213,7 @@ class AccountHolders: AppCompatActivity() {
                                                         Toast.makeText(yContext, "PIN should be 4 digits", Toast.LENGTH_LONG).show()
                                                         return@setOnClickListener}
 
-                                                    val accountHolderModel = AccountHolderModel()
+                                                    val accountHolderModel = Model()
                                                     accountHolderModel.accountHoldersName = addAccountHolderDialogLayout.etFullNames.text.toString()
                                                     accountHolderModel.accountHoldersAdmin = selectedAdmin
                                                     accountHolderModel.accountHolderContact = addAccountHolderDialogLayout.etContactNo.text.toString()
@@ -221,7 +235,7 @@ class AccountHolders: AppCompatActivity() {
                                 insertPinDialogLayout.etInsertPIN.requestFocus()
                                 dismiss()
                             }else{
-                                val accountHolderModel = AccountHolderModel()
+                                val accountHolderModel = Model()
                                 accountHolderModel.accountHoldersName = addAccountHolderDialogLayout.etFullNames.text.toString()
                                 accountHolderModel.accountHoldersAdmin = selectedAdmin
                                 accountHolderModel.accountHolderContact = addAccountHolderDialogLayout.etContactNo.text.toString()
@@ -257,6 +271,38 @@ class AccountHolders: AppCompatActivity() {
 
 
     }
+
+
+    @SuppressLint("Recycle")
+    fun securityWarning(){
+    //No Chairperson Account
+        var query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
+        var db = dbHandler.readableDatabase
+        var cursor = db.rawQuery(query, null)
+
+        if (cursor.count != 0) {
+            query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}  WHERE ${DBHandler.ACCOUNT_HOLDERS_ADMIN_COL} = 'Chairperson'"
+            db = dbHandler.readableDatabase
+            cursor = db.rawQuery(query, null)
+                if (cursor.count == 0) {
+                    val duplicateAdmin = android.app.AlertDialog.Builder(this)
+                            .setIcon(R.drawable.ic_warning)
+                            .setTitle("Security Warning")
+                            .setMessage("Without Chairperson account, " +
+                                    "anyone can login. For security PIN, create a Chairperson account")
+                            .setNegativeButton("Ok") { _: DialogInterface, _: Int ->
+                            }
+                    duplicateAdmin.show()
+                }
+        }
+
+
+
+
+}
+
+
+
 
 
 

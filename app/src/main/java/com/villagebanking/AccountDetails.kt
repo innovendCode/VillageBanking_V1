@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -18,6 +19,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.account_details.*
 import kotlinx.android.synthetic.main.bank_info.view.*
+import kotlinx.android.synthetic.main.dialog_payments.view.*
+import kotlinx.android.synthetic.main.dialog_posts.view.*
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -39,16 +42,18 @@ class AccountDetails : AppCompatActivity() {
         val name = intent.getStringExtra("Name")
         val shares = intent.getStringExtra("Shares")
         val loan = intent.getStringExtra("Loan")
+        val charge = intent.getStringExtra("Charge")
         val tvDetailsName : TextView = tvDetailsName
         val tvDetailsShares : TextView = tvDetailsShares
         val tvDetailsLoan : TextView = tvDetailsLoan
+        val tvDetailsCharge: TextView = tvDetailsCharge
 
         tvDetailsName.text = name
         tvDetailsShares.text = shares
         tvDetailsLoan.text = loan
+        tvDetailsCharge.text = charge
 
         viewTransactions()
-        getBankingDetails()
 
         val actionBar = supportActionBar
         actionBar!!.title = "Transactions"
@@ -68,35 +73,37 @@ class AccountDetails : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
             R.id.sharesPayment -> {
-                shareCollected(AccountHolderModel())
+                shareCollected(Model())
             }
             R.id.loanPayOut -> {
                 loanPayout()
             }
             R.id.loanRepayment -> {
             }
+            R.id.bankAccount -> {
+                getBankingDetails()
+            }
+            R.id.posts -> {
+                posts()
+            }
         }
-
-
-
-
         return true
     }
 
 
 
 
-    private fun getTransactions(): ArrayList<AccountHolderModel>{
+    private fun getTransactions(): ArrayList<Model>{
         val name = tvDetailsName.text
         val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = '$name'"
         val db = dbHandler.writableDatabase
         val cursor = db.rawQuery(query, null)
 
-        val transactionsModel = ArrayList<AccountHolderModel>()
+        val transactionsModel = ArrayList<Model>()
         if(cursor.count == 0)
             Toast.makeText(this, "No Transactions Found", Toast.LENGTH_SHORT).show() else
         {while (cursor.moveToNext()){
-            val transactions = AccountHolderModel()
+            val transactions = Model()
             transactions.transactionID = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_ID_COL))
             transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
             transactions.transactionShares = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
@@ -123,8 +130,6 @@ class AccountDetails : AppCompatActivity() {
 
 
     private fun getBankingDetails(){
-        val btnDetailsBankInfo : Button = btnDetailsBankInfo
-        btnDetailsBankInfo.setOnClickListener {
             val name = tvDetailsName.text
             val queue = "SELECT ${DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL} FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = '$name'"
             val db = dbHandler.writableDatabase
@@ -143,24 +148,23 @@ class AccountDetails : AppCompatActivity() {
             }else{
                 Toast.makeText(this, "Error finding banking info", Toast.LENGTH_SHORT).show()
             }
-
-        }
-
-
-
-
-
     }
 
 
     @SuppressLint("SimpleDateFormat")
     @RequiresApi(Build.VERSION_CODES.N)
-    fun shareCollected(accountHolderModel: AccountHolderModel){
+    fun shareCollected(accountHolderModel: Model){
+
+        val paymentsDialogLayout = LayoutInflater.from(this ).inflate(R.layout.dialog_payments, null)
+
+        val etPayments = paymentsDialogLayout.etPayments
 
         val name = tvDetailsName.text
+        val share = tvDetailsShares.text
+        val payments = etPayments.text
 
-            //Format date to Month Year
-            //Get month to insert
+        //Format date to Month Year
+        //Get month to insert
         val date = Calendar.getInstance().time
         val monthFormat = SimpleDateFormat("MMMM yyyy")
         val transactionMonth = monthFormat.format(date)
@@ -169,21 +173,6 @@ class AccountDetails : AppCompatActivity() {
         //Share collected date
         val dateFormat = SimpleDateFormat.getDateInstance()
         val transactionDate = dateFormat.format(date)
-
-
-            //Check for duplicate entry
-            //Check if data appears in table and return if it does.
-            //If not proceed with insertion
-        val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} " +
-                "WHERE ${DBHandler.TRANSACTION_MONTH_COL} = '$transactionMonth'" +
-                " AND ${DBHandler.TRANSACTION_NAME_COL} = '$name'"
-        var db = dbHandler.readableDatabase
-        val cursor = db.rawQuery(query, null)
-
-        if(cursor.count == 1){
-            Toast.makeText(this, "${tvDetailsName.text.toString()}'s shares already received", Toast.LENGTH_SHORT).show()
-            return
-        }
 
 
         //Restrict Zero Share Contribution
@@ -198,21 +187,43 @@ class AccountDetails : AppCompatActivity() {
             return
         }
 
-            //Insert Shares for current month
-            //To reverse shares month has to be deletes
-            //Date and time included for zero loan. Loan is always an updated entry
-            val contentValues = ContentValues()
-            db = dbHandler.readableDatabase
-            contentValues.put(DBHandler.TRANSACTION_NAME_COL, tvDetailsName.text.toString())
-            contentValues.put(DBHandler.TRANSACTION_SHARE_COL, tvDetailsShares.text.toString())
-            contentValues.put(DBHandler.TRANSACTION_MONTH_COL, transactionMonth)
-            contentValues.put(DBHandler.TRANSACTION_DATE_SHARE_COL, transactionDate)
-            contentValues.put(DBHandler.TRANSACTION_DATE_LOAN_COL, transactionDate)
-            db.insert(DBHandler.TRANSACTION_TABLE, null, contentValues)
-            viewTransactions()
-        zeroSharesAccountHoldersTable()
-        cursor.close()
-        db.close()
+        etPayments.setText(share.toString())
+        AlertDialog.Builder(this)
+                .setView(paymentsDialogLayout)
+                .setMessage("How much is being paid toward the $share commitment?")
+                .setPositiveButton("Received", null)
+                .setNegativeButton("Cancel") {_,_ ->}
+                .create().apply {
+                    setOnShowListener {
+                        getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                            //Insert Shares for current month
+                            //To reverse shares month has to be deletes
+                            //Date and time included for zero loan. Loan is always an updated entry
+                            val contentValues = ContentValues()
+                            val db = dbHandler.readableDatabase
+                            contentValues.put(DBHandler.TRANSACTION_NAME_COL, name.toString())
+                            contentValues.put(DBHandler.TRANSACTION_SHARE_COL, payments.toString())
+                            contentValues.put(DBHandler.TRANSACTION_MONTH_COL, transactionMonth)
+                            contentValues.put(DBHandler.TRANSACTION_DATE_SHARE_COL, transactionDate)
+                            contentValues.put(DBHandler.TRANSACTION_DATE_LOAN_COL, transactionDate)
+                            db.insert(DBHandler.TRANSACTION_TABLE, null, contentValues)
+                            viewTransactions()
+                            dismiss()
+
+
+                        }
+                    }
+                }
+
+                .show()
+
+
+
+
+
+
+
+
     }
 
 
@@ -286,6 +297,40 @@ class AccountDetails : AppCompatActivity() {
         viewTransactions()
         tvDetailsLoan.text = "0.0"
     }
+
+
+
+    private fun posts(){
+        val postsDialog = LayoutInflater.from(this).inflate(R.layout.dialog_posts, null)
+        val name = tvDetailsName.text
+        val etPostsShares : EditText = postsDialog.etPostsShares
+        val etPostsLoanApplication : EditText = postsDialog.etPostsLoanApplication
+        val etPostsCharges : EditText = postsDialog.etPostsCharges
+
+        AlertDialog.Builder(this)
+            .setTitle("$name")
+            .setMessage("Shares, Loan Application & Charges")
+            .setIcon(R.drawable.ic_money)
+            .setView(postsDialog)
+            .setPositiveButton("Submit", null)
+            .setNegativeButton("Cancel"){_,_ ->}
+            .create().apply {
+                setOnShowListener {
+                    getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                        val db = dbHandler.writableDatabase
+                        val contentValues = ContentValues()
+                        contentValues.put(DBHandler.ACCOUNT_HOLDERS_SHARE_COL, etPostsShares.text.toString())
+                        contentValues.put(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL, etPostsLoanApplication.text.toString())
+                        contentValues.put(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL, etPostsCharges.text.toString())
+                        db.update(DBHandler.ACCOUNT_HOLDERS_TABLE,contentValues, "${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = '$name'", arrayOf())
+                        db.close()
+                        dismiss()
+                    }
+                }
+            }
+            .show()
+    }
+
 
 }
 

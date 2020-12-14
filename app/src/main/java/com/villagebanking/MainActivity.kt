@@ -36,18 +36,9 @@ class MainActivity : AppCompatActivity() {
         val tvForgotPassword: TextView = tvForgotPIN
 
         btnLogin.setOnClickListener {
-            val db = dbHandler.readableDatabase
-
-            val query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
-
-            val cursor = db.rawQuery(query, null)
-
-            if (cursor.count == 0){
-                val intent = Intent(this, Home::class.java)
-                startActivity(intent)
-            } else {
-                dbLogin()
-            }
+            //Check if chairperson account exists
+            //If not, login without PIN
+            getChairpersonAccount()
         }
 
         num1()
@@ -73,15 +64,11 @@ class MainActivity : AppCompatActivity() {
                val pinHint = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_PIN_HINT_COL))
                 Toast.makeText(this, "Your PIN Hint is: $pinHint", Toast.LENGTH_LONG).show()
             }else{
-                Toast.makeText(this, "Hint not found", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "PIN not set. Click Proceed", Toast.LENGTH_LONG).show()
             }
             cursor.close()
             db.close()
         }
-
-
-
-
 
     }
 
@@ -113,7 +100,7 @@ class MainActivity : AppCompatActivity() {
 
         val cursor = db.rawQuery(query, null)
 
-        if (cursor.count > 0){
+        if (cursor.count == 1){
             etPIN.text.clear()
             val intent = Intent(this, Home::class.java)
             startActivity(intent)
@@ -124,6 +111,24 @@ class MainActivity : AppCompatActivity() {
         cursor.close()
         db.close()
     }
+
+
+
+
+    private fun getChairpersonAccount(){
+        val db = dbHandler.readableDatabase
+        val query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_ADMIN_COL} = 'Chairperson'"
+        val cursor = db.rawQuery(query, null)
+
+        if (cursor.count > 0) {
+            dbLogin()
+        }else{
+            val intent = Intent(this, Home::class.java)
+            startActivity(intent)
+        }
+    }
+
+
 
     private fun num1(){
         val tvNum1 : TextView = tvNum1

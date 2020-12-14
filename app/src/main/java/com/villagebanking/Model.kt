@@ -3,7 +3,7 @@ package com.villagebanking
 import java.time.DateTimeException
 import java.util.*
 
-class AccountHolderModel {
+class Model {
     var accountHoldersID: Int = 0
     var accountHoldersName: String = ""
     var accountHoldersAdmin: String = ""
@@ -22,6 +22,10 @@ class AccountHolderModel {
     var transactionShareDate: String = ""
     var transactionLoan: Double = 0.0
     var transactionLoanDate: String = ""
+
+    var settingsShareValue: Double = 0.0
+    var settingsInterestRate: Int = 0
+    var settingsNotes: String = ""
 }
 
 

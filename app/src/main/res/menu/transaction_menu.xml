@@ -2,6 +2,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+
+    <item
+        android:id="@+id/posts"
+        android:title="Post"
+        android:icon="@drawable/ic_money_white"
+        app:showAsAction="always"/>
+
     <item android:title="@string/cash_in"
         android:icon="@drawable/ic_down_arrow"
         app:showAsAction="always">
@@ -19,11 +26,12 @@
                 android:title="@string/penalty_payment" />
         </menu>
     </item>
+
     <item
         android:id="@+id/cash_out"
         android:title="@string/cash_out"
         android:icon="@drawable/ic_up_arrow"
-        app:showAsAction="ifRoom">
+        app:showAsAction="always">
         <menu >
             <item
                 android:id="@+id/loanPayOut"

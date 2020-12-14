@@ -1,5 +1,6 @@
 package com.villagebanking
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Context
@@ -8,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 import android.widget.Toast
+import java.sql.Struct
 import kotlin.Exception
 import kotlin.collections.ArrayList
 
@@ -48,6 +50,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val SETTINGS_ID_COL = "_id"
         const val SETTINGS_SHARE_VALUE_COL = "share_value"
         const val SETTINGS_INTEREST_RATE_COL = "interest_rate"
+        const val SETTINGS_NOTES_COL = "notes"
     }
 
 
@@ -82,7 +85,8 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         val createSettingsTable = ("CREATE TABLE $SETTINGS_TABLE (" +
                 "$SETTINGS_ID_COL INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "$SETTINGS_SHARE_VALUE_COL DOUBLE(10,2), " +
-                "$SETTINGS_INTEREST_RATE_COL PERCENTAGE)")
+                "$SETTINGS_INTEREST_RATE_COL PERCENTAGE, " +
+                "$SETTINGS_NOTES_COL TEXT)")
 
         db?.execSQL(createAccountHoldersTable)
         db?.execSQL(createTransactionTable)
@@ -98,15 +102,15 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
     }
 
 
-    fun getAccountHolders(mContext: Context): ArrayList<AccountHolderModel>{
+    fun getAccountHolders(mContext: Context): ArrayList<Model>{
         val query = "SELECT * FROM $ACCOUNT_HOLDERS_TABLE"
         val db = this.readableDatabase
         val cursor = db.rawQuery(query, null)
-        val accountHolderModel = ArrayList<AccountHolderModel>()
+        val accountHolderModel = ArrayList<Model>()
         if(cursor.count == 0)
-            Toast.makeText(mContext, "No Account Found", Toast.LENGTH_SHORT).show() else
+            Toast.makeText(mContext, "Create Accounts Here", Toast.LENGTH_SHORT).show() else
         {while (cursor.moveToNext()){
-            val accountHolders = AccountHolderModel()
+            val accountHolders = Model()
             accountHolders.accountHoldersID = cursor.getInt(cursor.getColumnIndex(ACCOUNT_HOLDERS_ID_COL))
             accountHolders.accountHoldersName = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_NAME_COL))
             accountHolders.accountHoldersAdmin = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ADMIN_COL))
@@ -124,15 +128,15 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
     }
 
 
-    fun getAccountAdmins(mContext: Context): ArrayList<AccountHolderModel>{
+    fun getAccountAdmins(mContext: Context): ArrayList<Model>{
         val query = "SELECT * FROM $ACCOUNT_HOLDERS_TABLE WHERE $ACCOUNT_HOLDERS_ADMIN_COL != 'Account Holder'"
         val db = this.readableDatabase
         val cursor = db.rawQuery(query, null)
-        val accountHolderModel = ArrayList<AccountHolderModel>()
+        val accountHolderModel = ArrayList<Model>()
         if(cursor.count == 0)
-            Toast.makeText(mContext, "No Account Found", Toast.LENGTH_SHORT).show() else
+            Toast.makeText(mContext, "No Admins Found", Toast.LENGTH_SHORT).show() else
         {while (cursor.moveToNext()){
-            val accountAdmins = AccountHolderModel()
+            val accountAdmins = Model()
             accountAdmins.accountHoldersID = cursor.getInt(cursor.getColumnIndex(ACCOUNT_HOLDERS_ID_COL))
             accountAdmins.accountHoldersName = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_NAME_COL))
             accountAdmins.accountHoldersAdmin = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ADMIN_COL))
@@ -150,13 +154,14 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
     }
 
 
-    fun addAccountHolder (mContext: Context, accountHolderModel: AccountHolderModel){
+    @SuppressLint("Recycle")
+    fun addAccountHolder (mContext: Context, accountHolderModel: Model){
         val name = accountHolderModel.accountHoldersName
 
         //Check for duplicate Name
-        val query = "SELECT * FROM $ACCOUNT_HOLDERS_TABLE WHERE $ACCOUNT_HOLDERS_NAME_COL = '$name'"
+        var query = "SELECT * FROM $ACCOUNT_HOLDERS_TABLE WHERE $ACCOUNT_HOLDERS_NAME_COL = '$name'"
         var db = this.readableDatabase
-        val cursor = db.rawQuery(query, null)
+        var cursor = db.rawQuery(query, null)
         if (cursor.count == 1){
             val duplicateName = AlertDialog.Builder(mContext)
                     .setTitle("Duplicate Name")
@@ -173,9 +178,9 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
         if (admin !== "Account Holder") {
 
-            val query = "SELECT * FROM $ACCOUNT_HOLDERS_TABLE WHERE $ACCOUNT_HOLDERS_ADMIN_COL = '$admin'"
-            val db = this.readableDatabase
-            val cursor = db.rawQuery(query, null)
+            query = "SELECT * FROM $ACCOUNT_HOLDERS_TABLE WHERE $ACCOUNT_HOLDERS_ADMIN_COL = '$admin'"
+            db = this.readableDatabase
+            cursor = db.rawQuery(query, null)
 
             if (cursor.count > 0) {
                 val duplicateAdmin = AlertDialog.Builder(mContext)
@@ -188,23 +193,6 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             }
         }
 
-        //Adding first account
-        if (admin !== "Chairperson") {
-
-            val query = "SELECT * FROM $ACCOUNT_HOLDERS_TABLE"
-            val db = this.readableDatabase
-            val cursor = db.rawQuery(query, null)
-
-            if (cursor.count == 0) {
-                val duplicateAdmin = AlertDialog.Builder(mContext)
-                        .setTitle("Fist account")
-                        .setMessage("Chairperson must be the first account")
-                        .setNegativeButton("Ok") { _: DialogInterface, _: Int ->
-                        }
-                duplicateAdmin.show()
-                return
-            }
-        }
 
         val contentValues = ContentValues()
         contentValues.put(ACCOUNT_HOLDERS_NAME_COL, accountHolderModel.accountHoldersName)
@@ -228,11 +216,41 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
     }
 
 
+
+
+    @SuppressLint("Recycle")
+    fun editAccountHolder(mContext: Context, AccountID: Int, Name: String, Admin: String, ContactNo: String, AccountInfo: String, PIN: String, Hint: String) : Boolean {
+
+        var result: Boolean
+        val contentValues = ContentValues()
+        contentValues.put(ACCOUNT_HOLDERS_NAME_COL, Name)
+        contentValues.put(ACCOUNT_HOLDERS_ADMIN_COL, Admin)
+        contentValues.put(ACCOUNT_HOLDERS_CONTACT_COL, ContactNo)
+        contentValues.put(ACCOUNT_HOLDERS_BANK_INFO_COL, AccountInfo)
+        contentValues.put(ACCOUNT_HOLDERS_PIN_COL, PIN)
+        contentValues.put(ACCOUNT_HOLDERS_PIN_HINT_COL, Hint)
+        val db = this.writableDatabase
+        try {
+            db.update(ACCOUNT_HOLDERS_TABLE, contentValues, "$ACCOUNT_HOLDERS_ID_COL = ?", arrayOf(AccountID.toString()))
+            result = true
+            Toast.makeText(mContext, "Update successful",Toast.LENGTH_SHORT).show()
+        } catch (e : Exception){
+            Toast.makeText(mContext, e.message,Toast.LENGTH_SHORT).show()
+            result = false
+        }
+        db.close()
+        return result
+    }
+
+
+
+
+
     fun delAccount(AccountID : Int): Boolean {
         val db = writableDatabase
         var result : Boolean = false
         try{
-            val cursor = db.delete(ACCOUNT_HOLDERS_TABLE, "$ACCOUNT_HOLDERS_ID_COL = ?", arrayOf(AccountID.toString()))
+            db.delete(ACCOUNT_HOLDERS_TABLE, "$ACCOUNT_HOLDERS_ID_COL = ?", arrayOf(AccountID.toString()))
             result = true
         }catch (e : Exception){
             Log.e(ContentValues.TAG, "Something ent wrong. Cannot Delete")
@@ -248,30 +266,6 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         db.delete(TRANSACTION_TABLE, null,null)
         db.close()
     }
-
-
-    fun acceptShare(AccountID: String, sharePost: String, loanApplication: String, charges: String) : Boolean {
-        val db = writableDatabase
-        val contentValues = ContentValues()
-        var result : Boolean = false
-        contentValues.put(ACCOUNT_HOLDERS_SHARE_COL, sharePost)
-        contentValues.put(ACCOUNT_HOLDERS_LOAN_APP_COL, loanApplication)
-        contentValues.put(ACCOUNT_HOLDERS_CHARGES_COL, charges)
-        try {
-            db.update(ACCOUNT_HOLDERS_TABLE, contentValues, "$ACCOUNT_HOLDERS_ID_COL = ?", arrayOf(AccountID))
-        } catch (e: Exception){
-            Log.e(ContentValues.TAG, "Error accepting post")
-            result = false
-        }
-    return result
-    }
-
-
-
-
-
-
-
 
 
 

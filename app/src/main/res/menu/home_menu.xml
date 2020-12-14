@@ -4,6 +4,11 @@
 
 
     <item
+        android:id="@+id/logOff"
+        android:icon="@drawable/ic_back_arrow"
+        android:title="Log Off"
+        app:showAsAction="always"/>
+    <item
         android:id="@+id/settings"
         android:icon="@drawable/ic_settings"
         android:title="Settings"
@@ -15,10 +20,7 @@
         android:title="Account Holders"
         app:showAsAction="always"/>
 
-    <item
-        android:id="@+id/logOff"
-        android:icon="@drawable/ic_forward"
-        android:title="Log Off"/>
+
 
 
 

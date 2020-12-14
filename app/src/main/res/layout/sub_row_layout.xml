@@ -7,9 +7,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="#E3F3F6"
-    android:paddingTop="5dp"
-    android:paddingLeft="5dp"
-    android:paddingRight="5dp">
+    android:paddingTop="3dp">
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -18,7 +16,18 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="20dp">
+            android:padding="10dp">
+
+            <TextView
+                android:id="@+id/tvTransactionLoan3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:text="Charges: "
+                android:textColor="@color/black"
+                android:textSize="18dp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvTransactionLoan2" />
 
             <TextView
                 android:id="@+id/tvTransactionMonth"
@@ -27,7 +36,7 @@
                 android:fontFamily="sans-serif-smallcaps"
                 android:includeFontPadding="true"
                 android:text="January 2021"
-                android:textSize="25dp"
+                android:textSize="30dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -48,6 +57,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="7"
+                android:textColor="@color/black"
                 android:textSize="18dp"
                 android:textStyle="italic"
                 app:layout_constraintBottom_toBottomOf="@+id/tvTransactionShares4"
@@ -58,8 +68,19 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Shares: "
+                android:textColor="@color/black"
                 android:textSize="18dp"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/tvTransactionShares2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Shares Amount"
+                android:textColor="@color/black"
+                android:textSize="18dp"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
@@ -67,17 +88,30 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="2000"
+                android:textColor="@color/black"
                 android:textSize="18dp"
                 android:textStyle="italic"
                 app:layout_constraintBottom_toBottomOf="@+id/tvTransactionLoan2"
                 app:layout_constraintStart_toEndOf="@+id/tvTransactionLoan2" />
 
             <TextView
+                android:id="@+id/tvTransactionCharge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2000"
+                android:textColor="@color/black"
+                android:textSize="18dp"
+                android:textStyle="italic"
+                app:layout_constraintBottom_toBottomOf="@+id/tvTransactionLoan3"
+                app:layout_constraintStart_toEndOf="@+id/tvTransactionLoan3" />
+
+            <TextView
                 android:id="@+id/tvTransactionLoan2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="30dp"
                 android:text="Loan: "
+                android:textColor="@color/black"
                 android:textSize="18dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvTransactionShares4" />
@@ -86,19 +120,48 @@
                 android:id="@+id/tvTransactionShareDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TextView"
-                android:textSize="10sp"
+                android:text="@string/textview"
+                android:textSize="12sp"
+                android:textStyle="italic"
                 app:layout_constraintStart_toStartOf="@+id/tvTransactionShares4"
                 app:layout_constraintTop_toBottomOf="@+id/tvTransactionShares4" />
+
+            <TextView
+                android:id="@+id/tvTransactionShareAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/transaction_charge_amount"
+                android:textSize="12sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvTransactionShares2" />
 
             <TextView
                 android:id="@+id/tvTransactionLoanDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TextView"
-                android:textSize="10sp"
+                android:text="@string/textview"
+                android:textSize="12sp"
+                android:textStyle="italic"
                 app:layout_constraintStart_toStartOf="@+id/tvTransactionLoan2"
                 app:layout_constraintTop_toBottomOf="@+id/tvTransactionLoan2" />
+
+            <TextView
+                android:id="@+id/tvTransactionChargeDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/textview"
+                android:textSize="12sp"
+                android:textStyle="italic"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvTransactionLoan3" />
+
+            <ImageButton
+                android:id="@+id/imageButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:srcCompat="@drawable/ic_delete" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

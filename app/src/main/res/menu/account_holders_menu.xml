@@ -3,25 +3,26 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/searchName"
+        android:icon="@drawable/ic_search_black_24dp"
+        android:title="@string/account_holders_menu_search"
+        app:showAsAction="ifRoom|collapseActionView"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"/>
+
+    <item
         android:id="@+id/addAccountHolder"
-        android:title="Add"
+        android:title="@string/account_holders_menu_add"
         app:showAsAction="always"
         android:icon="@drawable/ic_add_account_holder"/>
 
     <item
-        android:id="@+id/searchName"
-        android:icon="@drawable/ic_search_black_24dp"
-        android:title="Search"
-        app:showAsAction="always"/>
-
-    <item
         android:id="@+id/ViewAll"
-        android:title="All Accounts"
+        android:title="@string/account_holders_menu_all_accounts"
         android:icon="@drawable/ic_view_all"/>
 
     <item
         android:id="@+id/ViewAdmins"
-        android:title="Admins"
+        android:title="@string/account_holders_menu_admins"
         android:icon="@drawable/ic_admin">
     </item>
 

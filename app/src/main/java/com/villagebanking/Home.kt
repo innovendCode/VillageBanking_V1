@@ -6,18 +6,12 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Button
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.synthetic.main.account_holders.*
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.home.*
+
 
 class Home: AppCompatActivity() {
 
@@ -31,6 +25,9 @@ class Home: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home)
 
+        val actionbar = supportActionBar
+        actionbar!!.title = "Home"
+        actionbar.setDisplayHomeAsUpEnabled(true)
 
 
        dbHandler = DBHandler(this, null, null, 1)
@@ -73,7 +70,6 @@ class Home: AppCompatActivity() {
                startActivity(intent)
             }
             R.id.logOff ->{
-
                 val logOff = AlertDialog.Builder(this)
                         .setTitle("Log Off")
                         .setMessage("Are you sure you want to log off?")
@@ -83,8 +79,10 @@ class Home: AppCompatActivity() {
                         .setNegativeButton("No") {_:DialogInterface, _:Int ->
                         }
                         logOff.show()
-
-
+            }
+            R.id.settings -> {
+                val intent = Intent(this, Settings::class.java)
+                startActivity(intent)
             }
         }
 
@@ -93,3 +91,7 @@ class Home: AppCompatActivity() {
         return true
     }
 }
+
+    fun logOff() {
+
+    }
