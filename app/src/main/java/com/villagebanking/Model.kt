@@ -22,6 +22,8 @@ class Model {
     var transactionShareDate: String = ""
     var transactionLoan: Double = 0.0
     var transactionLoanDate: String = ""
+    var transactionShareAmount : Double = 0.0
+    var transactionSharePaid: Double = 0.0
 
     var settingsShareValue: Double = 0.0
     var settingsInterestRate: Int = 0

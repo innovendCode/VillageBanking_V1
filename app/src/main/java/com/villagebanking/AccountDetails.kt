@@ -2,14 +2,15 @@ package com.villagebanking
 
 import android.annotation.SuppressLint
 import android.content.ContentValues
+import android.content.Context
 import android.content.DialogInterface
+import android.icu.text.DateFormat
 import android.icu.text.SimpleDateFormat
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -21,8 +22,16 @@ import kotlinx.android.synthetic.main.account_details.*
 import kotlinx.android.synthetic.main.bank_info.view.*
 import kotlinx.android.synthetic.main.dialog_payments.view.*
 import kotlinx.android.synthetic.main.dialog_posts.view.*
+import kotlinx.android.synthetic.main.sub_row_layout.*
 import java.util.*
 import kotlin.collections.ArrayList
+
+
+
+
+
+
+
 
 class AccountDetails : AppCompatActivity() {
 
@@ -31,12 +40,33 @@ class AccountDetails : AppCompatActivity() {
     }
 
 
+    //Format date to Month Year
+    //Reference date for loan payout
+    val date = Calendar.getInstance().time
+    @SuppressLint("SimpleDateFormat")
+    @RequiresApi(Build.VERSION_CODES.N)
+    val monthFormat = SimpleDateFormat("MMMM yyyy")
+    @RequiresApi(Build.VERSION_CODES.N)
+    val transactionMonth: String = monthFormat.format(date)
+    //Format date to day Month Year
+    //Get date to insert
+    //Insert loan payout date
+    @RequiresApi(Build.VERSION_CODES.N)
+    val dateFormat: DateFormat = SimpleDateFormat.getDateInstance()
+    @RequiresApi(Build.VERSION_CODES.N)
+    val transactionDate: String = dateFormat.format(date)
+
+
+
+
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.account_details)
 
         dbHandler = DBHandler(this, null, null, 1)
+
+
 
         val intent = intent
         val name = intent.getStringExtra("Name")
@@ -53,13 +83,18 @@ class AccountDetails : AppCompatActivity() {
         tvDetailsLoan.text = loan
         tvDetailsCharge.text = charge
 
-        viewTransactions()
-
         val actionBar = supportActionBar
         actionBar!!.title = "Transactions"
         actionBar.setDisplayHomeAsUpEnabled(true)
+
+        viewTransactions()
     }
 
+
+    override fun onRestart() {
+        viewTransactions()
+        super.onRestart()
+    }
 
 
 
@@ -73,7 +108,7 @@ class AccountDetails : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
             R.id.sharesPayment -> {
-                shareCollected(Model())
+                shareCollected()
             }
             R.id.loanPayOut -> {
                 loanPayout()
@@ -110,6 +145,8 @@ class AccountDetails : AppCompatActivity() {
             transactions.transactionLoan = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
             transactions.transactionLoanDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_DATE_LOAN_COL))
             transactions.transactionShareDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_DATE_SHARE_COL))
+            transactions.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
+            transactions.transactionSharePaid = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAID_COL))
             transactionsModel.add(transactions)
         }
         }
@@ -125,8 +162,9 @@ class AccountDetails : AppCompatActivity() {
         val rv2: RecyclerView = recyclerView2
         rv2.setHasFixedSize(true)
         rv2.adapter = adapter
-    }
 
+        adapter.notifyDataSetChanged()
+    }
 
 
     private fun getBankingDetails(){
@@ -134,14 +172,11 @@ class AccountDetails : AppCompatActivity() {
             val queue = "SELECT ${DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL} FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = '$name'"
             val db = dbHandler.writableDatabase
             val cursor = db.rawQuery(queue, null)
-
             if (cursor.moveToFirst()){
                 val bankInfoDialogLayout = LayoutInflater.from(this).inflate(R.layout.bank_info, null)
                 val bankInfoDialog = AlertDialog.Builder(this)
                         .setView(bankInfoDialogLayout)
                         .setPositiveButton("OK") {_:DialogInterface, _: Int ->}
-
-
                 val bankDetails = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL))
                 bankInfoDialogLayout.tvBankingInfo.setText(bankDetails)
                 bankInfoDialog.show()
@@ -151,29 +186,30 @@ class AccountDetails : AppCompatActivity() {
     }
 
 
-    @SuppressLint("SimpleDateFormat")
-    @RequiresApi(Build.VERSION_CODES.N)
-    fun shareCollected(accountHolderModel: Model){
 
+    private fun shareCollected(){
+        val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} = '$transactionMonth'"
+        val db = dbHandler.readableDatabase
+        val cursor = db.rawQuery(query, null)
+        if (cursor.count == 0){
+            sharesSubmittedFirstPay(this)
+        }else{
+            sharesSubmittedUpdate(this)
+            Toast.makeText(this,"Share Updated",Toast.LENGTH_SHORT).show()
+        }
+        cursor.close()
+        db.close()
+    }
+
+
+
+
+
+    private fun sharesSubmittedFirstPay(context: Context){
         val paymentsDialogLayout = LayoutInflater.from(this ).inflate(R.layout.dialog_payments, null)
-
         val etPayments = paymentsDialogLayout.etPayments
-
         val name = tvDetailsName.text
-        val share = tvDetailsShares.text
-        val payments = etPayments.text
-
-        //Format date to Month Year
-        //Get month to insert
-        val date = Calendar.getInstance().time
-        val monthFormat = SimpleDateFormat("MMMM yyyy")
-        val transactionMonth = monthFormat.format(date)
-        //Format date to day Month Year
-        //Get date to insert
-        //Share collected date
-        val dateFormat = SimpleDateFormat.getDateInstance()
-        val transactionDate = dateFormat.format(date)
-
+        val share = tvDetailsShares.text.toString().toDouble()
 
         //Restrict Zero Share Contribution
         //User alert dialog that could be seen
@@ -187,10 +223,23 @@ class AccountDetails : AppCompatActivity() {
             return
         }
 
-        etPayments.setText(share.toString())
-        AlertDialog.Builder(this)
+
+        val query = "SELECT * FROM ${DBHandler.SETTINGS_TABLE}"
+        var db = dbHandler.readableDatabase
+        val cursor = db.rawQuery(query, null)
+        var shareValue = 0.0
+        val shareAmount: Double
+
+        if (cursor.moveToFirst()){
+            shareValue = cursor.getDouble(cursor.getColumnIndex(DBHandler.SETTINGS_SHARE_VALUE_COL))
+        }
+
+        shareAmount = shareValue * share
+
+        etPayments.setText(shareAmount.toString())
+        AlertDialog.Builder(context)
                 .setView(paymentsDialogLayout)
-                .setMessage("How much is being paid toward the $share commitment?")
+                .setMessage("How much is being paid toward the $shareAmount share?")
                 .setPositiveButton("Received", null)
                 .setNegativeButton("Cancel") {_,_ ->}
                 .create().apply {
@@ -200,31 +249,112 @@ class AccountDetails : AppCompatActivity() {
                             //To reverse shares month has to be deletes
                             //Date and time included for zero loan. Loan is always an updated entry
                             val contentValues = ContentValues()
-                            val db = dbHandler.readableDatabase
+                            val payments = etPayments.text.toString()
+
+                            //Restrict overpayment
+                            if (payments.toDouble() > shareAmount){
+                                Toast.makeText(context,"Payment is more than share",Toast.LENGTH_SHORT).show()
+                                return@setOnClickListener
+                            }
+
+                            db = dbHandler.writableDatabase
+
                             contentValues.put(DBHandler.TRANSACTION_NAME_COL, name.toString())
-                            contentValues.put(DBHandler.TRANSACTION_SHARE_COL, payments.toString())
+                            contentValues.put(DBHandler.TRANSACTION_SHARE_COL, share)
                             contentValues.put(DBHandler.TRANSACTION_MONTH_COL, transactionMonth)
                             contentValues.put(DBHandler.TRANSACTION_DATE_SHARE_COL, transactionDate)
                             contentValues.put(DBHandler.TRANSACTION_DATE_LOAN_COL, transactionDate)
+                            contentValues.put(DBHandler.TRANSACTION_SHARE_AMOUNT_COL, shareAmount)
+                            contentValues.put(DBHandler.TRANSACTION_SHARE_PAID_COL, payments)
                             db.insert(DBHandler.TRANSACTION_TABLE, null, contentValues)
                             viewTransactions()
                             dismiss()
-
-
                         }
                     }
                 }
-
                 .show()
-
-
-
-
-
-
-
-
     }
+
+
+
+
+
+
+    private fun sharesSubmittedUpdate(context: Context){
+        val paymentsDialogLayout = LayoutInflater.from(this ).inflate(R.layout.dialog_payments, null)
+        val etPayments = paymentsDialogLayout.etPayments
+        val name = tvDetailsName.text
+        val share = tvDetailsShares.text.toString().toDouble()
+
+        //Restrict Zero Share Contribution
+        //User alert dialog that could be seen
+        if(tvDetailsShares.text.toString() == "0"){
+            val alertDialog = AlertDialog.Builder(this)
+                    .setTitle("Information - (0)Zero Shares Error")
+                    .setMessage("You cannot submit (0)zero shares. Shares value must be a minimum of (1)one")
+                    .setIcon(R.drawable.ic_info)
+                    .setNegativeButton("OK") {_:DialogInterface, _: Int ->}
+            alertDialog.show()
+            return
+        }
+
+
+        val query = "SELECT * FROM ${DBHandler.SETTINGS_TABLE}"
+        var db = dbHandler.readableDatabase
+        val cursor = db.rawQuery(query, null)
+        var shareValue = 0.0
+        val shareAmount: Double
+
+        if (cursor.moveToFirst()){
+            shareValue = cursor.getDouble(cursor.getColumnIndex(DBHandler.SETTINGS_SHARE_VALUE_COL))
+        }
+
+        shareAmount = shareValue * share
+        var paidAmount: Double = tvTransactionSharePaid.text.toString().toDouble()
+
+        val difference = shareAmount - paidAmount
+
+        etPayments.setText(difference.toString())
+        AlertDialog.Builder(context)
+                .setView(paymentsDialogLayout)
+                .setMessage("How much is being paid toward the ${(shareAmount - tvTransactionSharePaid.text.toString().toDouble())} outstanding share?")
+                .setPositiveButton("Received", null)
+                .setNegativeButton("Cancel") {_,_ ->}
+                .create().apply {
+                    setOnShowListener {
+                        getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                            //Insert Shares for current month
+                            //To reverse shares month has to be deletes
+                            //Date and time included for zero loan. Loan is always an updated entry
+                            val contentValues = ContentValues()
+                            val payments = etPayments.text.toString().toDouble()
+
+
+                            val sum = paidAmount + payments
+
+                            //Restrict overpayment
+                            if (payments.toDouble() > difference){
+                                Toast.makeText(context,"Payment is more than the balance",Toast.LENGTH_SHORT).show()
+                                return@setOnClickListener
+                            }
+
+                            db = dbHandler.writableDatabase
+
+                            contentValues.put(DBHandler.TRANSACTION_SHARE_COL, share)
+                            contentValues.put(DBHandler.TRANSACTION_DATE_SHARE_COL, transactionDate)
+                            contentValues.put(DBHandler.TRANSACTION_SHARE_AMOUNT_COL, shareAmount)
+                            contentValues.put(DBHandler.TRANSACTION_SHARE_PAID_COL, sum)
+                            db.update(DBHandler.TRANSACTION_TABLE, contentValues, "${DBHandler.TRANSACTION_MONTH_COL} = '$transactionMonth' AND ${DBHandler.TRANSACTION_NAME_COL} = '$name'", arrayOf())
+                            viewTransactions()
+                            dismiss()
+                        }
+                    }
+                }
+                .show()
+    }
+
+
+
 
 
 
@@ -233,16 +363,7 @@ class AccountDetails : AppCompatActivity() {
     fun loanPayout(){
         val name = tvDetailsName.text
         val loan = tvDetailsLoan.text
-        //Format date to Month Year
-        //Reference date for loan payout
-        val date = Calendar.getInstance().time
-        val monthFormat = SimpleDateFormat("MMMM yyyy")
-        val transactionMonth = monthFormat.format(date)
-        //Format date to day Month Year
-        //Get date to insert
-        //Insert loan payout date
-        val dateFormat = SimpleDateFormat.getDateInstance()
-        val transactionDate = dateFormat.format(date)
+
         val contentValues = ContentValues()
         var db = dbHandler.readableDatabase
 

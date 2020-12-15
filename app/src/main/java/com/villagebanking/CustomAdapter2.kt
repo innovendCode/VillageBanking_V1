@@ -17,6 +17,8 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
         val tvTransactionLoan : TextView = itemView.tvTransactionLoan
         val tvTransactionShareDate : TextView = itemView.tvTransactionShareDate
         val tvTransactionLoanDate : TextView = itemView.tvTransactionLoanDate
+        val tvTransactionShareAmount : TextView = itemView.tvTransactionShareAmount
+        val tvTransactionSharePaid : TextView = itemView.tvTransactionSharePaid
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -32,6 +34,8 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
         holder.tvTransactionLoan.text = transactionsModelPosition.transactionLoan.toString()
         holder.tvTransactionLoanDate.text = transactionsModelPosition.transactionLoanDate
         holder.tvTransactionShareDate.text = transactionsModelPosition.transactionShareDate
+        holder.tvTransactionShareAmount.text = transactionsModelPosition.transactionShareAmount.toString()
+        holder.tvTransactionSharePaid.text = transactionsModelPosition.transactionSharePaid.toString()
     }
 
     override fun getItemCount(): Int {

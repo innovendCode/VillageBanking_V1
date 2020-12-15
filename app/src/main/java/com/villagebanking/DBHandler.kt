@@ -39,6 +39,8 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val TRANSACTION_DATE_SHARE_COL = "share_date"
         const val TRANSACTION_DATE_LOAN_COL = "Loan_date"
         const val TRANSACTION_SHARE_COL = "share"
+        const val TRANSACTION_SHARE_AMOUNT_COL = "share_amount"
+        const val TRANSACTION_SHARE_PAID_COL = "share_paid"
         const val TRANSACTION_LOAN_APP_COL = "loan"
         const val TRANSACTION_LOAN_REPAYMENT_COL = "loan_repayment"
         const val TRANSACTION_CHARGE_NAME_COL = "charge_name"
@@ -75,6 +77,8 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 "$TRANSACTION_DATE_SHARE_COL DATETIME, " +
                 "$TRANSACTION_DATE_LOAN_COL DATETIME, " +
                 "$TRANSACTION_SHARE_COL DOUBLE(10,2), " +
+                "$TRANSACTION_SHARE_AMOUNT_COL DOUBLE(10,2), " +
+                "$TRANSACTION_SHARE_PAID_COL DOUBLE(10,2), " +
                 "$TRANSACTION_LOAN_APP_COL DOUBLE(10,2), " +
                 "$TRANSACTION_LOAN_REPAYMENT_COL DOUBLE(10,2), " +
                 "$TRANSACTION_CHARGE_NAME_COL DOUBLE(10,2), " +
@@ -253,7 +257,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             db.delete(ACCOUNT_HOLDERS_TABLE, "$ACCOUNT_HOLDERS_ID_COL = ?", arrayOf(AccountID.toString()))
             result = true
         }catch (e : Exception){
-            Log.e(ContentValues.TAG, "Something ent wrong. Cannot Delete")
+            Log.e(ContentValues.TAG, "Something wrong. Cannot Delete")
         }
         db.close()
         return result
@@ -268,6 +272,16 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
     }
 
 
+    @SuppressLint("Recycle")
+    fun checkAdminAccount(mContext: Context) : Boolean{
+        val query = "SELECT * FROM $ACCOUNT_HOLDERS_TABLE WHERE $ACCOUNT_HOLDERS_ADMIN_COL != 'ACCOUNT HOLDER'"
+        val result : Boolean = false
+        val db = readableDatabase
+        val cursor = db.rawQuery(query, null)
 
+        if (cursor.count == 1) return true
+
+        return result
+    }
 
 }

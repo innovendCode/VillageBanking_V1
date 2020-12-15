@@ -151,8 +151,6 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
 
             var selectedAdmin = ""
 
-
-
             addAccountHolderDialogLayout.spAdministrators.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
                 override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                     selectedAdmin = admin[position]
@@ -194,7 +192,7 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                                     return@setOnClickListener}
 
 
-                                if (selectedAdmin != "Chairperson") {
+                                when (selectedAdmin) {"Account Holder" -> {
 
                                     val update : Boolean = MainActivity.dbHandler.editAccountHolder(mContext,
                                             accountHolderModelPosition.accountHoldersID.toString().toInt(),
@@ -214,8 +212,16 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                                         notifyDataSetChanged()
                                         dismiss()
                                 }
-                                }else{
 
+
+
+                                }"Chairperson" ->{
+                                    
+                                    val check : Boolean = MainActivity.dbHandler.checkAdminAccount(mContext)
+                                    if (check) {
+                                        Toast.makeText(mContext, "Only One", Toast.LENGTH_SHORT).show()
+                                        return@setOnClickListener
+                                    }
 
                                     val update : Boolean = MainActivity.dbHandler.editAccountHolder(mContext,
                                             accountHolderModelPosition.accountHoldersID.toString().toInt(),
@@ -241,7 +247,6 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                                             .setIcon(R.drawable.ic_key)
                                             .setView(insertPINDialogLayout)
                                             .setPositiveButton("Update", null)
-                                            .setNegativeButton("Cancel") {_,_->}
                                             .create().apply {
                                                 setOnShowListener{
                                                     getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
@@ -284,45 +289,30 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                                                             notifyDataSetChanged()
                                                             dismiss()
                                                         }
-
-
-
-
-
                                                     }
                                                 }
                                             }
                                             .show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                                     Toast.makeText(mContext, "Update Chairpersons PIN", Toast.LENGTH_SHORT).show()
+
+
+
+                                }else -> {}
+
+
+
+                                }
+
+
+
 
                                 }
                             }
                         }
-                    }
                     .show()
-        }
-    }
+                    }
 
+        }
 
 
     override fun getItemCount(): Int {
