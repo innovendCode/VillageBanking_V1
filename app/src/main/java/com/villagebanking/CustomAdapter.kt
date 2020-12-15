@@ -38,15 +38,17 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
 
         init {
             itemView.setOnClickListener {
-                val name = tvName.text
+                val id = tvID.text
+/*                val name = tvName.text
                 val shares = tvShares.text
                 val loan = tvLoanApplication.text
-                val charge = tvCharges.text
+                val charge = tvCharges.text*/
                 val intent = Intent(itemView.context, AccountDetails::class.java)
-                intent.putExtra("Name", name)
+                intent.putExtra("ID", id)
+/*                intent.putExtra("Name", name)
                 intent.putExtra("Shares", shares)
                 intent.putExtra("Loan", loan)
-                intent.putExtra("Charge", charge)
+                intent.putExtra("Charge", charge)*/
                 itemView.context.startActivity(intent)
             }
             }

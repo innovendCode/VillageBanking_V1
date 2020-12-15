@@ -22,6 +22,7 @@ import kotlinx.android.synthetic.main.account_details.*
 import kotlinx.android.synthetic.main.bank_info.view.*
 import kotlinx.android.synthetic.main.dialog_payments.view.*
 import kotlinx.android.synthetic.main.dialog_posts.view.*
+import kotlinx.android.synthetic.main.main_row_layout.*
 import kotlinx.android.synthetic.main.sub_row_layout.*
 import java.util.*
 import kotlin.collections.ArrayList
@@ -39,6 +40,7 @@ class AccountDetails : AppCompatActivity() {
         lateinit var dbHandler: DBHandler
     }
 
+    //val name = tvDetailsName.text
 
     //Format date to Month Year
     //Reference date for loan payout
@@ -69,24 +71,15 @@ class AccountDetails : AppCompatActivity() {
 
 
         val intent = intent
-        val name = intent.getStringExtra("Name")
-        val shares = intent.getStringExtra("Shares")
-        val loan = intent.getStringExtra("Loan")
-        val charge = intent.getStringExtra("Charge")
-        val tvDetailsName : TextView = tvDetailsName
-        val tvDetailsShares : TextView = tvDetailsShares
-        val tvDetailsLoan : TextView = tvDetailsLoan
-        val tvDetailsCharge: TextView = tvDetailsCharge
+        val id = intent.getStringExtra("ID")
+        tvDetailsID.text = id
 
-        tvDetailsName.text = name
-        tvDetailsShares.text = shares
-        tvDetailsLoan.text = loan
-        tvDetailsCharge.text = charge
 
         val actionBar = supportActionBar
         actionBar!!.title = "Transactions"
         actionBar.setDisplayHomeAsUpEnabled(true)
 
+        getAccountDetails()
         viewTransactions()
     }
 
@@ -95,6 +88,35 @@ class AccountDetails : AppCompatActivity() {
         viewTransactions()
         super.onRestart()
     }
+
+
+
+
+    private fun getAccountDetails(){
+
+        val intent = intent
+        val ids = intent.getStringExtra("ID")
+        tvDetailsID.text = ids
+
+
+        val id = tvDetailsID.text
+        val query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_ID_COL} = '$id'"
+        val db = dbHandler.readableDatabase
+        val cursor = db.rawQuery(query, null)
+        if (cursor.moveToFirst()){
+            tvDetailsName.text = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_NAME_COL))
+            tvDetailsShares.text = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_SHARE_COL))
+            tvDetailsLoan.text = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL))
+            tvDetailsCharge.text = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
+        }
+        cursor.close()
+        db.close()
+
+
+
+        viewTransactions()
+    }
+
 
 
 
@@ -267,8 +289,11 @@ class AccountDetails : AppCompatActivity() {
                             contentValues.put(DBHandler.TRANSACTION_SHARE_AMOUNT_COL, shareAmount)
                             contentValues.put(DBHandler.TRANSACTION_SHARE_PAID_COL, payments)
                             db.insert(DBHandler.TRANSACTION_TABLE, null, contentValues)
-                            viewTransactions()
+                            finish();
+                            startActivity(intent);
                             dismiss()
+
+
                         }
                     }
                 }
@@ -346,11 +371,15 @@ class AccountDetails : AppCompatActivity() {
                             contentValues.put(DBHandler.TRANSACTION_SHARE_PAID_COL, sum)
                             db.update(DBHandler.TRANSACTION_TABLE, contentValues, "${DBHandler.TRANSACTION_MONTH_COL} = '$transactionMonth' AND ${DBHandler.TRANSACTION_NAME_COL} = '$name'", arrayOf())
                             viewTransactions()
-                            dismiss()
+
+                         dismiss()
                         }
                     }
                 }
                 .show()
+
+
+
     }
 
 
@@ -444,6 +473,14 @@ class AccountDetails : AppCompatActivity() {
                         contentValues.put(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL, etPostsLoanApplication.text.toString())
                         contentValues.put(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL, etPostsCharges.text.toString())
                         db.update(DBHandler.ACCOUNT_HOLDERS_TABLE,contentValues, "${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = '$name'", arrayOf())
+
+
+
+                        getAccountDetails()
+
+
+                        updatePost()
+                        viewTransactions()
                         db.close()
                         dismiss()
                     }
@@ -451,6 +488,45 @@ class AccountDetails : AppCompatActivity() {
             }
             .show()
     }
+
+
+
+    fun updatePost(){
+        val name = tvDetailsName.text
+        val share = tvDetailsShares.text.toString().toDouble()
+
+        var shareValue = 0.0
+        var shareAmount : Double
+
+        var query = "SELECT * FROM ${DBHandler.SETTINGS_TABLE}"
+        var db = dbHandler.readableDatabase
+        var cursor = db.rawQuery(query, null)
+        if (cursor.moveToFirst()){
+            shareValue = cursor.getDouble(cursor.getColumnIndex(DBHandler.SETTINGS_SHARE_VALUE_COL))
+        }
+
+        shareAmount = share * shareValue
+
+        Toast.makeText(this, shareAmount.toString(), Toast.LENGTH_SHORT).show()
+
+        query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} = '$transactionMonth' AND ${DBHandler.TRANSACTION_NAME_COL} = '$name'"
+        db = dbHandler.readableDatabase
+        cursor = db.rawQuery(query, null)
+
+        if (cursor.count == 1){
+            val contentValues = ContentValues()
+
+            contentValues.put(DBHandler.TRANSACTION_SHARE_COL, share)
+            contentValues.put(DBHandler.TRANSACTION_DATE_SHARE_COL, transactionDate)
+            contentValues.put(DBHandler.TRANSACTION_SHARE_AMOUNT_COL, shareAmount)
+
+            db.update(DBHandler.TRANSACTION_TABLE, contentValues, "${DBHandler.TRANSACTION_MONTH_COL} = '$transactionMonth' AND ${DBHandler.TRANSACTION_NAME_COL} = '$name'", arrayOf())
+            db.close()
+            cursor.close()
+        }
+
+    }
+
 
 
 }
