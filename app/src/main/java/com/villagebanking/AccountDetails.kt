@@ -140,9 +140,6 @@ class AccountDetails : AppCompatActivity() {
             R.id.bankAccount -> {
                 getBankingDetails()
             }
-            R.id.posts -> {
-                posts()
-            }
         }
         return true
     }
@@ -163,7 +160,7 @@ class AccountDetails : AppCompatActivity() {
             val transactions = Model()
             transactions.transactionID = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_ID_COL))
             transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
-            transactions.transactionShares = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
+            transactions.transactionShares = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
             transactions.transactionLoan = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
             transactions.transactionLoanDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_DATE_LOAN_COL))
             transactions.transactionShareDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_DATE_SHARE_COL))
@@ -210,7 +207,8 @@ class AccountDetails : AppCompatActivity() {
 
 
     private fun shareCollected(){
-        val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} = '$transactionMonth'"
+        val name = tvDetailsName.text
+        val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} = '$transactionMonth' AND ${DBHandler.TRANSACTION_NAME_COL} = '$name'"
         val db = dbHandler.readableDatabase
         val cursor = db.rawQuery(query, null)
         if (cursor.count == 0){
@@ -231,7 +229,7 @@ class AccountDetails : AppCompatActivity() {
         val paymentsDialogLayout = LayoutInflater.from(this ).inflate(R.layout.dialog_payments, null)
         val etPayments = paymentsDialogLayout.etPayments
         val name = tvDetailsName.text
-        val share = tvDetailsShares.text.toString().toDouble()
+        val share = tvDetailsShares.text.toString()
 
         //Restrict Zero Share Contribution
         //User alert dialog that could be seen
@@ -249,14 +247,14 @@ class AccountDetails : AppCompatActivity() {
         val query = "SELECT * FROM ${DBHandler.SETTINGS_TABLE}"
         var db = dbHandler.readableDatabase
         val cursor = db.rawQuery(query, null)
-        var shareValue = 0.0
+        var shareValue = 0.00
         val shareAmount: Double
 
         if (cursor.moveToFirst()){
             shareValue = cursor.getDouble(cursor.getColumnIndex(DBHandler.SETTINGS_SHARE_VALUE_COL))
         }
 
-        shareAmount = shareValue * share
+        shareAmount = shareValue * share.toDouble()
 
         etPayments.setText(shareAmount.toString())
         AlertDialog.Builder(context)
@@ -279,10 +277,11 @@ class AccountDetails : AppCompatActivity() {
                                 return@setOnClickListener
                             }
 
-                            db = dbHandler.writableDatabase
+                            val sharePaid : Double = payments.toDouble() / shareValue
 
+                            db = dbHandler.writableDatabase
                             contentValues.put(DBHandler.TRANSACTION_NAME_COL, name.toString())
-                            contentValues.put(DBHandler.TRANSACTION_SHARE_COL, share)
+                            contentValues.put(DBHandler.TRANSACTION_SHARE_COL, sharePaid)
                             contentValues.put(DBHandler.TRANSACTION_MONTH_COL, transactionMonth)
                             contentValues.put(DBHandler.TRANSACTION_DATE_SHARE_COL, transactionDate)
                             contentValues.put(DBHandler.TRANSACTION_DATE_LOAN_COL, transactionDate)
@@ -292,8 +291,6 @@ class AccountDetails : AppCompatActivity() {
                             finish();
                             startActivity(intent);
                             dismiss()
-
-
                         }
                     }
                 }
@@ -354,7 +351,6 @@ class AccountDetails : AppCompatActivity() {
                             val contentValues = ContentValues()
                             val payments = etPayments.text.toString().toDouble()
 
-
                             val sum = paidAmount + payments
 
                             //Restrict overpayment
@@ -377,9 +373,6 @@ class AccountDetails : AppCompatActivity() {
                     }
                 }
                 .show()
-
-
-
     }
 
 
@@ -474,13 +467,12 @@ class AccountDetails : AppCompatActivity() {
                         contentValues.put(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL, etPostsCharges.text.toString())
                         db.update(DBHandler.ACCOUNT_HOLDERS_TABLE,contentValues, "${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = '$name'", arrayOf())
 
-
-
                         getAccountDetails()
 
-
                         updatePost()
+
                         viewTransactions()
+
                         db.close()
                         dismiss()
                     }

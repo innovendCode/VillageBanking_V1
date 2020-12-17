@@ -11,21 +11,21 @@ class Model {
     var accountHolderBankInfo: String = ""
     var accountHolderPin: String = ""
     var accountHolderPinHint: String = ""
-    var accountHoldersShare: Int = 0
+    var accountHoldersShare: Double = 0.00
     var accountHoldersLoanApp: Double = 0.0
     var accountHoldersCharges: Double = 0.0
 
     var transactionID: Int = 0
     var transactionName: String = ""
     var transactionMonth: String = ""
-    var transactionShares: Int = 0
+    var transactionShares: Double = 0.00
     var transactionShareDate: String = ""
-    var transactionLoan: Double = 0.0
+    var transactionLoan: Double = 0.00
     var transactionLoanDate: String = ""
-    var transactionShareAmount : Double = 0.0
-    var transactionSharePaid: Double = 0.0
+    var transactionShareAmount : Double = 0.00
+    var transactionSharePaid: Double = 0.00
 
-    var settingsShareValue: Double = 0.0
+    var settingsShareValue: Double = 0.00
     var settingsInterestRate: Int = 0
     var settingsNotes: String = ""
 }

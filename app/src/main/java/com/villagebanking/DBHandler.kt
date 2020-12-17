@@ -34,6 +34,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
         const val TRANSACTION_TABLE = "transactions"
         const val TRANSACTION_ID_COL = "_id"
+        const val TRANSACTION_ACCOUNTS_ID_COL = "accounts_id"
         const val TRANSACTION_NAME_COL = "tr_name"
         const val TRANSACTION_MONTH_COL = "month"
         const val TRANSACTION_DATE_SHARE_COL = "share_date"
@@ -56,6 +57,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
     }
 
 
+
     override fun onCreate(db: SQLiteDatabase?) {
         val createAccountHoldersTable = ("CREATE TABLE $ACCOUNT_HOLDERS_TABLE (" +
                 "$ACCOUNT_HOLDERS_ID_COL INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -65,30 +67,31 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 "$ACCOUNT_HOLDERS_PIN_HINT_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_CONTACT_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_BANK_INFO_COL TEXT, " +
-                "$ACCOUNT_HOLDERS_SHARE_COL INTEGER, " +
-                "$ACCOUNT_HOLDERS_LOAN_APP_COL INTEGER, " +
-                "$ACCOUNT_HOLDERS_CHARGES_COL DOUBLE(10,2))")
+                "$ACCOUNT_HOLDERS_SHARE_COL DOUBLE(10,3), " +
+                "$ACCOUNT_HOLDERS_LOAN_APP_COL DOUBLE(10,3), " +
+                "$ACCOUNT_HOLDERS_CHARGES_COL DOUBLE(10,3))")
 
 
         val createTransactionTable = ("CREATE TABLE $TRANSACTION_TABLE (" +
                 "$TRANSACTION_ID_COL INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "$TRANSACTION_ACCOUNTS_ID_COL TEXT, " +
                 "$TRANSACTION_NAME_COL TEXT, " +
                 "$TRANSACTION_MONTH_COL DATE, " +
                 "$TRANSACTION_DATE_SHARE_COL DATETIME, " +
                 "$TRANSACTION_DATE_LOAN_COL DATETIME, " +
-                "$TRANSACTION_SHARE_COL DOUBLE(10,2), " +
-                "$TRANSACTION_SHARE_AMOUNT_COL DOUBLE(10,2), " +
-                "$TRANSACTION_SHARE_PAID_COL DOUBLE(10,2), " +
-                "$TRANSACTION_LOAN_APP_COL DOUBLE(10,2), " +
-                "$TRANSACTION_LOAN_REPAYMENT_COL DOUBLE(10,2), " +
-                "$TRANSACTION_CHARGE_NAME_COL DOUBLE(10,2), " +
-                "$TRANSACTION_CHARGE_COL DOUBLE(10,2), " +
-                "$TRANSACTION_CHARGE_PAYMENT_COL DOUBLE(10,2), " +
-                "$TRANSACTION_SHARE_OUT_COL DOUBLE(10,2))")
+                "$TRANSACTION_SHARE_COL DOUBLE(10,3), " +
+                "$TRANSACTION_SHARE_AMOUNT_COL DOUBLE(10,3), " +
+                "$TRANSACTION_SHARE_PAID_COL DOUBLE(10,3), " +
+                "$TRANSACTION_LOAN_APP_COL DOUBLE(10,3), " +
+                "$TRANSACTION_LOAN_REPAYMENT_COL DOUBLE(10,3), " +
+                "$TRANSACTION_CHARGE_NAME_COL TEXT, " +
+                "$TRANSACTION_CHARGE_COL DOUBLE(10,3), " +
+                "$TRANSACTION_CHARGE_PAYMENT_COL DOUBLE(10,3), " +
+                "$TRANSACTION_SHARE_OUT_COL DOUBLE(10,3))")
 
         val createSettingsTable = ("CREATE TABLE $SETTINGS_TABLE (" +
                 "$SETTINGS_ID_COL INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "$SETTINGS_SHARE_VALUE_COL DOUBLE(10,2), " +
+                "$SETTINGS_SHARE_VALUE_COL DOUBLE(10,3), " +
                 "$SETTINGS_INTEREST_RATE_COL PERCENTAGE, " +
                 "$SETTINGS_NOTES_COL TEXT)")
 
@@ -98,12 +101,14 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
     }
 
 
+
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
         db?.execSQL("DROP TABLE IF EXISTS $ACCOUNT_HOLDERS_TABLE;")
         db?.execSQL("DROP TABLE IF EXISTS $TRANSACTION_TABLE;")
         db?.execSQL("DROP TABLE IF EXISTS $SETTINGS_TABLE;")
         onCreate(db)
     }
+
 
 
     fun getAccountHolders(mContext: Context): ArrayList<Model>{
@@ -118,7 +123,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             accountHolders.accountHoldersID = cursor.getInt(cursor.getColumnIndex(ACCOUNT_HOLDERS_ID_COL))
             accountHolders.accountHoldersName = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_NAME_COL))
             accountHolders.accountHoldersAdmin = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ADMIN_COL))
-            accountHolders.accountHoldersShare = cursor.getInt(cursor.getColumnIndex(ACCOUNT_HOLDERS_SHARE_COL))
+            accountHolders.accountHoldersShare = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_SHARE_COL))
             accountHolders.accountHoldersLoanApp = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_LOAN_APP_COL))
             accountHolders.accountHolderBankInfo = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_BANK_INFO_COL))
             accountHolders.accountHolderContact = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_CONTACT_COL))
@@ -130,6 +135,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             db.close()
                 return accountHolderModel
     }
+
 
 
     fun getAccountAdmins(mContext: Context): ArrayList<Model>{
@@ -144,7 +150,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             accountAdmins.accountHoldersID = cursor.getInt(cursor.getColumnIndex(ACCOUNT_HOLDERS_ID_COL))
             accountAdmins.accountHoldersName = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_NAME_COL))
             accountAdmins.accountHoldersAdmin = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ADMIN_COL))
-            accountAdmins.accountHoldersShare = cursor.getInt(cursor.getColumnIndex(ACCOUNT_HOLDERS_SHARE_COL))
+            accountAdmins.accountHoldersShare = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_SHARE_COL))
             accountAdmins.accountHoldersLoanApp = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_LOAN_APP_COL))
             accountAdmins.accountHolderBankInfo = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_BANK_INFO_COL))
             accountAdmins.accountHolderContact = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_CONTACT_COL))
@@ -158,7 +164,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
     }
 
 
-    @SuppressLint("Recycle")
+
     fun addAccountHolder (mContext: Context, accountHolderModel: Model){
         val name = accountHolderModel.accountHoldersName
 
@@ -195,6 +201,8 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 duplicateAdmin.show()
                 return
             }
+            cursor.close()
+            db.close()
         }
 
 
@@ -221,10 +229,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
 
 
-
-    @SuppressLint("Recycle")
     fun editAccountHolder(mContext: Context, AccountID: Int, Name: String, Admin: String, ContactNo: String, AccountInfo: String, PIN: String, Hint: String) : Boolean {
-
         var result: Boolean
         val contentValues = ContentValues()
         contentValues.put(ACCOUNT_HOLDERS_NAME_COL, Name)
@@ -248,8 +253,6 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
 
 
-
-
     fun delAccount(AccountID : Int): Boolean {
         val db = writableDatabase
         var result : Boolean = false
@@ -264,6 +267,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
     }
 
 
+
     fun delAllAccountHolders(mContext: Context){
         val db = this.writableDatabase
         db.delete(ACCOUNT_HOLDERS_TABLE, null, null)
@@ -272,16 +276,25 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
     }
 
 
-    @SuppressLint("Recycle")
-    fun checkAdminAccount(mContext: Context) : Boolean{
-        val query = "SELECT * FROM $ACCOUNT_HOLDERS_TABLE WHERE $ACCOUNT_HOLDERS_ADMIN_COL != 'ACCOUNT HOLDER'"
-        val result : Boolean = false
-        val db = readableDatabase
-        val cursor = db.rawQuery(query, null)
 
-        if (cursor.count == 1) return true
-
+    fun postings(mContext: Context, AccountID: Int, shares: String, loanApplication: String, charges: String) : Boolean{
+        var result: Boolean
+        val contentValues = ContentValues()
+        contentValues.put(ACCOUNT_HOLDERS_SHARE_COL, shares)
+        contentValues.put(ACCOUNT_HOLDERS_LOAN_APP_COL, loanApplication)
+        contentValues.put(ACCOUNT_HOLDERS_CHARGES_COL, charges)
+        val db = writableDatabase
+        try {
+            db.update(ACCOUNT_HOLDERS_TABLE, contentValues, "$ACCOUNT_HOLDERS_ID_COL = ?", arrayOf(AccountID.toString()))
+            result = true
+            Toast.makeText(mContext, "Application Successful", Toast.LENGTH_SHORT).show()
+        }catch (e : Exception){
+            Toast.makeText(mContext, e.message, Toast.LENGTH_SHORT).show()
+            result = false
+        }
+        db.close()
         return result
     }
+
 
 }

@@ -17,6 +17,7 @@ import kotlinx.android.synthetic.main.dialog_add_account_holder.*
 import kotlinx.android.synthetic.main.dialog_add_account_holder.view.*
 import kotlinx.android.synthetic.main.dialog_insert_password.*
 import kotlinx.android.synthetic.main.dialog_insert_password.view.*
+import kotlinx.android.synthetic.main.dialog_posts.view.*
 import kotlinx.android.synthetic.main.main_row_layout.view.*
 import kotlinx.android.synthetic.main.main_row_layout.view.tvName
 
@@ -35,20 +36,15 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
 
         val btnDelete: ImageButton? = itemView.btnDelete
         val btnEdit: ImageButton? = itemView.btnEdit
+        val btnPosting: ImageButton? = itemView.btnPostings
 
         init {
             itemView.setOnClickListener {
                 val id = tvID.text
-/*                val name = tvName.text
-                val shares = tvShares.text
-                val loan = tvLoanApplication.text
-                val charge = tvCharges.text*/
+
                 val intent = Intent(itemView.context, AccountDetails::class.java)
                 intent.putExtra("ID", id)
-/*                intent.putExtra("Name", name)
-                intent.putExtra("Shares", shares)
-                intent.putExtra("Loan", loan)
-                intent.putExtra("Charge", charge)*/
+
                 itemView.context.startActivity(intent)
             }
             }
@@ -72,6 +68,10 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
         holder.tvShares.text = accountHolderModelPosition.accountHoldersShare.toString()
         holder.tvLoanApplication.text = accountHolderModelPosition.accountHoldersLoanApp.toString()
         holder.tvCharges.text = accountHolderModelPosition.accountHoldersCharges.toString()
+
+
+
+
 
         holder.btnDelete?.setOnClickListener {
 
@@ -218,12 +218,7 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
 
 
                                 }"Chairperson" ->{
-                                    
-                                    val check : Boolean = MainActivity.dbHandler.checkAdminAccount(mContext)
-                                    if (check) {
-                                        Toast.makeText(mContext, "Only One", Toast.LENGTH_SHORT).show()
-                                        return@setOnClickListener
-                                    }
+
 
                                     val update : Boolean = MainActivity.dbHandler.editAccountHolder(mContext,
                                             accountHolderModelPosition.accountHoldersID.toString().toInt(),
@@ -296,23 +291,54 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                                             }
                                             .show()
                                     Toast.makeText(mContext, "Update Chairpersons PIN", Toast.LENGTH_SHORT).show()
-
-
-
                                 }else -> {}
-
-
-
                                 }
-
-
-
-
                                 }
                             }
                         }
                     .show()
                     }
+
+
+
+
+
+        holder.btnPosting?.setOnClickListener {
+            val postsDialogLayout = LayoutInflater.from(mContext).inflate(R.layout.dialog_posts, null)
+
+            postsDialogLayout.etPostsShares.setText(accountHolderModel[position].accountHoldersShare.toString())
+            postsDialogLayout.etPostsLoanApplication.setText(accountHolderModel[position].accountHoldersLoanApp.toString())
+            postsDialogLayout.etPostsCharges.setText(accountHolderModel[position].accountHoldersCharges.toString())
+
+            AlertDialog.Builder(mContext)
+                    .setTitle("Preparations")
+                    .setView(postsDialogLayout)
+                    .setPositiveButton("Submit", null)
+                    .setNegativeButton("Cancel") {_,_->}
+                    .create().apply {
+                        setOnShowListener {
+                            getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                                val posts : Boolean = MainActivity.dbHandler.postings(mContext, accountHolderModelPosition.accountHoldersID,
+                                postsDialogLayout.etPostsShares.text.toString(),
+                                postsDialogLayout.etPostsLoanApplication.text.toString(),
+                                postsDialogLayout.etPostsCharges.text.toString())
+                                if (posts){
+                                    accountHolderModel[position].accountHoldersShare = postsDialogLayout.etPostsShares.text.toString().toDouble()
+                                    accountHolderModel[position].accountHoldersLoanApp = postsDialogLayout.etPostsLoanApplication.text.toString().toDouble()
+                                    accountHolderModel[position].accountHoldersCharges = postsDialogLayout.etPostsCharges.text.toString().toDouble()
+                                    notifyDataSetChanged()
+                                    dismiss()
+                                }else{
+                                    Toast.makeText(mContext, "Something went wrong", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    }
+                    .show()
+        }
+
+
+
 
         }
 
