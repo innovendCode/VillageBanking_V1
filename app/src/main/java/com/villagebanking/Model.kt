@@ -16,14 +16,23 @@ class Model {
     var accountHoldersCharges: Double = 0.0
 
     var transactionID: Int = 0
+    var transactionAccID: String = ""
     var transactionName: String = ""
     var transactionMonth: String = ""
     var transactionShares: Double = 0.00
-    var transactionShareDate: String = ""
-    var transactionLoan: Double = 0.00
-    var transactionLoanDate: String = ""
     var transactionShareAmount : Double = 0.00
-    var transactionSharePaid: Double = 0.00
+    var transactionSharePayment: Double = 0.00
+    var transactionShareDate: String = ""
+    var transactionLoanApp: Double = 0.00
+    var transactionLoanPayment: Double = 0.00
+    var transactionLoanPaymentDate: String = ""
+    var transactionLoanRepayment: Double = 0.00
+    var transactionLoanRepaymentDate: String = ""
+    var transactionChargeName: String = ""
+    var transactionCharge: Double = 0.00
+    var transactionChargePayment: Double = 0.00
+    var transactionChargePaymentDate: String = ""
+    var transactionShareOut: Double = 0.00
 
     var settingsShareValue: Double = 0.00
     var settingsInterestRate: Int = 0

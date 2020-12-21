@@ -1,6 +1,5 @@
 package com.villagebanking
 
-import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Context
@@ -8,10 +7,14 @@ import android.content.DialogInterface
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
+import android.view.LayoutInflater
 import android.widget.Toast
-import java.sql.Struct
+import kotlinx.android.synthetic.main.account_details.*
+import kotlinx.android.synthetic.main.dialog_payments.view.*
 import kotlin.Exception
 import kotlin.collections.ArrayList
+
+
 
 class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorFactory?, version: Int):
         SQLiteOpenHelper(context, DATABASE_NAME, factory, DATABASE_VERSION) {
@@ -34,19 +37,21 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
         const val TRANSACTION_TABLE = "transactions"
         const val TRANSACTION_ID_COL = "_id"
-        const val TRANSACTION_ACCOUNTS_ID_COL = "accounts_id"
         const val TRANSACTION_NAME_COL = "tr_name"
         const val TRANSACTION_MONTH_COL = "month"
-        const val TRANSACTION_DATE_SHARE_COL = "share_date"
-        const val TRANSACTION_DATE_LOAN_COL = "Loan_date"
         const val TRANSACTION_SHARE_COL = "share"
         const val TRANSACTION_SHARE_AMOUNT_COL = "share_amount"
-        const val TRANSACTION_SHARE_PAID_COL = "share_paid"
+        const val TRANSACTION_SHARE_PAYMENT_COL = "share_payment"
+        const val TRANSACTION_SHARE_DATE_COL = "share_date"
         const val TRANSACTION_LOAN_APP_COL = "loan"
+        const val TRANSACTION_LOAN_PAYMENT_COL = "loan_payment"
+        const val TRANSACTION_LOAN_PAYMENT_DATE_COL = "loan_payment_date"
         const val TRANSACTION_LOAN_REPAYMENT_COL = "loan_repayment"
+        const val TRANSACTION_LOAN_REPAYMENT_DATE_COL = "loan_repayment_date"
         const val TRANSACTION_CHARGE_NAME_COL = "charge_name"
         const val TRANSACTION_CHARGE_COL = "charge"
         const val TRANSACTION_CHARGE_PAYMENT_COL = "charge_payment"
+        const val TRANSACTION_CHARGE_DATE_COL = "charge_date"
         const val TRANSACTION_SHARE_OUT_COL = "current_share_out"
 
         const val SETTINGS_TABLE = "settings"
@@ -54,6 +59,9 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val SETTINGS_SHARE_VALUE_COL = "share_value"
         const val SETTINGS_INTEREST_RATE_COL = "interest_rate"
         const val SETTINGS_NOTES_COL = "notes"
+
+
+
     }
 
 
@@ -67,27 +75,29 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 "$ACCOUNT_HOLDERS_PIN_HINT_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_CONTACT_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_BANK_INFO_COL TEXT, " +
-                "$ACCOUNT_HOLDERS_SHARE_COL DOUBLE(10,3), " +
-                "$ACCOUNT_HOLDERS_LOAN_APP_COL DOUBLE(10,3), " +
-                "$ACCOUNT_HOLDERS_CHARGES_COL DOUBLE(10,3))")
+                "$ACCOUNT_HOLDERS_SHARE_COL DOUBLE(10,2), " +
+                "$ACCOUNT_HOLDERS_LOAN_APP_COL DOUBLE(10,2), " +
+                "$ACCOUNT_HOLDERS_CHARGES_COL DOUBLE(10,2))")
 
 
         val createTransactionTable = ("CREATE TABLE $TRANSACTION_TABLE (" +
                 "$TRANSACTION_ID_COL INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "$TRANSACTION_ACCOUNTS_ID_COL TEXT, " +
                 "$TRANSACTION_NAME_COL TEXT, " +
                 "$TRANSACTION_MONTH_COL DATE, " +
-                "$TRANSACTION_DATE_SHARE_COL DATETIME, " +
-                "$TRANSACTION_DATE_LOAN_COL DATETIME, " +
-                "$TRANSACTION_SHARE_COL DOUBLE(10,3), " +
-                "$TRANSACTION_SHARE_AMOUNT_COL DOUBLE(10,3), " +
-                "$TRANSACTION_SHARE_PAID_COL DOUBLE(10,3), " +
-                "$TRANSACTION_LOAN_APP_COL DOUBLE(10,3), " +
-                "$TRANSACTION_LOAN_REPAYMENT_COL DOUBLE(10,3), " +
+                "$TRANSACTION_SHARE_COL DOUBLE(10,2), " +
+                "$TRANSACTION_SHARE_AMOUNT_COL DOUBLE(10,2), " +
+                "$TRANSACTION_SHARE_PAYMENT_COL DOUBLE, " +
+                "$TRANSACTION_SHARE_DATE_COL DATE, " +
+                "$TRANSACTION_LOAN_APP_COL DOUBLE(10,2), " +
+                "$TRANSACTION_LOAN_PAYMENT_COL DOUBLE(10,2), " +
+                "$TRANSACTION_LOAN_PAYMENT_DATE_COL DATE, " +
+                "$TRANSACTION_LOAN_REPAYMENT_COL DOUBLE(10,2), " +
+                "$TRANSACTION_LOAN_REPAYMENT_DATE_COL DATE, " +
                 "$TRANSACTION_CHARGE_NAME_COL TEXT, " +
-                "$TRANSACTION_CHARGE_COL DOUBLE(10,3), " +
-                "$TRANSACTION_CHARGE_PAYMENT_COL DOUBLE(10,3), " +
-                "$TRANSACTION_SHARE_OUT_COL DOUBLE(10,3))")
+                "$TRANSACTION_CHARGE_COL DOUBLE(10,2), " +
+                "$TRANSACTION_CHARGE_PAYMENT_COL DOUBLE(10,2), " +
+                "$TRANSACTION_CHARGE_DATE_COL DATE, " +
+                "$TRANSACTION_SHARE_OUT_COL DOUBLE(10,2))")
 
         val createSettingsTable = ("CREATE TABLE $SETTINGS_TABLE (" +
                 "$SETTINGS_ID_COL INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -139,9 +149,9 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
 
     fun getAccountAdmins(mContext: Context): ArrayList<Model>{
-        val query = "SELECT * FROM $ACCOUNT_HOLDERS_TABLE WHERE $ACCOUNT_HOLDERS_ADMIN_COL != 'Account Holder'"
+        val query = "SELECT * FROM $ACCOUNT_HOLDERS_TABLE WHERE $ACCOUNT_HOLDERS_ADMIN_COL != ?"
         val db = this.readableDatabase
-        val cursor = db.rawQuery(query, null)
+        val cursor = db.rawQuery(query, arrayOf("Account Holder"))
         val accountHolderModel = ArrayList<Model>()
         if(cursor.count == 0)
             Toast.makeText(mContext, "No Admins Found", Toast.LENGTH_SHORT).show() else
@@ -205,8 +215,8 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             db.close()
         }
 
-
         val contentValues = ContentValues()
+
         contentValues.put(ACCOUNT_HOLDERS_NAME_COL, accountHolderModel.accountHoldersName)
         contentValues.put(ACCOUNT_HOLDERS_ADMIN_COL, accountHolderModel.accountHoldersAdmin)
         contentValues.put(ACCOUNT_HOLDERS_CONTACT_COL, accountHolderModel.accountHolderContact)
@@ -253,11 +263,27 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
 
 
-    fun delAccount(AccountID : Int): Boolean {
+
+    fun delAccountHolder(AccountID : Int): Boolean {
         val db = writableDatabase
         var result : Boolean = false
         try{
             db.delete(ACCOUNT_HOLDERS_TABLE, "$ACCOUNT_HOLDERS_ID_COL = ?", arrayOf(AccountID.toString()))
+            result = true
+        }catch (e : Exception){
+            Log.e(ContentValues.TAG, "Something wrong. Cannot Delete")
+        }
+        db.close()
+        return result
+    }
+
+
+
+    fun delAccountHolderTransactions(Name: String): Boolean {
+        val db = writableDatabase
+        var result : Boolean = false
+        try{
+            db.delete(TRANSACTION_TABLE, "$TRANSACTION_NAME_COL = ?", arrayOf(Name))
             result = true
         }catch (e : Exception){
             Log.e(ContentValues.TAG, "Something wrong. Cannot Delete")
@@ -295,6 +321,103 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         db.close()
         return result
     }
+
+
+
+    fun createMonth(mContext: Context, transactionModel: Model){
+            val contentValues = ContentValues()
+            contentValues.put(TRANSACTION_NAME_COL, transactionModel.transactionName)
+            contentValues.put(TRANSACTION_MONTH_COL, transactionModel.transactionMonth)
+            contentValues.put(TRANSACTION_SHARE_COL, transactionModel.transactionShares)
+            contentValues.put(TRANSACTION_SHARE_AMOUNT_COL, transactionModel.transactionShareAmount)
+            contentValues.put(TRANSACTION_SHARE_PAYMENT_COL, transactionModel.transactionSharePayment)
+            contentValues.put(TRANSACTION_SHARE_DATE_COL, transactionModel.transactionShareDate)
+            contentValues.put(TRANSACTION_LOAN_APP_COL, transactionModel.transactionLoanApp)
+            contentValues.put(TRANSACTION_LOAN_PAYMENT_COL, transactionModel.transactionLoanPayment)
+            contentValues.put(TRANSACTION_LOAN_PAYMENT_DATE_COL, transactionModel.transactionLoanPaymentDate)
+            contentValues.put(TRANSACTION_LOAN_REPAYMENT_COL, transactionModel.transactionLoanRepayment)
+            contentValues.put(TRANSACTION_LOAN_REPAYMENT_DATE_COL, transactionModel.transactionLoanRepaymentDate)
+            contentValues.put(TRANSACTION_CHARGE_COL, transactionModel.transactionCharge)
+            contentValues.put(TRANSACTION_CHARGE_PAYMENT_COL, transactionModel.transactionChargePayment)
+            contentValues.put(TRANSACTION_CHARGE_DATE_COL, transactionModel.transactionChargePaymentDate)
+            val db = writableDatabase
+            try {
+                db.insert(TRANSACTION_TABLE, null, contentValues)
+
+            }catch (e : Exception){
+                Toast.makeText(mContext, e.message,Toast.LENGTH_SHORT).show()
+            }
+        db.close()
+    }
+
+
+
+    fun updateMonth(mContext: Context, transactionModel: Model, Name: String){
+        val contentValues = ContentValues()
+        //contentValues.put(TRANSACTION_NAME_COL, transactionModel.transactionName)
+        //contentValues.put(TRANSACTION_MONTH_COL, transactionModel.transactionMonth)
+        contentValues.put(TRANSACTION_SHARE_COL, transactionModel.transactionShares)
+        contentValues.put(TRANSACTION_SHARE_AMOUNT_COL, transactionModel.transactionShareAmount)
+        //contentValues.put(TRANSACTION_SHARE_PAYMENT_COL, transactionModel.transactionSharePayment)
+        contentValues.put(TRANSACTION_LOAN_APP_COL, transactionModel.transactionLoanApp)
+        //contentValues.put(TRANSACTION_LOAN_PAYMENT_COL, transactionModel.transactionLoanPayment)
+       // contentValues.put(TRANSACTION_LOAN_REPAYMENT_COL, transactionModel.transactionLoanRepayment)
+        contentValues.put(TRANSACTION_CHARGE_COL, transactionModel.transactionCharge)
+        //contentValues.put(TRANSACTION_CHARGE_PAYMENT_COL, transactionModel.transactionChargePayment)
+        val db = writableDatabase
+        try {
+            db.update(TRANSACTION_TABLE, contentValues, "$TRANSACTION_NAME_COL = '$Name' AND $TRANSACTION_MONTH_COL = '${AccountDetails().transactionMonth}'", arrayOf())
+        }catch (e : Exception){
+            Toast.makeText(mContext, e.message,Toast.LENGTH_SHORT).show()
+        }
+        db.close()
+    }
+
+
+
+
+    fun sharePayment(mContext: Context, TransactionID: Int, Payment: String, Date: String) : Boolean{
+        val result: Boolean
+
+        val contentValues = ContentValues()
+
+        contentValues.put(TRANSACTION_SHARE_PAYMENT_COL, Payment)
+        contentValues.put(TRANSACTION_SHARE_DATE_COL, Date)
+        val db = writableDatabase
+        result = try {
+            db.update(TRANSACTION_TABLE, contentValues, "$TRANSACTION_ID_COL = ?", arrayOf(TransactionID.toString()))
+            true
+        }catch (e : Exception){
+            Toast.makeText(mContext, e.message, Toast.LENGTH_SHORT).show()
+            false
+        }
+        db.close()
+        return result
+    }
+
+
+
+
+    fun loanPayout(mContext: Context, TransactionID: Int, Payment: String, Date: String) : Boolean{
+        val result: Boolean
+
+        val contentValues = ContentValues()
+
+        contentValues.put(TRANSACTION_LOAN_PAYMENT_COL, Payment)
+        contentValues.put(TRANSACTION_LOAN_PAYMENT_DATE_COL, Date)
+        val db = writableDatabase
+        result = try {
+            db.update(TRANSACTION_TABLE, contentValues, "$TRANSACTION_ID_COL = ?", arrayOf(TransactionID.toString()))
+            true
+        }catch (e : Exception){
+            Toast.makeText(mContext, e.message, Toast.LENGTH_SHORT).show()
+            false
+        }
+        db.close()
+        return result
+    }
+
+
 
 
 }

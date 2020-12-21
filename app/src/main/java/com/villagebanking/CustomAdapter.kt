@@ -9,7 +9,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.annotation.Nullable
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.delete_confirmation.view.*
@@ -41,10 +40,8 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
         init {
             itemView.setOnClickListener {
                 val id = tvID.text
-
                 val intent = Intent(itemView.context, AccountDetails::class.java)
                 intent.putExtra("ID", id)
-
                 itemView.context.startActivity(intent)
             }
             }
@@ -99,7 +96,8 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
 
                         btnConfirmDelete.setOnClickListener {
                             if(etConfirmDelete.text.toString() == "DELETE"){
-                                MainActivity.dbHandler.delAccount(accountHolderModelPosition.accountHoldersID)
+                                MainActivity.dbHandler.delAccountHolder(accountHolderModelPosition.accountHoldersID)
+                                MainActivity.dbHandler.delAccountHolderTransactions(accountHolderModelPosition.accountHoldersName)
                                 Toast.makeText(mContext, "$name has been deleted", Toast.LENGTH_SHORT).show()
                                 accountHolderModel.removeAt(position)
                                 notifyItemRemoved(position)
@@ -166,6 +164,7 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
             etFullNameName.setText(accountHolderModelPosition.accountHoldersName)
             etContactNo.setText(accountHolderModelPosition.accountHolderContact)
             etAccountInfo.setText(accountHolderModelPosition.accountHolderBankInfo)
+            etFullNameName.isEnabled = false
 
             if (selectedAdmin != "Chairperson"){
                 admin[item] = "Chairperson"
@@ -193,8 +192,9 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                                     Toast.makeText(mContext, "Please enter account or mobile banking info", Toast.LENGTH_LONG).show()
                                     return@setOnClickListener}
 
-
                                 when (selectedAdmin) {"Account Holder" -> {
+
+
 
                                     val update : Boolean = MainActivity.dbHandler.editAccountHolder(mContext,
                                             accountHolderModelPosition.accountHoldersID.toString().toInt(),
@@ -290,7 +290,7 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                                                 }
                                             }
                                             .show()
-                                    Toast.makeText(mContext, "Update Chairpersons PIN", Toast.LENGTH_SHORT).show()
+
                                 }else -> {}
                                 }
                                 }
@@ -319,9 +319,9 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                         setOnShowListener {
                             getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                                 val posts : Boolean = MainActivity.dbHandler.postings(mContext, accountHolderModelPosition.accountHoldersID,
-                                postsDialogLayout.etPostsShares.text.toString(),
-                                postsDialogLayout.etPostsLoanApplication.text.toString(),
-                                postsDialogLayout.etPostsCharges.text.toString())
+                                    postsDialogLayout.etPostsShares.text.toString(),
+                                    postsDialogLayout.etPostsLoanApplication.text.toString(),
+                                    postsDialogLayout.etPostsCharges.text.toString())
                                 if (posts){
                                     accountHolderModel[position].accountHoldersShare = postsDialogLayout.etPostsShares.text.toString().toDouble()
                                     accountHolderModel[position].accountHoldersLoanApp = postsDialogLayout.etPostsLoanApplication.text.toString().toDouble()
