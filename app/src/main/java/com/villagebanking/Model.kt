@@ -26,6 +26,7 @@ class Model {
     var transactionLoanApp: Double = 0.00
     var transactionLoanPayment: Double = 0.00
     var transactionLoanPaymentDate: String = ""
+    var transactionLoanToRepay : Double = 0.0
     var transactionLoanRepayment: Double = 0.00
     var transactionLoanRepaymentDate: String = ""
     var transactionChargeName: String = ""

@@ -29,12 +29,12 @@
                 android:src="@drawable/ic_money_white"/>
 
             <ImageButton
-                android:id="@+id/imageButton4"
+                android:id="@+id/btnLoanRepayment"
                 android:layout_width="74dp"
                 android:layout_height="wrap_content"
                 app:layout_constraintBottom_toBottomOf="@+id/tvTransactionLoanRepaymentDate"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:srcCompat="@drawable/ic_money_white" />
+                android:src="@drawable/ic_money_white"/>
 
             <ImageButton
                 android:id="@+id/btnSharePayment"
@@ -79,7 +79,7 @@
                 app:layout_constraintStart_toEndOf="@+id/tvTransactionSharePaid3" />
 
             <TextView
-                android:id="@+id/tvTransactionLoanRepaymentAmount"
+                android:id="@+id/tvTransactionLoanToRepay"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="5dp"

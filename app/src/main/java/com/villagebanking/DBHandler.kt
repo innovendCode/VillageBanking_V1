@@ -46,6 +46,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val TRANSACTION_LOAN_APP_COL = "loan"
         const val TRANSACTION_LOAN_PAYMENT_COL = "loan_payment"
         const val TRANSACTION_LOAN_PAYMENT_DATE_COL = "loan_payment_date"
+        const val TRANSACTION_LOAN_TO_REPAY_COL = "loan_to_repay_date"
         const val TRANSACTION_LOAN_REPAYMENT_COL = "loan_repayment"
         const val TRANSACTION_LOAN_REPAYMENT_DATE_COL = "loan_repayment_date"
         const val TRANSACTION_CHARGE_NAME_COL = "charge_name"
@@ -75,33 +76,34 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 "$ACCOUNT_HOLDERS_PIN_HINT_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_CONTACT_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_BANK_INFO_COL TEXT, " +
-                "$ACCOUNT_HOLDERS_SHARE_COL DOUBLE(10,2), " +
-                "$ACCOUNT_HOLDERS_LOAN_APP_COL DOUBLE(10,2), " +
-                "$ACCOUNT_HOLDERS_CHARGES_COL DOUBLE(10,2))")
+                "$ACCOUNT_HOLDERS_SHARE_COL DOUBLE, " +
+                "$ACCOUNT_HOLDERS_LOAN_APP_COL DOUBLE, " +
+                "$ACCOUNT_HOLDERS_CHARGES_COL DOUBLE)")
 
 
         val createTransactionTable = ("CREATE TABLE $TRANSACTION_TABLE (" +
                 "$TRANSACTION_ID_COL INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "$TRANSACTION_NAME_COL TEXT, " +
                 "$TRANSACTION_MONTH_COL DATE, " +
-                "$TRANSACTION_SHARE_COL DOUBLE(10,2), " +
-                "$TRANSACTION_SHARE_AMOUNT_COL DOUBLE(10,2), " +
+                "$TRANSACTION_SHARE_COL DOUBLE, " +
+                "$TRANSACTION_SHARE_AMOUNT_COL DOUBLE, " +
                 "$TRANSACTION_SHARE_PAYMENT_COL DOUBLE, " +
                 "$TRANSACTION_SHARE_DATE_COL DATE, " +
-                "$TRANSACTION_LOAN_APP_COL DOUBLE(10,2), " +
-                "$TRANSACTION_LOAN_PAYMENT_COL DOUBLE(10,2), " +
+                "$TRANSACTION_LOAN_APP_COL DOUBLE, " +
+                "$TRANSACTION_LOAN_PAYMENT_COL DOUBLE, " +
                 "$TRANSACTION_LOAN_PAYMENT_DATE_COL DATE, " +
-                "$TRANSACTION_LOAN_REPAYMENT_COL DOUBLE(10,2), " +
+                "$TRANSACTION_LOAN_TO_REPAY_COL DOUBLE, " +
+                "$TRANSACTION_LOAN_REPAYMENT_COL DOUBLE, " +
                 "$TRANSACTION_LOAN_REPAYMENT_DATE_COL DATE, " +
                 "$TRANSACTION_CHARGE_NAME_COL TEXT, " +
-                "$TRANSACTION_CHARGE_COL DOUBLE(10,2), " +
-                "$TRANSACTION_CHARGE_PAYMENT_COL DOUBLE(10,2), " +
+                "$TRANSACTION_CHARGE_COL DOUBLE, " +
+                "$TRANSACTION_CHARGE_PAYMENT_COL DOUBLE, " +
                 "$TRANSACTION_CHARGE_DATE_COL DATE, " +
-                "$TRANSACTION_SHARE_OUT_COL DOUBLE(10,2))")
+                "$TRANSACTION_SHARE_OUT_COL DOUBLE)")
 
         val createSettingsTable = ("CREATE TABLE $SETTINGS_TABLE (" +
                 "$SETTINGS_ID_COL INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "$SETTINGS_SHARE_VALUE_COL DOUBLE(10,3), " +
+                "$SETTINGS_SHARE_VALUE_COL DOUBLE, " +
                 "$SETTINGS_INTEREST_RATE_COL PERCENTAGE, " +
                 "$SETTINGS_NOTES_COL TEXT)")
 
@@ -335,6 +337,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             contentValues.put(TRANSACTION_LOAN_APP_COL, transactionModel.transactionLoanApp)
             contentValues.put(TRANSACTION_LOAN_PAYMENT_COL, transactionModel.transactionLoanPayment)
             contentValues.put(TRANSACTION_LOAN_PAYMENT_DATE_COL, transactionModel.transactionLoanPaymentDate)
+            contentValues.put(TRANSACTION_LOAN_TO_REPAY_COL, transactionModel.transactionLoanToRepay)
             contentValues.put(TRANSACTION_LOAN_REPAYMENT_COL, transactionModel.transactionLoanRepayment)
             contentValues.put(TRANSACTION_LOAN_REPAYMENT_DATE_COL, transactionModel.transactionLoanRepaymentDate)
             contentValues.put(TRANSACTION_CHARGE_COL, transactionModel.transactionCharge)
@@ -405,6 +408,49 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
         contentValues.put(TRANSACTION_LOAN_PAYMENT_COL, Payment)
         contentValues.put(TRANSACTION_LOAN_PAYMENT_DATE_COL, Date)
+        val db = writableDatabase
+        result = try {
+            db.update(TRANSACTION_TABLE, contentValues, "$TRANSACTION_ID_COL = ?", arrayOf(TransactionID.toString()))
+            true
+        }catch (e : Exception){
+            Toast.makeText(mContext, e.message, Toast.LENGTH_SHORT).show()
+            false
+        }
+        db.close()
+        return result
+    }
+
+
+
+    fun loanRepayment(mContext: Context, TransactionID: Int, Payment: String, Date: String) : Boolean{
+        val result: Boolean
+
+        val contentValues = ContentValues()
+
+        contentValues.put(TRANSACTION_LOAN_REPAYMENT_COL, Payment)
+        contentValues.put(TRANSACTION_LOAN_REPAYMENT_DATE_COL, Date)
+        val db = writableDatabase
+        result = try {
+            db.update(TRANSACTION_TABLE, contentValues, "$TRANSACTION_ID_COL = ?", arrayOf(TransactionID.toString()))
+            true
+        }catch (e : Exception){
+            Toast.makeText(mContext, e.message, Toast.LENGTH_SHORT).show()
+            false
+        }
+        db.close()
+        return result
+    }
+
+
+
+
+    fun chargePayment(mContext: Context, TransactionID: Int, Payment: String, Date: String) : Boolean{
+        val result: Boolean
+
+        val contentValues = ContentValues()
+
+        contentValues.put(TRANSACTION_CHARGE_PAYMENT_COL, Payment)
+        contentValues.put(TRANSACTION_CHARGE_DATE_COL, Date)
         val db = writableDatabase
         result = try {
             db.update(TRANSACTION_TABLE, contentValues, "$TRANSACTION_ID_COL = ?", arrayOf(TransactionID.toString()))

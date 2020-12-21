@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
@@ -16,6 +17,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.account_details.*
 import kotlinx.android.synthetic.main.bank_info.view.*
+import kotlinx.android.synthetic.main.sub_row_layout.*
+import java.time.LocalDateTime
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -28,19 +31,22 @@ class AccountDetails : AppCompatActivity() {
         lateinit var dbHandler: DBHandler
     }
 
-    //val name = tvDetailsName.text
-
     //Format date to Month Year
     //Reference date for loan payout
-    val date = Calendar.getInstance().time
-    @SuppressLint("SimpleDateFormat")
-    @RequiresApi(Build.VERSION_CODES.N)
-    val monthFormat = SimpleDateFormat("MMMM yyyy")
-    @RequiresApi(Build.VERSION_CODES.N)
-    val transactionMonth: String = monthFormat.format(date)
+    @RequiresApi(Build.VERSION_CODES.O)
+    val now: YearMonth = YearMonth.now()
+    @RequiresApi(Build.VERSION_CODES.O)
+    val lastMonth: YearMonth = now.minusMonths(1)
+    @RequiresApi(Build.VERSION_CODES.O)
+    val monthYearFormatter: DateTimeFormatter? = DateTimeFormatter.ofPattern("MMMM yyyy")
+    @RequiresApi(Build.VERSION_CODES.O)
+    val transactionMonth: String = now.format(monthYearFormatter)
+    @RequiresApi(Build.VERSION_CODES.O)
+    val transactionLastMonth: String = lastMonth.format(monthYearFormatter)
+
     //Format date to day Month Year
     //Get date to insert
-    //Insert loan payout date
+    val date = Calendar.getInstance().time
     @RequiresApi(Build.VERSION_CODES.N)
     val dateFormat: DateFormat = SimpleDateFormat.getDateInstance()
     @RequiresApi(Build.VERSION_CODES.N)
@@ -94,9 +100,7 @@ class AccountDetails : AppCompatActivity() {
 
                 val transactionMonth = YearMonth.now()
                 val lastMonth = transactionMonth.minusMonths(1)
-
-
-                val monthYearFormatter = DateTimeFormatter.ofPattern("MMMM yyyy")
+                val monthYearFormatter = DateTimeFormatter.ofPattern("dd MMMM yyyy")
 
 
                 Toast.makeText(this, lastMonth.format(monthYearFormatter) , Toast.LENGTH_SHORT).show()
@@ -156,6 +160,7 @@ class AccountDetails : AppCompatActivity() {
             transactions.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
             transactions.transactionShareDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_DATE_COL))
             transactions.transactionLoanApp = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
+            transactions.transactionLoanToRepay = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_TO_REPAY_COL))
             transactions.transactionLoanPayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
             transactions.transactionLoanPaymentDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_DATE_COL))
             transactions.transactionLoanRepayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL))
@@ -191,6 +196,9 @@ class AccountDetails : AppCompatActivity() {
         var shareValue = 0.0
         var loan = 0.0
         var charge = 0.0
+        var loanToRepay = 0.0
+
+        val transactionModel = Model()
 
         var query = "SELECT * FROM ${DBHandler.SETTINGS_TABLE}"
         var db = dbHandler.readableDatabase
@@ -210,7 +218,20 @@ class AccountDetails : AppCompatActivity() {
         cursor.close()
         db.close()
 
-            val transactionModel = Model()
+
+        query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} = ?"
+        db = dbHandler.readableDatabase
+        cursor = db.rawQuery(query, arrayOf(transactionLastMonth))
+        if(cursor.count > 0){
+            if(cursor.moveToFirst()){
+                loanToRepay = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
+            }
+        }else{
+            loanToRepay = 0.0
+        }
+        cursor.close()
+        db.close()
+
             transactionModel.transactionName = name.toString()
             transactionModel.transactionMonth = transactionMonth
             transactionModel.transactionShares = share
@@ -218,6 +239,7 @@ class AccountDetails : AppCompatActivity() {
             transactionModel.transactionShareDate = transactionDate
             transactionModel.transactionLoanApp = loan
             transactionModel.transactionLoanPaymentDate = transactionDate
+            transactionModel.transactionLoanToRepay = loanToRepay
             transactionModel.transactionLoanRepaymentDate = transactionDate
             transactionModel.transactionCharge = charge
             transactionModel.transactionChargePaymentDate = transactionDate

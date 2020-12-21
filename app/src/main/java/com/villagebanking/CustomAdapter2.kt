@@ -31,6 +31,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
         val tvTransactionLoan : TextView = itemView.tvTransactionLoan
         val tvTransactionLoanPayment : TextView = itemView.tvTransactionLoanPayment
         val tvTransactionLoanPaymentDate : TextView = itemView.tvTransactionLoanPaymentDate
+        val tvTransactionLoanToRepay : TextView = itemView.tvTransactionLoanToRepay
         val tvTransactionLoanRepayment : TextView = itemView.tvTransactionLoanRepayment
         val tvTransactionLoanRepaymentDate : TextView = itemView.tvTransactionLoanRepaymentDate
 
@@ -41,6 +42,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
         val btnSharePayment : ImageButton = itemView.btnSharePayment
         val btnLoanPayout : ImageButton = itemView.btnLoanPayout
         val btnChargePayment : ImageButton = itemView.btnChargePayment
+        val btnLoanRepayment : ImageButton = itemView.btnLoanRepayment
 
 
 
@@ -62,6 +64,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
 
         holder.tvTransactionLoan.text = transactionsModelPosition.transactionLoanApp.toString()
         holder.tvTransactionLoanPayment.text = transactionsModelPosition.transactionLoanPayment.toString()
+        holder.tvTransactionLoanToRepay.text = transactionsModelPosition.transactionLoanToRepay.toString()
         holder.tvTransactionLoanPaymentDate.text = transactionsModelPosition.transactionLoanPaymentDate
         holder.tvTransactionLoanRepayment.text = transactionsModelPosition.transactionLoanRepayment.toString()
         holder.tvTransactionLoanRepaymentDate.text = transactionsModelPosition.transactionLoanRepaymentDate
@@ -79,11 +82,11 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
             val paymentDialogLayout = LayoutInflater.from(mContext2).inflate(R.layout.dialog_payments, null)
             paymentDialogLayout.etPayments.setText(balance)
             AlertDialog.Builder(mContext2)
-                    .setTitle("Share Received")
+                    .setTitle("Share Payment")
                     .setView(paymentDialogLayout)
-                    .setPositiveButton("Receive", null)
+                    .setPositiveButton("Cash In", null)
                     .setNegativeButton("Cancel") {_,_->}
-                    .setNeutralButton("Reverse Cash") {_,_->
+                    .setNeutralButton("Reverse Cash In") {_,_->
 
                         val posts : Boolean = MainActivity.dbHandler.sharePayment(mContext2, transactionsModelPosition.transactionID,
                                 paymentDialogLayout.etPayments.text.toString(),
@@ -92,7 +95,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                             transactionsModel[position].transactionSharePayment = 0.0
                             transactionsModel[position].transactionShareDate = AccountDetails().transactionDate
                             notifyDataSetChanged()
-                            Toast.makeText(mContext2, "Cash Reversed", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(mContext2, "Payment Reversed", Toast.LENGTH_SHORT).show()
                         }else{
                             Toast.makeText(mContext2, "Something wrong", Toast.LENGTH_SHORT).show()
                         }
@@ -104,7 +107,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
 
                                 if(paymentDialogLayout.etPayments.text.toString().toDouble() >
                                         (transactionsModel[position].transactionShareAmount - transactionsModel[position].transactionSharePayment)){
-                                    Toast.makeText(mContext2, "Payment cannot be higher that share", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(mContext2, "Cash In cannot be more that share", Toast.LENGTH_SHORT).show()
                                     return@setOnClickListener
                                 }
 
@@ -155,9 +158,9 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
             AlertDialog.Builder(mContext2)
                     .setTitle("Loan Payout")
                     .setView(paymentDialogLayout)
-                    .setPositiveButton("Pay", null)
+                    .setPositiveButton("Cash Out", null)
                     .setNegativeButton("Cancel") {_,_->}
-                    .setNeutralButton("Reverse Cash") {_,_->
+                    .setNeutralButton("Reverse Cash Out") {_,_->
 
                         val posts : Boolean = MainActivity.dbHandler.loanPayout(mContext2, transactionsModelPosition.transactionID,
                                 paymentDialogLayout.etPayments.text.toString(),
@@ -166,7 +169,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                             transactionsModel[position].transactionLoanPayment = 0.0
                             transactionsModel[position].transactionLoanPaymentDate = AccountDetails().transactionDate
                             notifyDataSetChanged()
-                            Toast.makeText(mContext2, "Payout Reversed", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(mContext2, "Payment Reversed", Toast.LENGTH_SHORT).show()
                         }else{
                             Toast.makeText(mContext2, "Something wrong", Toast.LENGTH_SHORT).show()
                         }
@@ -178,12 +181,12 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
 
                                 if(paymentDialogLayout.etPayments.text.toString().toDouble() >
                                         (transactionsModel[position].transactionLoanApp - transactionsModel[position].transactionLoanPayment)){
-                                    Toast.makeText(mContext2, "Payout cannot be higher loan application", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(mContext2, "Payout cannot be more than loan application", Toast.LENGTH_SHORT).show()
                                     return@setOnClickListener
                                 }
 
                                 if(paymentDialogLayout.etPayments.text.toString().toDouble() == 0.0){
-                                    Toast.makeText(mContext2, "Loan Payout Complete", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(mContext2, "Payment Complete", Toast.LENGTH_SHORT).show()
                                     dismiss()
                                     return@setOnClickListener
                                 }
@@ -199,7 +202,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                     transactionsModel[position].transactionLoanPaymentDate = AccountDetails().transactionDate
 
                                     if (transactionsModel[position].transactionLoanApp == transactionsModel[position].transactionLoanPayment){
-                                        Toast.makeText(mContext2, "Loan Payout Complete", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(mContext2, "Payment Complete", Toast.LENGTH_SHORT).show()
                                     }else{
                                         Toast.makeText(mContext2, "Part Payment", Toast.LENGTH_SHORT).show()
                                     }
@@ -220,7 +223,6 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
 
 
         holder.btnChargePayment.setOnClickListener {
-
             var balance = (transactionsModel[position].transactionCharge.toString().toDouble() -
                     transactionsModel[position].transactionChargePayment.toString().toDouble()).toString()
 
@@ -229,18 +231,18 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
             AlertDialog.Builder(mContext2)
                     .setTitle("Charge Payment")
                     .setView(paymentDialogLayout)
-                    .setPositiveButton("Charge", null)
+                    .setPositiveButton("Cash In", null)
                     .setNegativeButton("Cancel") {_,_->}
-                    .setNeutralButton("Reverse Charge") {_,_->
+                    .setNeutralButton("Reverse Cash In") {_,_->
 
-                        val posts : Boolean = MainActivity.dbHandler.loanPayout(mContext2, transactionsModelPosition.transactionID,
+                        val posts : Boolean = MainActivity.dbHandler.chargePayment(mContext2, transactionsModelPosition.transactionID,
                                 paymentDialogLayout.etPayments.text.toString(),
                                 AccountDetails().transactionDate)
                         if (posts){
-                            transactionsModel[position].transactionLoanPayment = 0.0
-                            transactionsModel[position].transactionLoanPaymentDate = AccountDetails().transactionDate
+                            transactionsModel[position].transactionChargePayment = 0.0
+                            transactionsModel[position].transactionChargePaymentDate = AccountDetails().transactionDate
                             notifyDataSetChanged()
-                            Toast.makeText(mContext2, "Payout Reversed", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(mContext2, "Payment Reversed", Toast.LENGTH_SHORT).show()
                         }else{
                             Toast.makeText(mContext2, "Something wrong", Toast.LENGTH_SHORT).show()
                         }
@@ -251,29 +253,102 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                             getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
 
                                 if(paymentDialogLayout.etPayments.text.toString().toDouble() >
-                                        (transactionsModel[position].transactionLoanApp - transactionsModel[position].transactionLoanPayment)){
-                                    Toast.makeText(mContext2, "Payout cannot be higher loan application", Toast.LENGTH_SHORT).show()
+                                        (transactionsModel[position].transactionCharge - transactionsModel[position].transactionChargePayment)){
+                                    Toast.makeText(mContext2, "Cash In cannot be higher than charge", Toast.LENGTH_SHORT).show()
                                     return@setOnClickListener
                                 }
 
                                 if(paymentDialogLayout.etPayments.text.toString().toDouble() == 0.0){
-                                    Toast.makeText(mContext2, "Loan Payout Complete", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(mContext2, "Payment Complete", Toast.LENGTH_SHORT).show()
                                     dismiss()
                                     return@setOnClickListener
                                 }
 
-                                paymentDialogLayout.etPayments.setText((transactionsModel[position].transactionLoanPayment +
+                                paymentDialogLayout.etPayments.setText((transactionsModel[position].transactionChargePayment +
                                         paymentDialogLayout.etPayments.text.toString().toDouble()).toString())
 
-                                val posts : Boolean = MainActivity.dbHandler.loanPayout(mContext2, transactionsModelPosition.transactionID,
+                                val posts : Boolean = MainActivity.dbHandler.chargePayment(mContext2, transactionsModelPosition.transactionID,
                                         paymentDialogLayout.etPayments.text.toString(),
                                         AccountDetails().transactionDate)
                                 if (posts){
-                                    transactionsModel[position].transactionLoanPayment = paymentDialogLayout.etPayments.text.toString().toDouble()
-                                    transactionsModel[position].transactionLoanPaymentDate = AccountDetails().transactionDate
+                                    transactionsModel[position].transactionChargePayment = paymentDialogLayout.etPayments.text.toString().toDouble()
+                                    transactionsModel[position].transactionChargePaymentDate = AccountDetails().transactionDate
 
-                                    if (transactionsModel[position].transactionLoanApp == transactionsModel[position].transactionLoanPayment){
-                                        Toast.makeText(mContext2, "Loan Payout Complete", Toast.LENGTH_SHORT).show()
+                                    if (transactionsModel[position].transactionCharge == transactionsModel[position].transactionChargePayment){
+                                        Toast.makeText(mContext2, "Charge Payment Complete", Toast.LENGTH_SHORT).show()
+                                    }else{
+                                        Toast.makeText(mContext2, "Part Payment", Toast.LENGTH_SHORT).show()
+                                    }
+                                    notifyDataSetChanged()
+                                    dismiss()
+                                }else{
+                                    Toast.makeText(mContext2, "Something wrong", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    }
+                    .show()
+        }
+
+
+
+        holder.btnLoanRepayment.setOnClickListener {
+
+
+
+            var balance = (transactionsModel[position].transactionLoanToRepay.toString().toDouble() -
+                    transactionsModel[position].transactionLoanRepayment.toString().toDouble()).toString()
+
+            val paymentDialogLayout = LayoutInflater.from(mContext2).inflate(R.layout.dialog_payments, null)
+            paymentDialogLayout.etPayments.setText(balance)
+            AlertDialog.Builder(mContext2)
+                    .setTitle("Loan Repayment")
+                    .setView(paymentDialogLayout)
+                    .setPositiveButton("Cash In", null)
+                    .setNegativeButton("Cancel") {_,_->}
+                    .setNeutralButton("Reverse Cash In") {_,_->
+
+                        val posts : Boolean = MainActivity.dbHandler.loanRepayment(mContext2, transactionsModelPosition.transactionID,
+                                paymentDialogLayout.etPayments.text.toString(),
+                                AccountDetails().transactionDate)
+                        if (posts){
+                            transactionsModel[position].transactionLoanRepayment = 0.0
+                            transactionsModel[position].transactionLoanRepaymentDate = AccountDetails().transactionDate
+                            notifyDataSetChanged()
+                            Toast.makeText(mContext2, "Repayment Reversed", Toast.LENGTH_SHORT).show()
+                        }else{
+                            Toast.makeText(mContext2, "Something wrong", Toast.LENGTH_SHORT).show()
+                        }
+
+                    }
+                    .create().apply {
+                        setOnShowListener {
+                            getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+
+                                if(paymentDialogLayout.etPayments.text.toString().toDouble() >
+                                        (transactionsModel[position].transactionLoanToRepay - transactionsModel[position].transactionLoanRepayment)){
+                                    Toast.makeText(mContext2, "Cash In cannot be higher than loan repayment", Toast.LENGTH_SHORT).show()
+                                    return@setOnClickListener
+                                }
+
+                                if(paymentDialogLayout.etPayments.text.toString().toDouble() == 0.0){
+                                    Toast.makeText(mContext2, "Repayment Complete", Toast.LENGTH_SHORT).show()
+                                    dismiss()
+                                    return@setOnClickListener
+                                }
+
+                                paymentDialogLayout.etPayments.setText((transactionsModel[position].transactionLoanRepayment +
+                                        paymentDialogLayout.etPayments.text.toString().toDouble()).toString())
+
+                                val posts : Boolean = MainActivity.dbHandler.loanRepayment(mContext2, transactionsModelPosition.transactionID,
+                                        paymentDialogLayout.etPayments.text.toString(),
+                                        AccountDetails().transactionDate)
+                                if (posts){
+                                    transactionsModel[position].transactionLoanRepayment = paymentDialogLayout.etPayments.text.toString().toDouble()
+                                    transactionsModel[position].transactionLoanRepaymentDate = AccountDetails().transactionDate
+
+                                    if (transactionsModel[position].transactionLoanToRepay == transactionsModel[position].transactionLoanRepayment){
+                                        Toast.makeText(mContext2, "Loan Repayment Complete", Toast.LENGTH_SHORT).show()
                                     }else{
                                         Toast.makeText(mContext2, "Part Payment", Toast.LENGTH_SHORT).show()
                                     }
