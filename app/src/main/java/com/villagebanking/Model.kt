@@ -16,7 +16,6 @@ class Model {
     var accountHoldersCharges: Double = 0.0
 
     var transactionID: Int = 0
-    var transactionAccID: String = ""
     var transactionName: String = ""
     var transactionMonth: String = ""
     var transactionShares: Double = 0.00

@@ -343,6 +343,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             contentValues.put(TRANSACTION_CHARGE_COL, transactionModel.transactionCharge)
             contentValues.put(TRANSACTION_CHARGE_PAYMENT_COL, transactionModel.transactionChargePayment)
             contentValues.put(TRANSACTION_CHARGE_DATE_COL, transactionModel.transactionChargePaymentDate)
+            contentValues.put(TRANSACTION_SHARE_OUT_COL, transactionModel.transactionShareOut)
             val db = writableDatabase
             try {
                 db.insert(TRANSACTION_TABLE, null, contentValues)
@@ -462,6 +463,27 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         db.close()
         return result
     }
+
+
+
+    fun investment(mContext: Context, Name: String) : Boolean{
+        val result: Boolean
+        val transactions = Model()
+        val contentValues = ContentValues()
+        contentValues.put(TRANSACTION_SHARE_OUT_COL,  transactions.transactionShareOut)
+        val db = writableDatabase
+        result = try {
+            db.update(TRANSACTION_TABLE, contentValues, "$TRANSACTION_NAME_COL = ?", arrayOf(Name))
+            true
+        }catch (e : Exception){
+            Toast.makeText(mContext, e.message, Toast.LENGTH_SHORT).show()
+            false
+        }
+        db.close()
+        return result
+    }
+
+
 
 
 

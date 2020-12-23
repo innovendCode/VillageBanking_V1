@@ -117,8 +117,8 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                     return@setOnClickListener
                                 }
 
-                                var sum = 0.0
-                                paymentDialogLayout.etPayments.setText((transactionsModel[position].transactionSharePayment + paymentDialogLayout.etPayments.text.toString().toDouble()).toString())
+                                paymentDialogLayout.etPayments.setText((transactionsModel[position].transactionSharePayment +
+                                        paymentDialogLayout.etPayments.text.toString().toDouble()).toString())
 
                                 val posts : Boolean = MainActivity.dbHandler.sharePayment(mContext2, transactionsModelPosition.transactionID,
                                         paymentDialogLayout.etPayments.text.toString(),
@@ -132,12 +132,12 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                     }else{
                                         Toast.makeText(mContext2, "Part Payment", Toast.LENGTH_SHORT).show()
                                     }
-
                                     notifyDataSetChanged()
                                     dismiss()
                                 }else{
                                     Toast.makeText(mContext2, "Something wrong", Toast.LENGTH_SHORT).show()
                                 }
+
                             }
                         }
                     }
