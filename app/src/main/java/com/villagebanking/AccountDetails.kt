@@ -3,6 +3,7 @@ package com.villagebanking
 import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.DialogInterface
+import android.database.Cursor
 import android.icu.text.DateFormat
 import android.icu.text.SimpleDateFormat
 import android.os.Build
@@ -53,6 +54,8 @@ class AccountDetails : AppCompatActivity() {
     @RequiresApi(Build.VERSION_CODES.N)
     val transactionDate: String = dateFormat.format(date)
 
+
+
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,26 +67,13 @@ class AccountDetails : AppCompatActivity() {
         val id = intent.getStringExtra("ID")
         tvDetailsID.text = id
 
-
         val actionBar = supportActionBar
         actionBar!!.title = "Transactions"
         actionBar.setDisplayHomeAsUpEnabled(true)
 
-
-
         getAccountDetails()
         checkMonth()
     }
-
-
-
-
-
-
-
-
-
-
 
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -122,9 +112,7 @@ class AccountDetails : AppCompatActivity() {
 
                 assets = (chargePaid - charge) + (loanRepaid - loanToRepay) + sharePayment
 
-
                 Toast.makeText(this, assets.toString(), Toast.LENGTH_SHORT).show()
-
 
             }
             R.id.loanPayOut -> {
@@ -137,9 +125,6 @@ class AccountDetails : AppCompatActivity() {
         }
         return true
     }
-
-
-
 
 
     private fun getAccountDetails(){
@@ -159,7 +144,6 @@ class AccountDetails : AppCompatActivity() {
     }
 
 
-
     @RequiresApi(Build.VERSION_CODES.N)
     private fun getTransactions(): ArrayList<Model>{
         val name = tvDetailsName.text
@@ -173,6 +157,7 @@ class AccountDetails : AppCompatActivity() {
             val transactions = Model()
             transactions.transactionID = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_ID_COL))
             transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
+            transactions.transactionInterest = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_INTEREST_COL))
             transactions.transactionShares = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
             transactions.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
             transactions.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
@@ -208,7 +193,6 @@ class AccountDetails : AppCompatActivity() {
 
 
     private fun createMonth(){
-        val id = tvDetailsID.text
         val name = tvDetailsName.text
         var share = 0.0
         var shareValue = 0.0
@@ -238,7 +222,7 @@ class AccountDetails : AppCompatActivity() {
         cursor.close()
         db.close()
 
-        interest = (interest/100)
+        interest = (interest/100) + 1
 
 
         query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} = ?"
@@ -265,11 +249,10 @@ class AccountDetails : AppCompatActivity() {
             transactionModel.transactionLoanRepaymentDate = transactionDate
             transactionModel.transactionCharge = charge
             transactionModel.transactionChargePaymentDate = transactionDate
+            transactionModel.transactionInterest = interest
             dbHandler.createMonth(this, transactionModel)
             populateInvestment()
-
     }
-
 
 
 
@@ -314,17 +297,14 @@ class AccountDetails : AppCompatActivity() {
 
 
 
-
     private fun populateInvestment(){
         val name = tvDetailsName.text
         var lastMonthSharePayment = 0.0
-        val contentValues = ContentValues()
 
-        //Get previous month sharePayment
-        val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = ? AND ${DBHandler.TRANSACTION_MONTH_COL} = ?"
+        //Get previous month sharePayment to be populated as current share out
+        var query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = ? AND ${DBHandler.TRANSACTION_MONTH_COL} = ?"
         var db = dbHandler.readableDatabase
         val cursor =  db.rawQuery(query, arrayOf(name.toString(), transactionLastMonth))
-
         if (cursor.count != 0){
             if(cursor.moveToFirst()){
                 lastMonthSharePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
@@ -335,89 +315,19 @@ class AccountDetails : AppCompatActivity() {
         cursor.close()
         db.close()
 
-        //Update previous months share payment.
-        //Update at the beginning of new month
+        //Insert previous month sharePayment as current share out
+        //Done at the beginning of the month because the share had to work to gain interest
+        val contentValues = ContentValues()
         contentValues.put(DBHandler.TRANSACTION_SHARE_OUT_COL, lastMonthSharePayment)
         db = dbHandler.writableDatabase
         db.update(DBHandler.TRANSACTION_TABLE, contentValues, "${DBHandler.TRANSACTION_MONTH_COL} = ? AND ${DBHandler.TRANSACTION_NAME_COL} = ?", arrayOf(transactionLastMonth, name.toString()))
 
-
-        contentValues.put(DBHandler.TRANSACTION_SHARE_OUT_COL, 10)
-        db.update(DBHandler.TRANSACTION_TABLE, contentValues, "${DBHandler.TRANSACTION_NAME_COL} = ?", arrayOf(name.toString()))
-        db.close()
-    }
-
-
-
-
-    private fun investment(){
-        val name = tvDetailsName.text
-        val transaction = Model()
-        var shareOut = 0.0
-
-        val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = ?"
-        val db = dbHandler.readableDatabase
-        val cursor = db.rawQuery(query, arrayOf(name.toString()))
-        if (cursor.moveToNext()){
-            shareOut = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
-
-            transaction.transactionShareOut = shareOut
-
-            MainActivity.dbHandler.investment(this, name.toString())
-
-        }
-
-
-
-
-
-    }
-
-
-
-
-    private fun populateInterests(){
-        var interest =  0.0
-        var shareOut = 0.0
-        val name = tvDetailsName.text
-
-        var query = "SELECT * FROM ${DBHandler.SETTINGS_TABLE}"
-        var db = dbHandler.readableDatabase
-        var cursor = db.rawQuery(query, null)
-        if (cursor.moveToFirst()){
-            interest = cursor.getDouble(cursor.getColumnIndex(DBHandler.SETTINGS_INTEREST_RATE_COL))
-        }
-        cursor.close()
-        db.close()
-
-        interest = (interest/100) +1
-
-        query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = ?"
-        db = dbHandler.readableDatabase
-        cursor = db.rawQuery(query, arrayOf(name.toString()))
-        if (cursor.moveToNext()){
-            shareOut = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_OUT_COL))
-
-            val contentValues = ContentValues()
-            contentValues.put(DBHandler.TRANSACTION_SHARE_OUT_COL, shareOut * interest)
-            db = dbHandler.writableDatabase
-            db.update(DBHandler.TRANSACTION_TABLE, contentValues, "${DBHandler.TRANSACTION_NAME_COL} = ?", arrayOf(name.toString()))
-        }
-        cursor.close()
-        db.close()
-
-
-
-
-/*        val contentValues = ContentValues()
-        contentValues.put(DBHandler.TRANSACTION_SHARE_OUT_COL, DBHandler.TRANSACTION_SHARE_OUT_COL.toDouble() * interest)
+        //Populate incremental interests for all past months
+        query = "UPDATE ${DBHandler.TRANSACTION_TABLE} SET ${DBHandler.TRANSACTION_SHARE_OUT_COL} = ${DBHandler.TRANSACTION_SHARE_OUT_COL} * ${DBHandler.TRANSACTION_INTEREST_COL}"
         db = dbHandler.writableDatabase
-        db.update(DBHandler.TRANSACTION_TABLE, contentValues, "${DBHandler.TRANSACTION_MONTH_COL} != ? AND ${DBHandler.TRANSACTION_NAME_COL} = ?", arrayOf(transactionMonth, name.toString()))
-        db.close()*/
-
-
+        db.execSQL(query)
+        db.close()
     }
-
 
 
 
@@ -457,29 +367,7 @@ class AccountDetails : AppCompatActivity() {
             }else{
                 Toast.makeText(this, "Error finding banking info", Toast.LENGTH_SHORT).show()
             }
-
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

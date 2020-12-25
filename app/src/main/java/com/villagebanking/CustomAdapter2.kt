@@ -23,6 +23,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
     class ViewHolder (itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvTransactionID : TextView = itemView.tvTransactionID
         val tvTransactionMonth : TextView = itemView.tvTransactionMonth
+        val tvTransactionInterest : TextView = itemView.tvTransactionInterest
         val tvTransactionShares : TextView = itemView.tvTransactionShares
         val tvTransactionShareAmount : TextView = itemView.tvTransactionShareAmount
         val tvTransactionSharePayment : TextView = itemView.tvTransactionSharePayment
@@ -57,6 +58,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
         val transactionsModelPosition : Model = transactionsModel[position]
         holder.tvTransactionID.text = transactionsModelPosition.transactionID.toString()
         holder.tvTransactionMonth.text = transactionsModelPosition.transactionMonth
+        holder.tvTransactionInterest.text = transactionsModelPosition.transactionInterest.toString()
         holder.tvTransactionShares.text = transactionsModelPosition.transactionShares.toString()
         holder.tvTransactionShareAmount.text = transactionsModelPosition.transactionShareAmount.toString()
         holder.tvTransactionSharePayment.text = transactionsModelPosition.transactionSharePayment.toString()
@@ -99,7 +101,6 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                         }else{
                             Toast.makeText(mContext2, "Something wrong", Toast.LENGTH_SHORT).show()
                         }
-
                     }
                     .create().apply {
                         setOnShowListener {
@@ -137,13 +138,10 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                 }else{
                                     Toast.makeText(mContext2, "Something wrong", Toast.LENGTH_SHORT).show()
                                 }
-
                             }
                         }
                     }
                     .show()
-
-
         }
 
 

@@ -20,29 +20,40 @@
             android:layout_height="wrap_content"
             android:padding="10dp">
 
+            <TextView
+                android:id="@+id/tvTransactionInterest"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2000"
+                android:textSize="16sp"
+                android:visibility="gone"
+                app:layout_constraintStart_toEndOf="@+id/tvTransactionMonth"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:visibility="gone" />
+
             <ImageButton
                 android:id="@+id/btnChargePayment"
                 android:layout_width="74dp"
                 android:layout_height="wrap_content"
+                android:src="@drawable/ic_money_white"
                 app:layout_constraintBottom_toBottomOf="@+id/tvTransactionChargePaymentDate"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:src="@drawable/ic_money_white"/>
+                app:layout_constraintEnd_toEndOf="parent" />
 
             <ImageButton
                 android:id="@+id/btnLoanRepayment"
                 android:layout_width="74dp"
                 android:layout_height="wrap_content"
+                android:src="@drawable/ic_money_white"
                 app:layout_constraintBottom_toBottomOf="@+id/tvTransactionLoanRepaymentDate"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:src="@drawable/ic_money_white"/>
+                app:layout_constraintEnd_toEndOf="parent" />
 
             <ImageButton
                 android:id="@+id/btnSharePayment"
                 android:layout_width="74dp"
                 android:layout_height="wrap_content"
+                android:src="@drawable/ic_money_white"
                 app:layout_constraintBottom_toBottomOf="@+id/tvTransactionShareDate"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:src="@drawable/ic_money_white"/>
+                app:layout_constraintEnd_toEndOf="parent" />
 
             <TextView
                 android:id="@+id/tvTransactionSharePaid5"
@@ -51,9 +62,9 @@
                 android:layout_marginStart="5dp"
                 android:layout_marginLeft="5dp"
                 android:text="@string/out_of"
-                android:textStyle="bold"
                 android:textColor="@color/black"
                 android:textSize="16sp"
+                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@+id/tvTransactionLoan3"
                 app:layout_constraintStart_toEndOf="@+id/tvTransactionChargePayment" />
 
@@ -105,9 +116,9 @@
                 android:layout_marginStart="5dp"
                 android:layout_marginLeft="5dp"
                 android:text="@string/out_of"
-                android:textStyle="bold"
                 android:textColor="@color/black"
                 android:textSize="16sp"
+                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@+id/tvTransactionLoanPayment"
                 app:layout_constraintStart_toEndOf="@+id/tvTransactionLoanPayment" />
 
@@ -118,9 +129,9 @@
                 android:layout_marginStart="5dp"
                 android:layout_marginLeft="5dp"
                 android:text="@string/out_of"
-                android:textStyle="bold"
                 android:textColor="@color/black"
                 android:textSize="16sp"
+                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@+id/tvTransactionLoan5"
                 app:layout_constraintStart_toEndOf="@+id/tvTransactionLoanRepayment" />
 
@@ -287,9 +298,9 @@
                 android:layout_marginStart="5dp"
                 android:layout_marginLeft="5dp"
                 android:text="@string/out_of"
-                android:textStyle="bold"
                 android:textColor="@color/black"
                 android:textSize="16sp"
+                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="@+id/tvTransactionShares2"
                 app:layout_constraintStart_toEndOf="@+id/tvTransactionSharePayment" />
 
@@ -314,9 +325,9 @@
                 android:id="@+id/btnLoanPayout"
                 android:layout_width="74dp"
                 android:layout_height="wrap_content"
+                android:src="@drawable/ic_money_white"
                 app:layout_constraintBottom_toBottomOf="@+id/tvTransactionLoanPaymentDate"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:src="@drawable/ic_money_white"/>
+                app:layout_constraintEnd_toEndOf="parent" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

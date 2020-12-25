@@ -54,6 +54,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val TRANSACTION_CHARGE_PAYMENT_COL = "charge_payment"
         const val TRANSACTION_CHARGE_DATE_COL = "charge_date"
         const val TRANSACTION_SHARE_OUT_COL = "current_share_out"
+        const val TRANSACTION_INTEREST_COL = "interest"
 
         const val SETTINGS_TABLE = "settings"
         const val SETTINGS_ID_COL = "_id"
@@ -99,6 +100,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 "$TRANSACTION_CHARGE_COL DOUBLE, " +
                 "$TRANSACTION_CHARGE_PAYMENT_COL DOUBLE, " +
                 "$TRANSACTION_CHARGE_DATE_COL DATE, " +
+                "$TRANSACTION_INTEREST_COL DOUBLE, " +
                 "$TRANSACTION_SHARE_OUT_COL DOUBLE)")
 
         val createSettingsTable = ("CREATE TABLE $SETTINGS_TABLE (" +
@@ -344,6 +346,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             contentValues.put(TRANSACTION_CHARGE_PAYMENT_COL, transactionModel.transactionChargePayment)
             contentValues.put(TRANSACTION_CHARGE_DATE_COL, transactionModel.transactionChargePaymentDate)
             contentValues.put(TRANSACTION_SHARE_OUT_COL, transactionModel.transactionShareOut)
+            contentValues.put(TRANSACTION_INTEREST_COL, transactionModel.transactionInterest)
             val db = writableDatabase
             try {
                 db.insert(TRANSACTION_TABLE, null, contentValues)

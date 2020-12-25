@@ -33,6 +33,7 @@ class Model {
     var transactionChargePayment: Double = 0.00
     var transactionChargePaymentDate: String = ""
     var transactionShareOut: Double = 0.00
+    var transactionInterest: Double = 0.00
 
     var settingsShareValue: Double = 0.00
     var settingsInterestRate: Int = 0
