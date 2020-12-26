@@ -15,6 +15,7 @@ import kotlinx.android.synthetic.main.sub_row_layout.view.*
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import kotlin.math.round
+import kotlin.math.roundToLong
 
 class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayList<Model>): RecyclerView.Adapter<CustomAdapter2.ViewHolder>()  {
 
@@ -125,7 +126,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                         paymentDialogLayout.etPayments.text.toString(),
                                         AccountDetails().transactionDate)
                                 if (posts){
-                                    transactionsModel[position].transactionSharePayment = paymentDialogLayout.etPayments.text.toString().toDouble()
+                                    transactionsModel[position].transactionSharePayment = Math.round(paymentDialogLayout.etPayments.text.toString().toDouble() *10.0)/10.0
                                     transactionsModel[position].transactionShareDate = AccountDetails().transactionDate
 
                                     if (transactionsModel[position].transactionShareAmount == transactionsModel[position].transactionSharePayment){
@@ -196,7 +197,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                         paymentDialogLayout.etPayments.text.toString(),
                                         AccountDetails().transactionDate)
                                 if (posts){
-                                    transactionsModel[position].transactionLoanPayment = paymentDialogLayout.etPayments.text.toString().toDouble()
+                                    transactionsModel[position].transactionLoanPayment = Math.round(paymentDialogLayout.etPayments.text.toString().toDouble() *10.0)/10.0
                                     transactionsModel[position].transactionLoanPaymentDate = AccountDetails().transactionDate
 
                                     if (transactionsModel[position].transactionLoanApp == transactionsModel[position].transactionLoanPayment){
@@ -213,9 +214,6 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                         }
                     }
                     .show()
-
-
-
         }
 
 
@@ -269,7 +267,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                         paymentDialogLayout.etPayments.text.toString(),
                                         AccountDetails().transactionDate)
                                 if (posts){
-                                    transactionsModel[position].transactionChargePayment = paymentDialogLayout.etPayments.text.toString().toDouble()
+                                    transactionsModel[position].transactionChargePayment = Math.round(paymentDialogLayout.etPayments.text.toString().toDouble() * 10.0)/10.0
                                     transactionsModel[position].transactionChargePaymentDate = AccountDetails().transactionDate
 
                                     if (transactionsModel[position].transactionCharge == transactionsModel[position].transactionChargePayment){
@@ -342,7 +340,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                         paymentDialogLayout.etPayments.text.toString(),
                                         AccountDetails().transactionDate)
                                 if (posts){
-                                    transactionsModel[position].transactionLoanRepayment = paymentDialogLayout.etPayments.text.toString().toDouble()
+                                    transactionsModel[position].transactionLoanRepayment = paymentDialogLayout.etPayments.text.toString().toDouble().roundToLong() *10.0/10.0
                                     transactionsModel[position].transactionLoanRepaymentDate = AccountDetails().transactionDate
 
                                     if (transactionsModel[position].transactionLoanToRepay == transactionsModel[position].transactionLoanRepayment){

@@ -1,6 +1,7 @@
 package com.villagebanking
 
 import android.annotation.SuppressLint
+import android.content.ContentValues
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
@@ -90,8 +91,29 @@ class Home: AppCompatActivity() {
 
         return true
     }
-}
+
+
+
+
+
+
+
+
+
+
+
+
 
     fun logOff() {
 
     }
+
+
+
+
+
+}
+
+
+
+

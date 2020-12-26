@@ -7,27 +7,21 @@
     android:backgroundTintMode="add"
     android:padding="20dp">
 
-    <EditText
-        android:id="@+id/etConfirmDelete"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="textCapCharacters"
-        android:layout_marginBottom="20dp"
-        android:hint="TYPE HERE" />
-
     <Button
         android:id="@+id/btnConfirmDelete"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
-        android:text="Confirm"
+        android:text="@string/delete"
+        android:backgroundTint="#9A1414"
         android:textAllCaps="false"/>
 
     <Button
-        android:id="@+id/btnCancelConfirmDelete"
+        android:id="@+id/btnCancelDelete"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
         android:text="Cancel"
         android:textAllCaps="false"/>
+
 </LinearLayout>

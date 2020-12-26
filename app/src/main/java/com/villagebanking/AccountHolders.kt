@@ -1,6 +1,7 @@
 package com.villagebanking
 
 import android.annotation.SuppressLint
+import android.content.ContentValues
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
@@ -44,6 +45,9 @@ class AccountHolders: AppCompatActivity() {
         val actionBar = supportActionBar
         actionBar!!.title = "Accounts"
         actionBar.setDisplayHomeAsUpEnabled(true)
+
+        checkIfCurrentMonth()
+
     }
 
 
@@ -61,7 +65,6 @@ class AccountHolders: AppCompatActivity() {
         if (menu is MenuBuilder) {
             menu.setOptionalIconsVisible(true)
         }
-
         return true
     }
 
@@ -97,6 +100,56 @@ class AccountHolders: AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         viewAccountHolders()
+    }
+
+
+
+    private fun checkIfCurrentMonth(){
+        var query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
+        var db = dbHandler.readableDatabase
+        var cursor = db.rawQuery(query, null)
+        if (cursor.count != 0){
+
+            query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_SHARE_COL} != ? OR ${DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL} != ? OR ${DBHandler.ACCOUNT_HOLDERS_CHARGES_COL} != ?"
+            var db = dbHandler.readableDatabase
+            var cursor = db.rawQuery(query, arrayOf("0.0","0.0","0.0"))
+            if (cursor.count != 0){
+
+                query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} = ?"
+                db = Home.dbHandler.readableDatabase
+                cursor = db.rawQuery(query, arrayOf(AccountDetails().transactionMonth))
+                if (cursor.count == 0){
+                    AlertDialog.Builder(this)
+                            .setTitle("New Month ${AccountDetails().transactionMonth}")
+                            .setMessage("You have entered a new month. Reset shares, loan applications and charges to zero?")
+                            .setNegativeButton("No") {_,_->}
+                            .setPositiveButton("Yes") {_,_->
+                                resetPostsAndApps()
+                                viewAccountHolders()
+                            }
+                            .show()
+                }
+            }
+
+
+
+
+
+            cursor.close()
+            db.close()
+        }
+    }
+
+
+
+    private fun resetPostsAndApps(){
+        val contentValues = ContentValues()
+        val db = Home.dbHandler.writableDatabase
+        contentValues.put(DBHandler.ACCOUNT_HOLDERS_SHARE_COL, 0.0)
+        contentValues.put(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL, 0.0)
+        contentValues.put(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL, 0.0)
+        db.update(DBHandler.ACCOUNT_HOLDERS_TABLE, contentValues, null, null)
+        Toast.makeText(this,"All postings reset to Zero", Toast.LENGTH_SHORT).show()
     }
 
 
@@ -273,6 +326,7 @@ class AccountHolders: AppCompatActivity() {
     }
 
 
+
     @SuppressLint("Recycle")
     fun securityWarning(){
     //No Chairperson Account
@@ -295,11 +349,7 @@ class AccountHolders: AppCompatActivity() {
                     duplicateAdmin.show()
                 }
         }
-
-
-
-
-}
+    }
 
 
 
