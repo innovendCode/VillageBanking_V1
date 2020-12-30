@@ -14,6 +14,9 @@ class Model {
     var accountHoldersShare: Double = 0.00
     var accountHoldersLoanApp: Double = 0.0
     var accountHoldersCharges: Double = 0.0
+    var accountHoldersApproved: String = ""
+    var accountHoldersAsset: Double = 0.0
+    var accountHoldersLiability: Double = 0.0
 
     var transactionID: Int = 0
     var transactionName: String = ""

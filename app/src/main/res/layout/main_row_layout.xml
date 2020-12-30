@@ -117,14 +117,59 @@
                 app:layout_constraintStart_toEndOf="@+id/textView3" />
 
 
+            <TextView
+                android:id="@+id/tvAsset"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="5dp"
+                android:layout_marginRight="5dp"
+                android:text="@string/main_charges"
+                android:textColor="#09AA9B"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toStartOf="@+id/imgClearedAll"
+                app:layout_constraintTop_toBottomOf="@+id/btnPostings" />
+
+            <TextView
+                android:id="@+id/tvLiability"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="5dp"
+                android:layout_marginRight="5dp"
+                android:text="@string/main_charges"
+                android:textColor="#BA0707"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toStartOf="@+id/imgClearedAll"
+                app:layout_constraintTop_toBottomOf="@+id/tvAsset" />
+
+            <TextView
+                android:id="@+id/tvApproved"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:layout_marginRight="10dp"
+                android:text="@string/main_charges"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/imgClearedAll" />
+
             <ImageButton
                 android:id="@+id/btnPostings"
-                android:layout_width="96dp"
-                android:layout_height="43dp"
-                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_width="109dp"
+                android:layout_height="65dp"
+                android:src="@drawable/ic_edit"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:src="@drawable/ic_edit"/>
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/imgClearedAll"
+                android:layout_width="33dp"
+                android:layout_height="38dp"
+                android:layout_marginEnd="7dp"
+                android:layout_marginRight="7dp"
+                android:src="@drawable/ic_approved"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/btnPostings" />
+
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -1,69 +1,150 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#51ACE0E6"
     android:orientation="vertical">
 
 
     <TextView
+        android:id="@+id/tvUnpaidLoans2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="30dp"
+        android:layout_marginTop="20dp"
+        android:text="Arrears"
+        android:textSize="18sp"
         android:textStyle="bold"
-        android:text="Banking Information" />
-
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvTotalInvestment" />
 
     <TextView
-        android:layout_marginTop="50dp"
+        android:id="@+id/tvUnpaidLoans4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Settings"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvMembersArrears" />
+
+    <TextView
         android:id="@+id/tvNoAccountHolders"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="18dp"
-        android:text=" - No Account Holders: 10" />
+        android:layout_marginTop="16dp"
+        android:text="@string/info"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 
     <TextView
-        android:layout_marginTop="20dp"
         android:id="@+id/tvTotalShares"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="18dp"
-        android:text=" - Total Shares: 10" />
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/info"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvNoAccountHolders" />
+
 
     <TextView
-        android:layout_marginTop="20dp"
         android:id="@+id/tvTotalSharesAmount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="18dp"
-        android:text=" - Total Shares Amount: 10" />
+        android:text="@string/info"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="@+id/tvTotalShares"
+        app:layout_constraintTop_toBottomOf="@+id/tvTotalShares" />
+
 
     <TextView
-        android:layout_marginTop="20dp"
-        android:id="@+id/tvTotalLoansAmount"
+        android:id="@+id/tvTotalInvestment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="18dp"
-        android:text=" - Total Loans: 10" />
+        android:text="@string/info"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="@+id/tvTotalSharesAmount"
+        app:layout_constraintTop_toBottomOf="@+id/tvTotalSharesAmount" />
+
 
     <TextView
-        android:layout_marginTop="20dp"
-        android:id="@+id/tvTotalUnpaidLoans"
+        android:id="@+id/tvTotalCash"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="18dp"
-        android:text=" - Total Unpaid Loans: 10" />
+        android:layout_marginTop="40dp"
+        android:text="@string/info"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvShareValue" />
 
+    <TextView
+        android:id="@+id/tvInterestRate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/info"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvUnpaidLoans4" />
+
+
+    <TextView
+        android:id="@+id/tvShareValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/info"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="@+id/tvInterestRate"
+        app:layout_constraintTop_toBottomOf="@+id/tvInterestRate" />
+
+    <TextView
+        android:id="@+id/tvUnpaidLoans"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="5dp"
+        android:text="@string/info"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvUnpaidLoans2" />
+
+    <TextView
+        android:id="@+id/tvUnpaidCharges"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/info"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="@+id/tvUnpaidLoans"
+        app:layout_constraintTop_toBottomOf="@+id/tvUnpaidLoans" />
+
+    <TextView
+        android:id="@+id/tvMembersArrears"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/info"
+        android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="@+id/tvUnpaidCharges"
+        app:layout_constraintTop_toBottomOf="@+id/tvUnpaidCharges" />
 
     <Button
         android:id="@+id/btnTest"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Force Loan"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        android:text="Apply Force Loan"
+        android:textAllCaps="false"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-</LinearLayout>
+        app:layout_constraintTop_toBottomOf="@+id/tvTotalCash" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

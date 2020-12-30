@@ -1,6 +1,7 @@
 package com.villagebanking
 
 
+import android.annotation.SuppressLint
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Build
@@ -13,7 +14,11 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 
+
+
 import kotlinx.android.synthetic.main.activity_main.*
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -22,12 +27,13 @@ class MainActivity : AppCompatActivity() {
         lateinit var dbHandler: DBHandler
     }
 
+    @SuppressLint("SimpleDateFormat", "WeekBasedYear")
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        dbHandler = DBHandler(this, null,null, 1)
+        dbHandler = DBHandler(this, null, null, 1)
 
         val actionBar = supportActionBar
         actionBar!!.title = ""
@@ -70,6 +76,30 @@ class MainActivity : AppCompatActivity() {
             db.close()
         }
 
+
+        val btn: Button = btn1
+        btn1.setOnClickListener {
+
+
+            val c: Calendar = GregorianCalendar()
+            c.time = Date()
+            val sdf = SimpleDateFormat("MMMM yyyy")
+            //println(sdf.format(c.time)) // NOW
+            c.add(Calendar.MONTH, -1)
+            //println(sdf.format(c.time)) // One month ago
+            val transactionLastMonth = (sdf.format(c.time))
+
+            Toast.makeText(this, transactionLastMonth, Toast.LENGTH_LONG).show()
+
+            c.add(Calendar.MONTH, -1)
+            //println(sdf.format(c.time)) // Two month ago
+
+
+            Toast.makeText(this, sdf.format(c.time), Toast.LENGTH_LONG).show()
+
+        }
+
+
     }
 
 
@@ -82,7 +112,7 @@ class MainActivity : AppCompatActivity() {
             val firstTimeAlert = AlertDialog.Builder(this)
                     .setTitle("Welcome to Sonka - Village Banking")
                     .setMessage("First time use does not require a PIN. Click PROCEED to begin")
-                    .setNeutralButton("OK") { _:DialogInterface, _: Int -> }
+                    .setNeutralButton("OK") { _: DialogInterface, _: Int -> }
             firstTimeAlert.show()
         }
         cursor.close()

@@ -44,10 +44,9 @@ class AccountHolders: AppCompatActivity() {
 
         val actionBar = supportActionBar
         actionBar!!.title = "Accounts"
-        actionBar.setDisplayHomeAsUpEnabled(true)
 
         checkIfCurrentMonth()
-
+        //checkPayments()
     }
 
 
@@ -76,7 +75,7 @@ class AccountHolders: AppCompatActivity() {
                 addAccountHolder(this)
             }
             R.id.delAllAccountHolders -> {
-                dbHandler.delAllAccountHolders(this)
+                dbHandler.deleteAll(this)
                 viewAccountHolders()
             }
             R.id.ViewAll -> {
@@ -99,28 +98,49 @@ class AccountHolders: AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        //checkPayments()
         viewAccountHolders()
     }
 
 
 
+    @SuppressLint("SimpleDateFormat")
     private fun checkIfCurrentMonth(){
         var query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
         var db = dbHandler.readableDatabase
         var cursor = db.rawQuery(query, null)
         if (cursor.count != 0){
 
-            query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_SHARE_COL} != ? OR ${DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL} != ? OR ${DBHandler.ACCOUNT_HOLDERS_CHARGES_COL} != ?"
-            var db = dbHandler.readableDatabase
-            var cursor = db.rawQuery(query, arrayOf("0.0","0.0","0.0"))
+
+            val c: Calendar = GregorianCalendar()
+            c.time = Date()
+            val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+            //println(sdf.format(c.time)) // NOW
+            val transactionMonth = (sdf.format(c.time))
+            c.add(Calendar.MONTH, -1)
+            //println(sdf.format(c.time)) // One month ago
+            val transactionLastMonth = (sdf.format(c.time))
+
+
+            query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_SHARE_COL} != ? OR " +
+                    "${DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL} != ? OR ${DBHandler.ACCOUNT_HOLDERS_CHARGES_COL} != ?"
+            db = dbHandler.readableDatabase
+            cursor = db.rawQuery(query, arrayOf("0.0","0.0","0.0"))
             if (cursor.count != 0){
 
                 query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} = ?"
                 db = Home.dbHandler.readableDatabase
-                cursor = db.rawQuery(query, arrayOf(AccountDetails().transactionMonth))
+                cursor = db.rawQuery(query, arrayOf(transactionMonth))
                 if (cursor.count == 0){
+
+
+                val contentValues = ContentValues()
+                db = dbHandler.writableDatabase
+                contentValues.put(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL, "")
+                db.update(DBHandler.ACCOUNT_HOLDERS_TABLE, contentValues, null, null)
+
                     AlertDialog.Builder(this)
-                            .setTitle("New Month ${AccountDetails().transactionMonth}")
+                            .setTitle("New Month $transactionMonth}")
                             .setMessage("You have entered a new month. Reset shares, loan applications and charges to zero?")
                             .setNegativeButton("No") {_,_->}
                             .setPositiveButton("Yes") {_,_->
@@ -130,11 +150,6 @@ class AccountHolders: AppCompatActivity() {
                             .show()
                 }
             }
-
-
-
-
-
             cursor.close()
             db.close()
         }
@@ -151,6 +166,8 @@ class AccountHolders: AppCompatActivity() {
         db.update(DBHandler.ACCOUNT_HOLDERS_TABLE, contentValues, null, null)
         Toast.makeText(this,"All postings reset to Zero", Toast.LENGTH_SHORT).show()
     }
+
+
 
 
 
@@ -273,6 +290,7 @@ class AccountHolders: AppCompatActivity() {
                                                     accountHolderModel.accountHolderBankInfo = addAccountHolderDialogLayout.etAccountInfo.text.toString()
                                                     accountHolderModel.accountHolderPin = insertPinDialogLayout.etInsertPIN.text.toString()
                                                     accountHolderModel.accountHolderPinHint = insertPinDialogLayout.etPinHint.text.toString()
+                                                    accountHolderModel.accountHoldersApproved = ""
                                                     dbHandler.addAccountHolder(yContext, accountHolderModel)
                                                     viewAccountHolders()
                                                     addAccountHolderDialogLayout.etFullNames.text.clear()
@@ -306,23 +324,6 @@ class AccountHolders: AppCompatActivity() {
                 }
                 .show()
         addAccountHolderDialogLayout.etFullNames.requestFocus()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 
 
@@ -350,6 +351,8 @@ class AccountHolders: AppCompatActivity() {
                 }
         }
     }
+
+
 
 
 

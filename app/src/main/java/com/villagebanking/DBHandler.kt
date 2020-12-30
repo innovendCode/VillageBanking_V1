@@ -1,16 +1,19 @@
 package com.villagebanking
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Context
 import android.content.DialogInterface
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.LayoutDirection
 import android.util.Log
 import android.view.LayoutInflater
+import android.widget.Button
 import android.widget.Toast
-import kotlinx.android.synthetic.main.account_details.*
-import kotlinx.android.synthetic.main.dialog_payments.view.*
+import kotlinx.android.synthetic.main.delete_confirmation.view.*
+import java.util.*
 import kotlin.Exception
 import kotlin.collections.ArrayList
 
@@ -34,6 +37,9 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val ACCOUNT_HOLDERS_SHARE_COL = "pre_share"
         const val ACCOUNT_HOLDERS_LOAN_APP_COL = "loan_app"
         const val ACCOUNT_HOLDERS_CHARGES_COL = "charges"
+        const val ACCOUNT_HOLDERS_ARREARS_COL = "arrears"
+        const val ACCOUNT_HOLDERS_ASSET_COL = "asset"
+        const val ACCOUNT_HOLDERS_LIABILITY_COL = "liability"
 
         const val TRANSACTION_TABLE = "transactions"
         const val TRANSACTION_ID_COL = "_id"
@@ -55,6 +61,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val TRANSACTION_CHARGE_DATE_COL = "charge_date"
         const val TRANSACTION_SHARE_OUT_COL = "current_share_out"
         const val TRANSACTION_INTEREST_COL = "interest"
+        const val TRANSACTION_ARREARS_COL = "tr_arrears"
 
         const val SETTINGS_TABLE = "settings"
         const val SETTINGS_ID_COL = "_id"
@@ -79,7 +86,10 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 "$ACCOUNT_HOLDERS_BANK_INFO_COL TEXT, " +
                 "$ACCOUNT_HOLDERS_SHARE_COL DOUBLE, " +
                 "$ACCOUNT_HOLDERS_LOAN_APP_COL DOUBLE, " +
-                "$ACCOUNT_HOLDERS_CHARGES_COL DOUBLE)")
+                "$ACCOUNT_HOLDERS_CHARGES_COL DOUBLE, " +
+                "$ACCOUNT_HOLDERS_ARREARS_COL TEXT," +
+                "$ACCOUNT_HOLDERS_ASSET_COL DOUBLE," +
+                "$ACCOUNT_HOLDERS_LIABILITY_COL DOUBLE)")
 
 
         val createTransactionTable = ("CREATE TABLE $TRANSACTION_TABLE (" +
@@ -101,7 +111,8 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 "$TRANSACTION_CHARGE_PAYMENT_COL DOUBLE, " +
                 "$TRANSACTION_CHARGE_DATE_COL DATE, " +
                 "$TRANSACTION_INTEREST_COL DOUBLE, " +
-                "$TRANSACTION_SHARE_OUT_COL DOUBLE)")
+                "$TRANSACTION_SHARE_OUT_COL DOUBLE," +
+                "$TRANSACTION_ARREARS_COL TEXT)")
 
         val createSettingsTable = ("CREATE TABLE $SETTINGS_TABLE (" +
                 "$SETTINGS_ID_COL INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -142,6 +153,9 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             accountHolders.accountHolderBankInfo = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_BANK_INFO_COL))
             accountHolders.accountHolderContact = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_CONTACT_COL))
             accountHolders.accountHoldersCharges = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_CHARGES_COL))
+            accountHolders.accountHoldersApproved = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ARREARS_COL))
+            accountHolders.accountHoldersAsset = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_ASSET_COL))
+            accountHolders.accountHoldersLiability = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_LIABILITY_COL))
             accountHolderModel.add(accountHolders)
         }
         }
@@ -169,6 +183,9 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             accountAdmins.accountHolderBankInfo = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_BANK_INFO_COL))
             accountAdmins.accountHolderContact = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_CONTACT_COL))
             accountAdmins.accountHoldersCharges = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_CHARGES_COL))
+            accountAdmins.accountHoldersApproved = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ARREARS_COL))
+            accountAdmins.accountHoldersAsset = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_ASSET_COL))
+            accountAdmins.accountHoldersLiability = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_LIABILITY_COL))
             accountHolderModel.add(accountAdmins)
         }
         }
@@ -176,6 +193,11 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         db.close()
         return accountHolderModel
     }
+
+
+
+
+
 
 
 
@@ -230,6 +252,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         contentValues.put(ACCOUNT_HOLDERS_SHARE_COL, accountHolderModel.accountHoldersShare)
         contentValues.put(ACCOUNT_HOLDERS_LOAN_APP_COL, accountHolderModel.accountHoldersLoanApp)
         contentValues.put(ACCOUNT_HOLDERS_CHARGES_COL, accountHolderModel.accountHoldersCharges)
+        contentValues.put(ACCOUNT_HOLDERS_ARREARS_COL, accountHolderModel.accountHoldersApproved)
 
        db = this.writableDatabase
         try {
@@ -298,29 +321,39 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
 
 
-    fun delAllAccountHolders(mContext: Context){
+    fun deleteAll(mContext: Context){
         val db = this.writableDatabase
-        db.delete(ACCOUNT_HOLDERS_TABLE, null, null)
-        db.delete(TRANSACTION_TABLE, null,null)
+        val deleteDialogLayout = LayoutInflater.from(mContext).inflate(R.layout.delete_confirmation, null)
+        val btnConfirmDelete : Button = deleteDialogLayout.btnConfirmDelete
+        val btnCancelDelete : Button = deleteDialogLayout.btnCancelDelete
+
+        AlertDialog.Builder(mContext)
+                .setTitle("Delete All Accounts")
+                .setMessage("WARNING!!! Are you sure you want to delete all accounts?")
+                .setIcon(R.drawable.ic_warning)
+                .setPositiveButton("Yes") {_,_->
+                        db.delete(ACCOUNT_HOLDERS_TABLE, null, null)
+                        db.delete(TRANSACTION_TABLE, null,null)
+                    }
+                .show()
         db.close()
     }
 
 
 
     fun postings(mContext: Context, AccountID: Int, shares: String, loanApplication: String, charges: String) : Boolean{
-        var result: Boolean
+        val result: Boolean
         val contentValues = ContentValues()
         contentValues.put(ACCOUNT_HOLDERS_SHARE_COL, shares)
         contentValues.put(ACCOUNT_HOLDERS_LOAN_APP_COL, loanApplication)
         contentValues.put(ACCOUNT_HOLDERS_CHARGES_COL, charges)
         val db = writableDatabase
-        try {
+        result = try {
             db.update(ACCOUNT_HOLDERS_TABLE, contentValues, "$ACCOUNT_HOLDERS_ID_COL = ?", arrayOf(AccountID.toString()))
-            result = true
-            Toast.makeText(mContext, "Application Successful", Toast.LENGTH_SHORT).show()
+            true
         }catch (e : Exception){
             Toast.makeText(mContext, e.message, Toast.LENGTH_SHORT).show()
-            result = false
+            false
         }
         db.close()
         return result
@@ -359,26 +392,24 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
 
 
-    fun updateMonth(mContext: Context, transactionModel: Model, Name: String){
+    fun updateMonth(mContext: Context, transactionModel: Model, Name: String, Month: String){
         val contentValues = ContentValues()
-        //contentValues.put(TRANSACTION_NAME_COL, transactionModel.transactionName)
-        //contentValues.put(TRANSACTION_MONTH_COL, transactionModel.transactionMonth)
         contentValues.put(TRANSACTION_SHARE_COL, transactionModel.transactionShares)
         contentValues.put(TRANSACTION_SHARE_AMOUNT_COL, transactionModel.transactionShareAmount)
-        //contentValues.put(TRANSACTION_SHARE_PAYMENT_COL, transactionModel.transactionSharePayment)
         contentValues.put(TRANSACTION_LOAN_APP_COL, transactionModel.transactionLoanApp)
-        //contentValues.put(TRANSACTION_LOAN_PAYMENT_COL, transactionModel.transactionLoanPayment)
-       // contentValues.put(TRANSACTION_LOAN_REPAYMENT_COL, transactionModel.transactionLoanRepayment)
         contentValues.put(TRANSACTION_CHARGE_COL, transactionModel.transactionCharge)
-        //contentValues.put(TRANSACTION_CHARGE_PAYMENT_COL, transactionModel.transactionChargePayment)
         val db = writableDatabase
         try {
-            db.update(TRANSACTION_TABLE, contentValues, "$TRANSACTION_NAME_COL = '$Name' AND $TRANSACTION_MONTH_COL = '${AccountDetails().transactionMonth}'", arrayOf())
+            db.update(TRANSACTION_TABLE, contentValues, "$TRANSACTION_NAME_COL = '$Name' AND $TRANSACTION_MONTH_COL = '$Month'", arrayOf())
         }catch (e : Exception){
             Toast.makeText(mContext, e.message,Toast.LENGTH_SHORT).show()
         }
         db.close()
     }
+
+
+
+
 
 
 
@@ -469,24 +500,15 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
 
 
-    fun investment(mContext: Context, Name: String) : Boolean{
-        val result: Boolean
-        val transactions = Model()
-        val contentValues = ContentValues()
-        contentValues.put(TRANSACTION_SHARE_OUT_COL,  transactions.transactionShareOut)
+    fun deleteMonth(AccountID: Int){
         val db = writableDatabase
-        result = try {
-            db.update(TRANSACTION_TABLE, contentValues, "$TRANSACTION_NAME_COL = ?", arrayOf(Name))
-            true
+        try{
+            db.delete(TRANSACTION_TABLE, "$TRANSACTION_ID_COL = ?", arrayOf(AccountID.toString()))
         }catch (e : Exception){
-            Toast.makeText(mContext, e.message, Toast.LENGTH_SHORT).show()
-            false
+            Log.e(ContentValues.TAG, "Something wrong. Cannot Delete")
         }
         db.close()
-        return result
     }
-
-
 
 
 

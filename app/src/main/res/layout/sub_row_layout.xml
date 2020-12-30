@@ -314,14 +314,6 @@
                 app:layout_constraintStart_toEndOf="@+id/tvTransactionShares2" />
 
             <ImageButton
-                android:id="@+id/imageButton"
-                android:layout_width="74dp"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_delete"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
-
-            <ImageButton
                 android:id="@+id/btnLoanPayout"
                 android:layout_width="74dp"
                 android:layout_height="wrap_content"

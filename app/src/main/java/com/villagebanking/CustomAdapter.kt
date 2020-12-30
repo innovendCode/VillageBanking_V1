@@ -4,12 +4,14 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.Color
 import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.RequiresApi
+import androidx.core.view.isGone
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.delete_confirmation.view.*
 import kotlinx.android.synthetic.main.dialog_add_account_holder.*
@@ -18,6 +20,7 @@ import kotlinx.android.synthetic.main.dialog_insert_password.*
 import kotlinx.android.synthetic.main.dialog_insert_password.view.*
 import kotlinx.android.synthetic.main.dialog_posts.*
 import kotlinx.android.synthetic.main.dialog_posts.view.*
+import kotlinx.android.synthetic.main.main_row_layout.*
 import kotlinx.android.synthetic.main.main_row_layout.view.*
 import kotlinx.android.synthetic.main.main_row_layout.view.tvName
 
@@ -34,6 +37,10 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
         val tvLoanApplication: TextView = itemView.tvLoanApplication
         val tvCharges: TextView = itemView.tvCharges
         val btnPosting: ImageButton? = itemView.btnPostings
+        val tvApproved: TextView = itemView.tvApproved
+        val tvAsset: TextView = itemView.tvAsset
+        val tvLiability: TextView = itemView.tvLiability
+        val imgClearedAll: ImageView = itemView.imgClearedAll
     }
 
 
@@ -54,12 +61,23 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
         holder.tvShares.text = accountHolderModelPosition.accountHoldersShare.toString()
         holder.tvLoanApplication.text = accountHolderModelPosition.accountHoldersLoanApp.toString()
         holder.tvCharges.text = accountHolderModelPosition.accountHoldersCharges.toString()
+        holder.tvAsset.text = accountHolderModelPosition.accountHoldersAsset.toString()
+        holder.tvLiability.text = accountHolderModelPosition.accountHoldersLiability.toString()
+        holder.tvApproved.text = accountHolderModelPosition.accountHoldersApproved
 
+
+        holder.imgClearedAll.isGone = accountHolderModel[position].accountHoldersApproved != "No Arrears"
+
+        if (holder.tvLiability.text.toString().toDouble() > -1){
+            holder.tvLiability.setTextColor(Color.parseColor("#09AA9B"))
+        }else{
+            holder.tvLiability.setTextColor(Color.parseColor("#BA0707"))
+        }
 
 
             holder.itemView.setOnClickListener {
 
-                if (    holder.tvShares.text.toString().toDouble() == 0.0){
+                if (holder.tvShares.text.toString().toDouble() == 0.0){
                     Toast.makeText(mContext,"Cannot post zero shares",Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
@@ -140,7 +158,7 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                             val alertDialog = AlertDialog.Builder(mContext)
                                     .setTitle("Warning!")
                                     .setMessage("Are you sure you want to delete $name? All account related information will be deleted")
-                                    .setIcon(R.drawable.ic_delete)
+                                    .setIcon(R.drawable.ic_warning)
                                     .setPositiveButton("Yes") {_:DialogInterface, _: Int ->
 
                                         val confirmDeleteLayout = AlertDialog.Builder(mContext)
@@ -172,16 +190,7 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                                     .setNegativeButton("No") {_:DialogInterface, _: Int ->
                                     }
                             alertDialog.show()
-
-
-
-
-
-
                         }
-
-
-
 
                         .setPositiveButton("Update", null)
                         .setNegativeButton("Cancel") {_,_->}
@@ -201,8 +210,6 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                                         return@setOnClickListener}
 
                                     when (selectedAdmin) {"Account Holder" -> {
-
-
 
                                         val update : Boolean = MainActivity.dbHandler.editAccountHolder(mContext,
                                                 accountHolderModelPosition.accountHoldersID.toString().toInt(),
@@ -311,7 +318,7 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
 
 
 
-        holder.btnPosting?.setOnClickListener {
+            holder.btnPosting?.setOnClickListener {
             val postsDialogLayout = LayoutInflater.from(mContext).inflate(R.layout.dialog_posts, null)
 
             postsDialogLayout.etPostsShares.setText(accountHolderModel[position].accountHoldersShare.toString())
@@ -339,6 +346,12 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                                     etPostsCharges.setText("0")
                                 }
 
+/*                                val approved : Boolean = MainActivity.dbHandler.approved(mContext, accountHolderModelPosition.accountHoldersID,
+                                "")
+                                if (approved){
+                                    accountHolderModel[position].accountHoldersApproved = ""
+                                }*/
+
                                 val posts : Boolean = MainActivity.dbHandler.postings(mContext, accountHolderModelPosition.accountHoldersID,
                                     postsDialogLayout.etPostsShares.text.toString(),
                                     postsDialogLayout.etPostsLoanApplication.text.toString(),
@@ -347,7 +360,9 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                                     accountHolderModel[position].accountHoldersShare = postsDialogLayout.etPostsShares.text.toString().toDouble()
                                     accountHolderModel[position].accountHoldersLoanApp = postsDialogLayout.etPostsLoanApplication.text.toString().toDouble()
                                     accountHolderModel[position].accountHoldersCharges = postsDialogLayout.etPostsCharges.text.toString().toDouble()
+                                    holder.imgClearedAll.isGone = true
                                     notifyDataSetChanged()
+                                    Toast.makeText(mContext, "Posts Successful", Toast.LENGTH_SHORT).show()
                                     dismiss()
                                 }else{
                                     Toast.makeText(mContext, "Something went wrong", Toast.LENGTH_SHORT).show()
@@ -357,7 +372,36 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                     }
                     .show()
         }
-        }
+
+
+
+            holder.btnPosting?.setOnLongClickListener {
+
+                val posts : Boolean = MainActivity.dbHandler.postings(mContext, accountHolderModelPosition.accountHoldersID,
+                        0.0.toString(),
+                        0.0.toString(),
+                        0.0.toString())
+                if (posts){
+                    accountHolderModel[position].accountHoldersShare = 0.0
+                    accountHolderModel[position].accountHoldersLoanApp = 0.0
+                    accountHolderModel[position].accountHoldersCharges = 0.0
+                    holder.imgClearedAll.isGone = true
+                    notifyDataSetChanged()
+                    Toast.makeText(mContext, "Posts Reset", Toast.LENGTH_SHORT).show()
+                }else{
+                    Toast.makeText(mContext, "Something went wrong", Toast.LENGTH_SHORT).show()
+                }
+
+              true
+            }
+
+            }
+
+
+
+
+
+
 
 
     override fun getItemCount(): Int {
