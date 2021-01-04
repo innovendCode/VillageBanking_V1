@@ -238,7 +238,30 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
 
         holder.btnLoanPayout.setOnClickListener {
 
-            var balance = (transactionsModel[position].transactionLoanApp.toString().toDouble() -
+            var sharePayment = 0.0
+            var loanPayout = 0.0
+            var loanRepayment = 0.0
+            var chargePayment = 0.0
+            var availableCash  = 0.0
+
+            val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE}"
+            val db = Home.dbHandler.readableDatabase
+            val cursor = db.rawQuery(query, null)
+
+
+            while (cursor.moveToNext()) {
+                sharePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
+                loanRepayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL))
+                chargePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
+                loanPayout += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
+            }
+            availableCash  = sharePayment + loanRepayment + chargePayment - loanPayout
+
+
+
+
+
+            val balance = (transactionsModel[position].transactionLoanApp.toString().toDouble() -
                     transactionsModel[position].transactionLoanPayment.toString().toDouble()).toString()
 
             val paymentDialogLayout = LayoutInflater.from(mContext2).inflate(R.layout.dialog_payments, null)
@@ -267,11 +290,16 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                 paymentDialogLayout.etPayments.setText((transactionsModel[position].transactionLoanPayment +
                                         paymentDialogLayout.etPayments.text.toString().toDouble()).toString())
 
+                                if(paymentDialogLayout.etPayments.text.toString().toDouble() > availableCash){
+                                    Toast.makeText(mContext2, "Insufficient funds", Toast.LENGTH_SHORT).show()
+                                    return@setOnClickListener
+                                }
+
                                 val posts : Boolean = MainActivity.dbHandler.loanPayout(mContext2, transactionsModelPosition.transactionID,
                                         paymentDialogLayout.etPayments.text.toString(),
                                         AccountDetails().transactionDate)
                                 if (posts){
-                                    transactionsModel[position].transactionLoanPayment = Math.round(paymentDialogLayout.etPayments.text.toString().toDouble() *10.0)/10.0
+                                    transactionsModel[position].transactionLoanPayment = (paymentDialogLayout.etPayments.text.toString().toDouble() * 10.0).roundToLong() /10.0
                                     transactionsModel[position].transactionLoanPaymentDate = AccountDetails().transactionDate
 
                                     if (transactionsModel[position].transactionLoanApp == transactionsModel[position].transactionLoanPayment){
@@ -310,7 +338,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
 
 
         holder.btnChargePayment.setOnClickListener {
-            var balance = (transactionsModel[position].transactionCharge.toString().toDouble() -
+            val balance = (transactionsModel[position].transactionCharge.toString().toDouble() -
                     transactionsModel[position].transactionChargePayment.toString().toDouble()).toString()
 
             val paymentDialogLayout = LayoutInflater.from(mContext2).inflate(R.layout.dialog_payments, null)
@@ -343,7 +371,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                         paymentDialogLayout.etPayments.text.toString(),
                                         AccountDetails().transactionDate)
                                 if (posts){
-                                    transactionsModel[position].transactionChargePayment = Math.round(paymentDialogLayout.etPayments.text.toString().toDouble() * 10.0)/10.0
+                                    transactionsModel[position].transactionChargePayment = paymentDialogLayout.etPayments.text.toString().toDouble().roundToLong() * 10.0/10.0
                                     transactionsModel[position].transactionChargePaymentDate = AccountDetails().transactionDate
 
                                     if (transactionsModel[position].transactionCharge == transactionsModel[position].transactionChargePayment){

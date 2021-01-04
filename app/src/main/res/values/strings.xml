@@ -12,7 +12,7 @@
     <string name="cash_in">Cash In</string>
     <string name="loan_payout">Loan Payout</string>
     <string name="cash_out">Cash Out</string>
-    <string name="final_share_out">Final Share Out</string>
+    <string name="share_out">Share Out</string>
     <string name="bank_account">Bank Account</string>
     <string name="statement">Statement</string>
     <string name="administrator">Administrator</string>
@@ -34,4 +34,12 @@
     <string name="out_of">|</string>
     <string name="delete">Delete</string>
     <string name="info">Banking info</string>
+    <string name="personal_notes_rules"><![CDATA[Personal Notes & Rules]]></string>
+    <string name="arrears">Arrears</string>
+    <string name="share">Share</string>
+    <string name="loans_payout">Loans Payout</string>
+    <string name="loans_repayment">Loans Repayment</string>
+    <string name="chargesMenu">Charges</string>
+    <string name="delete_all">Delete All</string>
+    <string name="accounts">Accounts</string>
 </resources>

@@ -2,44 +2,34 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item android:title="@string/cash_in"
-        android:icon="@drawable/ic_down_arrow"
-        app:showAsAction="always">
+    <item
+        android:id="@+id/information"
+        android:title="Info" />
+    <item
+        android:id="@+id/viewAll"
+        android:title="View All" />
+    <item
+            android:id="@+id/transactions_arrears"
+            android:title="View Arrears">
         <menu >
             <item
-                android:id="@+id/sharesPayment"
-                android:title="@string/shares_payment" />
+                android:id="@+id/arrears_shares"
+                android:title="Shares" />
             <item
-                android:id="@+id/loanRepayment"
-                android:title="@string/loan_repayment">
-
-            </item>
+                android:id="@+id/arrears_loan_payout"
+                android:title="Loan Payout" />
             <item
-                android:id="@+id/penaltyPayment"
-                android:title="@string/penalty_payment" />
+                android:id="@+id/arrears_loan_repayment"
+                android:title="Loan Repayment" />
+            <item
+                android:id="@+id/arrears_charge_payment"
+                android:title="Charge Payment" />
         </menu>
     </item>
 
-    <item
-        android:id="@+id/cash_out"
-        android:title="@string/cash_out"
-        android:icon="@drawable/ic_up_arrow"
-        app:showAsAction="always">
-        <menu >
-            <item
-                android:id="@+id/loanPayOut"
-                android:title="@string/loan_payout" />
-            <item
-                android:id="@+id/finalShareOut"
-                android:title="@string/final_share_out" />
-        </menu>
-    </item>
 
     <item
-        android:id="@+id/statement"
-        android:title="@string/statement"/>
-    <item
-        android:id="@+id/bankAccount"
-        android:title="@string/bank_account"/>
+            android:id="@+id/finalShareOut"
+            android:title="@string/share_out" />
 
 </menu>

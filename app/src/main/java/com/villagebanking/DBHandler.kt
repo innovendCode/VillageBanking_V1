@@ -1,19 +1,16 @@
 package com.villagebanking
 
-import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.Context
 import android.content.DialogInterface
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.util.LayoutDirection
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.Toast
 import kotlinx.android.synthetic.main.delete_confirmation.view.*
-import java.util.*
 import kotlin.Exception
 import kotlin.collections.ArrayList
 
@@ -196,7 +193,30 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
 
 
-
+    fun getArrears(mContext: Context): ArrayList<Model>{
+        val query = "SELECT * FROM $ACCOUNT_HOLDERS_TABLE WHERE $ACCOUNT_HOLDERS_ARREARS_COL = ?"
+        val db = this.readableDatabase
+        val cursor = db.rawQuery(query, arrayOf(""))
+        val accountHolderModel = ArrayList<Model>()
+        while (cursor.moveToNext()){
+            val accountAdmins = Model()
+            accountAdmins.accountHoldersID = cursor.getInt(cursor.getColumnIndex(ACCOUNT_HOLDERS_ID_COL))
+            accountAdmins.accountHoldersName = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_NAME_COL))
+            accountAdmins.accountHoldersAdmin = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ADMIN_COL))
+            accountAdmins.accountHoldersShare = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_SHARE_COL))
+            accountAdmins.accountHoldersLoanApp = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_LOAN_APP_COL))
+            accountAdmins.accountHolderBankInfo = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_BANK_INFO_COL))
+            accountAdmins.accountHolderContact = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_CONTACT_COL))
+            accountAdmins.accountHoldersCharges = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_CHARGES_COL))
+            accountAdmins.accountHoldersApproved = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ARREARS_COL))
+            accountAdmins.accountHoldersAsset = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_ASSET_COL))
+            accountAdmins.accountHoldersLiability = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_LIABILITY_COL))
+            accountHolderModel.add(accountAdmins)
+        }
+        cursor.close()
+        db.close()
+        return accountHolderModel
+    }
 
 
 
@@ -321,22 +341,46 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
 
 
-    fun deleteAll(mContext: Context){
-        val db = this.writableDatabase
-        val deleteDialogLayout = LayoutInflater.from(mContext).inflate(R.layout.delete_confirmation, null)
-        val btnConfirmDelete : Button = deleteDialogLayout.btnConfirmDelete
-        val btnCancelDelete : Button = deleteDialogLayout.btnCancelDelete
-
-        AlertDialog.Builder(mContext)
-                .setTitle("Delete All Accounts")
-                .setMessage("WARNING!!! Are you sure you want to delete all accounts?")
-                .setIcon(R.drawable.ic_warning)
-                .setPositiveButton("Yes") {_,_->
-                        db.delete(ACCOUNT_HOLDERS_TABLE, null, null)
-                        db.delete(TRANSACTION_TABLE, null,null)
-                    }
-                .show()
+    fun deleteAllAccounts(mContext: Context): Boolean{
+        val db = writableDatabase
+        var result : Boolean = false
+        try{
+            db.delete(ACCOUNT_HOLDERS_TABLE, null, null)
+            result = true
+        }catch (e : Exception){
+            Log.e(ContentValues.TAG, "Something wrong. Cannot Delete")
+        }
         db.close()
+        return result
+    }
+
+
+    fun deleteAllTransactions(mContext: Context): Boolean{
+        val db = writableDatabase
+        var result : Boolean = false
+        try{
+            db.delete(TRANSACTION_TABLE, null, null)
+            result = true
+        }catch (e : Exception){
+            Log.e(ContentValues.TAG, "Something wrong. Cannot Delete")
+        }
+        db.close()
+        return result
+    }
+
+
+
+    fun deleteAllSettings(mContext: Context): Boolean{
+        val db = writableDatabase
+        var result : Boolean = false
+        try{
+            db.delete(SETTINGS_TABLE, null, null)
+            result = true
+        }catch (e : Exception){
+            Log.e(ContentValues.TAG, "Something wrong. Cannot Delete")
+        }
+        db.close()
+        return result
     }
 
 

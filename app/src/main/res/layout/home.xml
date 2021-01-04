@@ -5,7 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#51ACE0E6"
-    android:orientation="vertical">
+    android:padding="10dp"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp">
 
 
     <TextView
@@ -28,7 +30,7 @@
         android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvMembersArrears" />
+        app:layout_constraintTop_toBottomOf="@+id/tvUnpaidCharges" />
 
     <TextView
         android:id="@+id/tvNoAccountHolders"
@@ -48,9 +50,10 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:layout_marginLeft="10dp"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="10dp"
         android:text="@string/info"
         android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/tvTotalSharesAmount"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvNoAccountHolders" />
 
@@ -59,8 +62,10 @@
         android:id="@+id/tvTotalSharesAmount"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
         android:text="@string/info"
         android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/tvTotalInvestment"
         app:layout_constraintStart_toStartOf="@+id/tvTotalShares"
         app:layout_constraintTop_toBottomOf="@+id/tvTotalShares" />
 
@@ -69,6 +74,7 @@
         android:id="@+id/tvTotalInvestment"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
         android:text="@string/info"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="@+id/tvTotalSharesAmount"
@@ -79,10 +85,11 @@
         android:id="@+id/tvTotalCash"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="20dp"
         android:text="@string/info"
         android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="parent"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="@+id/tvUnpaidLoans4"
         app:layout_constraintTop_toBottomOf="@+id/tvShareValue" />
 
     <TextView
@@ -91,7 +98,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:layout_marginLeft="10dp"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="10dp"
         android:text="@string/info"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
@@ -102,6 +109,7 @@
         android:id="@+id/tvShareValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
         android:text="@string/info"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="@+id/tvInterestRate"
@@ -113,7 +121,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:layout_marginLeft="10dp"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="10dp"
         android:text="@string/info"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
@@ -123,23 +131,15 @@
         android:id="@+id/tvUnpaidCharges"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
         android:text="@string/info"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="@+id/tvUnpaidLoans"
         app:layout_constraintTop_toBottomOf="@+id/tvUnpaidLoans" />
 
-    <TextView
-        android:id="@+id/tvMembersArrears"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/info"
-        android:textSize="18sp"
-        app:layout_constraintStart_toStartOf="@+id/tvUnpaidCharges"
-        app:layout_constraintTop_toBottomOf="@+id/tvUnpaidCharges" />
-
     <Button
-        android:id="@+id/btnTest"
-        android:layout_width="wrap_content"
+        android:id="@+id/btnForceLoan"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Apply Force Loan"
         android:textAllCaps="false"

@@ -13,6 +13,7 @@ import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.core.view.isGone
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.android.synthetic.main.account_holders.view.*
 import kotlinx.android.synthetic.main.delete_confirmation.view.*
 import kotlinx.android.synthetic.main.dialog_add_account_holder.*
 import kotlinx.android.synthetic.main.dialog_add_account_holder.view.*
@@ -65,7 +66,6 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
         holder.tvLiability.text = accountHolderModelPosition.accountHoldersLiability.toString()
         holder.tvApproved.text = accountHolderModelPosition.accountHoldersApproved
 
-
         holder.imgClearedAll.isGone = accountHolderModel[position].accountHoldersApproved != "No Arrears"
 
         if (holder.tvLiability.text.toString().toDouble() > -1){
@@ -81,7 +81,6 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                     Toast.makeText(mContext,"Cannot post zero shares",Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
-
                 val id =holder.tvID.text
                 val intent = Intent(mContext, AccountDetails::class.java)
                 intent.putExtra("ID", id)
@@ -319,6 +318,31 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
 
 
             holder.btnPosting?.setOnClickListener {
+
+                val accountHoldersLayout = LayoutInflater.from(mContext).inflate(R.layout.account_holders, null)
+
+
+                var sharePayment = 0.0
+                var loanPayout = 0.0
+                var loanRepayment = 0.0
+                var chargePayment = 0.0
+                var availableCash  = 0.0
+
+                val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE}"
+                val db = Home.dbHandler.readableDatabase
+                val cursor = db.rawQuery(query, null)
+
+
+                while (cursor.moveToNext()) {
+                    sharePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
+                    loanRepayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL))
+                    chargePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
+                    loanPayout += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
+                }
+                availableCash  = sharePayment + loanRepayment + chargePayment - loanPayout
+
+
+
             val postsDialogLayout = LayoutInflater.from(mContext).inflate(R.layout.dialog_posts, null)
 
             postsDialogLayout.etPostsShares.setText(accountHolderModel[position].accountHoldersShare.toString())
@@ -352,6 +376,13 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                                     accountHolderModel[position].accountHoldersApproved = ""
                                 }*/
 
+
+                                if (postsDialogLayout.etPostsLoanApplication.text.toString().toDouble() > availableCash){
+                                    Toast.makeText(mContext, "Insufficient funds for loan application", Toast.LENGTH_SHORT).show()
+                                    return@setOnClickListener
+                                }
+
+
                                 val posts : Boolean = MainActivity.dbHandler.postings(mContext, accountHolderModelPosition.accountHoldersID,
                                     postsDialogLayout.etPostsShares.text.toString(),
                                     postsDialogLayout.etPostsLoanApplication.text.toString(),
@@ -371,27 +402,35 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                         }
                     }
                     .show()
+                accountHoldersLayout.tvCashAvailable.text = availableCash.toString()
         }
 
 
 
             holder.btnPosting?.setOnLongClickListener {
 
-                val posts : Boolean = MainActivity.dbHandler.postings(mContext, accountHolderModelPosition.accountHoldersID,
-                        0.0.toString(),
-                        0.0.toString(),
-                        0.0.toString())
-                if (posts){
-                    accountHolderModel[position].accountHoldersShare = 0.0
-                    accountHolderModel[position].accountHoldersLoanApp = 0.0
-                    accountHolderModel[position].accountHoldersCharges = 0.0
-                    holder.imgClearedAll.isGone = true
-                    notifyDataSetChanged()
-                    Toast.makeText(mContext, "Posts Reset", Toast.LENGTH_SHORT).show()
-                }else{
-                    Toast.makeText(mContext, "Something went wrong", Toast.LENGTH_SHORT).show()
-                }
+                AlertDialog.Builder(mContext)
+                        .setTitle("Reset to Zero?")
+                        .setMessage("Reset Shares, Loan and Charges?")
+                        .setNegativeButton("No"){_,_->}
+                        .setPositiveButton("Yes"){_,_->
+                            val posts : Boolean = MainActivity.dbHandler.postings(mContext, accountHolderModelPosition.accountHoldersID,
+                                    0.0.toString(),
+                                    0.0.toString(),
+                                    0.0.toString())
+                            if (posts){
+                                accountHolderModel[position].accountHoldersShare = 0.0
+                                accountHolderModel[position].accountHoldersLoanApp = 0.0
+                                accountHolderModel[position].accountHoldersCharges = 0.0
+                                holder.imgClearedAll.isGone = true
+                                notifyDataSetChanged()
+                                Toast.makeText(mContext, "Posts Reset", Toast.LENGTH_SHORT).show()
+                            }else{
+                                Toast.makeText(mContext, "Something went wrong", Toast.LENGTH_SHORT).show()
+                            }
 
+                        }
+                        .show()
               true
             }
 

@@ -32,11 +32,6 @@ class AccountDetails : AppCompatActivity() {
     //Format date to Month Year
     //Reference date for loan payout
 
-
-
-
-
-
 /*    @RequiresApi(Build.VERSION_CODES.O)
     val now: YearMonth = YearMonth.now()
     @RequiresApi(Build.VERSION_CODES.O)
@@ -77,10 +72,14 @@ class AccountDetails : AppCompatActivity() {
     }
 
 
+
     override fun onBackPressed() {
         updateShareOut()
+        finish()
         super.onBackPressed()
     }
+
+
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.transaction_menu, menu)
@@ -88,22 +87,34 @@ class AccountDetails : AppCompatActivity() {
     }
 
 
+
     @SuppressLint("SimpleDateFormat", "NewApi")
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
-            R.id.sharesPayment -> {
+            R.id.viewAll -> {
+                viewTransactions()
             }
-            R.id.loanPayOut -> {
-            }
-            R.id.loanRepayment -> {
-            }
-            R.id.bankAccount -> {
+            R.id.information -> {
                 getBankingDetails()
+            }
+            R.id.arrears_shares -> {
+                viewArrearsShares()
+            }
+            R.id.arrears_loan_payout -> {
+                viewArrearsLoanPayout()
+            }
+            R.id.arrears_loan_repayment -> {
+                viewArrearsLoanRepayment()
+            }
+            R.id.arrears_charge_payment -> {
+                viewArrearsCharges()
             }
         }
         return true
     }
+
+
 
 
     private fun getAccountDetails(){
@@ -123,7 +134,8 @@ class AccountDetails : AppCompatActivity() {
     }
 
 
-    @RequiresApi(Build.VERSION_CODES.N)
+
+
     private fun getTransactions(): ArrayList<Model>{
         val name = tvDetailsName.text
         val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = '$name'"
@@ -160,7 +172,7 @@ class AccountDetails : AppCompatActivity() {
 
 
 
-    @RequiresApi(Build.VERSION_CODES.N)
+
     private fun viewTransactions(){
         val transactionList = getTransactions()
         val adapter = CustomAdapter2(this, transactionList)
@@ -382,26 +394,25 @@ class AccountDetails : AppCompatActivity() {
 
 
     private fun getBankingDetails(){
-            val name = tvDetailsName.text
-            val queue = "SELECT ${DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL} FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = '$name'"
-            val db = dbHandler.writableDatabase
-            val cursor = db.rawQuery(queue, null)
+        var bankDetails: String = ""
+        var contactDetails: String = ""
+        val name = tvDetailsName.text
+        val queue = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = ?"
+        val db = dbHandler.readableDatabase
+        val cursor = db.rawQuery(queue, arrayOf(name.toString()))
             if (cursor.moveToFirst()){
-                val bankInfoDialogLayout = LayoutInflater.from(this).inflate(R.layout.bank_info, null)
-                val bankInfoDialog = AlertDialog.Builder(this)
-                        .setView(bankInfoDialogLayout)
-                        .setPositiveButton("OK") { _: DialogInterface, _: Int ->}
-                val bankDetails = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL))
-                bankInfoDialogLayout.tvBankingInfo.setText(bankDetails)
-                bankInfoDialog.show()
-            }else{
-                Toast.makeText(this, "Error finding banking info", Toast.LENGTH_SHORT).show()
+                bankDetails = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL))
+                contactDetails = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CONTACT_COL))
+                AlertDialog.Builder(this)
+                        .setTitle("Information")
+                        .setMessage("Contact Details: $contactDetails \n \n" +
+                                "Bank Details: $bankDetails")
+                        .setPositiveButton("OK") {_,_->}
+                        .show()
             }
         cursor.close()
         db.close()
     }
-
-
 
 
 
@@ -458,57 +469,185 @@ class AccountDetails : AppCompatActivity() {
 
 
 
-    private fun checkMonthlyPayments(){
-        var month : String = ""
-        var shareAmount = 0.0
-        var sharePayment = 0.0
-        var loanToPay = 0.0
-        var loanRepayment = 0.0
-        var charge = 0.0
-        var chargePayment = 0.0
-        var arrears = 0.0
-        var payments = 0.0
 
-        val contentValues = ContentValues()
-
-
-        val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE}"
-        var db = AccountHolders.dbHandler.readableDatabase
+    private fun getArrearsShares(): ArrayList<Model>{
+        val name = tvDetailsName.text
+        val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = '$name' AND" +
+                " ${DBHandler.TRANSACTION_SHARE_PAYMENT_COL} < ${DBHandler.TRANSACTION_SHARE_AMOUNT_COL}"
+        val db = dbHandler.writableDatabase
         val cursor = db.rawQuery(query, null)
-
-
-
-        while (cursor.moveToNext()){
-            month = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
-            shareAmount += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
-            sharePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
-            loanToPay += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_TO_REPAY_COL))
-            loanRepayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL))
-            charge += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_COL))
-            chargePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
-
-            arrears = shareAmount + loanToPay + charge
-            payments = sharePayment + loanRepayment + chargePayment
-
-            if (arrears == payments){
-                contentValues.put(DBHandler.TRANSACTION_ARREARS_COL, "No Arrears")
-                db.update(DBHandler.TRANSACTION_TABLE, contentValues, "${DBHandler.TRANSACTION_MONTH_COL} = ?", arrayOf(month))
-            }else{
-                contentValues.put(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL, "")
-                db.update(DBHandler.TRANSACTION_TABLE, contentValues, "${DBHandler.TRANSACTION_MONTH_COL} = ?", arrayOf(month))
-            }
+        val transactionsModel = ArrayList<Model>()
+        if(cursor.count == 0)
+            Toast.makeText(this, "All Paid", Toast.LENGTH_SHORT).show() else
+        {while (cursor.moveToNext()){
+            val transactions = Model()
+            transactions.transactionID = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_ID_COL))
+            transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
+            transactions.transactionInterest = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_INTEREST_COL))
+            transactions.transactionShares = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
+            transactions.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
+            transactions.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
+            transactions.transactionShareDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_DATE_COL))
+            transactions.transactionLoanApp = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
+            transactions.transactionLoanToRepay = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_TO_REPAY_COL))
+            transactions.transactionLoanPayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
+            transactions.transactionLoanPaymentDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_DATE_COL))
+            transactions.transactionLoanRepayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL))
+            transactions.transactionLoanRepaymentDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_DATE_COL))
+            transactions.transactionCharge = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_COL))
+            transactions.transactionChargePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
+            transactions.transactionChargePaymentDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_DATE_COL))
+            transactionsModel.add(transactions)
         }
+        }
+        cursor.close()
+        db.close()
+        return transactionsModel
+    }
 
-
-
+    private fun viewArrearsShares(){
+        val transactionList = getArrearsShares()
+        val adapter = CustomAdapter2(this, transactionList)
+        val rv2: RecyclerView = recyclerView2
+        rv2.setHasFixedSize(true)
+        rv2.adapter = adapter
     }
 
 
 
 
+    private fun getArrearsLoanPayout(): ArrayList<Model>{
+        val name = tvDetailsName.text
+        val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = '$name' AND" +
+                " ${DBHandler.TRANSACTION_LOAN_PAYMENT_COL} < ${DBHandler.TRANSACTION_LOAN_APP_COL}"
+        val db = dbHandler.writableDatabase
+        val cursor = db.rawQuery(query, null)
+        val transactionsModel = ArrayList<Model>()
+        if(cursor.count == 0)
+            Toast.makeText(this, "All Paid", Toast.LENGTH_SHORT).show() else
+        {while (cursor.moveToNext()){
+            val transactions = Model()
+            transactions.transactionID = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_ID_COL))
+            transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
+            transactions.transactionInterest = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_INTEREST_COL))
+            transactions.transactionShares = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
+            transactions.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
+            transactions.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
+            transactions.transactionShareDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_DATE_COL))
+            transactions.transactionLoanApp = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
+            transactions.transactionLoanToRepay = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_TO_REPAY_COL))
+            transactions.transactionLoanPayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
+            transactions.transactionLoanPaymentDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_DATE_COL))
+            transactions.transactionLoanRepayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL))
+            transactions.transactionLoanRepaymentDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_DATE_COL))
+            transactions.transactionCharge = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_COL))
+            transactions.transactionChargePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
+            transactions.transactionChargePaymentDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_DATE_COL))
+            transactionsModel.add(transactions)
+        }
+        }
+        cursor.close()
+        db.close()
+        return transactionsModel
+    }
+
+    private fun viewArrearsLoanPayout(){
+        val transactionList = getArrearsLoanPayout()
+        val adapter = CustomAdapter2(this, transactionList)
+        val rv2: RecyclerView = recyclerView2
+        rv2.setHasFixedSize(true)
+        rv2.adapter = adapter
+    }
 
 
 
+    private fun getArrearsLoanRepayment(): ArrayList<Model>{
+        val name = tvDetailsName.text
+        val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = '$name' AND" +
+                " ${DBHandler.TRANSACTION_LOAN_REPAYMENT_COL} < ${DBHandler.TRANSACTION_LOAN_TO_REPAY_COL}"
+        val db = dbHandler.writableDatabase
+        val cursor = db.rawQuery(query, null)
+        val transactionsModel = ArrayList<Model>()
+        if(cursor.count == 0)
+            Toast.makeText(this, "All Paid", Toast.LENGTH_SHORT).show() else
+        {while (cursor.moveToNext()){
+            val transactions = Model()
+            transactions.transactionID = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_ID_COL))
+            transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
+            transactions.transactionInterest = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_INTEREST_COL))
+            transactions.transactionShares = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
+            transactions.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
+            transactions.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
+            transactions.transactionShareDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_DATE_COL))
+            transactions.transactionLoanApp = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
+            transactions.transactionLoanToRepay = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_TO_REPAY_COL))
+            transactions.transactionLoanPayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
+            transactions.transactionLoanPaymentDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_DATE_COL))
+            transactions.transactionLoanRepayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL))
+            transactions.transactionLoanRepaymentDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_DATE_COL))
+            transactions.transactionCharge = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_COL))
+            transactions.transactionChargePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
+            transactions.transactionChargePaymentDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_DATE_COL))
+            transactionsModel.add(transactions)
+        }
+        }
+        cursor.close()
+        db.close()
+        return transactionsModel
+    }
+
+    private fun viewArrearsLoanRepayment(){
+        val transactionList = getArrearsLoanRepayment()
+        val adapter = CustomAdapter2(this, transactionList)
+        val rv2: RecyclerView = recyclerView2
+        rv2.setHasFixedSize(true)
+        rv2.adapter = adapter
+    }
+
+
+
+    private fun getArrearsCharges(): ArrayList<Model>{
+        val name = tvDetailsName.text
+        val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = '$name' AND" +
+                " ${DBHandler.TRANSACTION_CHARGE_PAYMENT_COL} < ${DBHandler.TRANSACTION_CHARGE_COL}"
+        val db = dbHandler.writableDatabase
+        val cursor = db.rawQuery(query, null)
+        val transactionsModel = ArrayList<Model>()
+        if(cursor.count == 0)
+            Toast.makeText(this, "All Paid", Toast.LENGTH_SHORT).show() else
+        {while (cursor.moveToNext()){
+            val transactions = Model()
+            transactions.transactionID = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_ID_COL))
+            transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
+            transactions.transactionInterest = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_INTEREST_COL))
+            transactions.transactionShares = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
+            transactions.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
+            transactions.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
+            transactions.transactionShareDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_DATE_COL))
+            transactions.transactionLoanApp = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
+            transactions.transactionLoanToRepay = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_TO_REPAY_COL))
+            transactions.transactionLoanPayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
+            transactions.transactionLoanPaymentDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_DATE_COL))
+            transactions.transactionLoanRepayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL))
+            transactions.transactionLoanRepaymentDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_DATE_COL))
+            transactions.transactionCharge = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_COL))
+            transactions.transactionChargePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
+            transactions.transactionChargePaymentDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_DATE_COL))
+            transactionsModel.add(transactions)
+        }
+        }
+        cursor.close()
+        db.close()
+        return transactionsModel
+    }
+
+    private fun viewArrearsCharges(){
+        val transactionList = getArrearsCharges()
+        val adapter = CustomAdapter2(this, transactionList)
+        val rv2: RecyclerView = recyclerView2
+        rv2.setHasFixedSize(true)
+        rv2.adapter = adapter
+    }
 
 
 }
