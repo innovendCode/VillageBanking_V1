@@ -14,6 +14,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
+import com.villagebanking.MainActivity.Companion.dbHandler
 import kotlinx.android.synthetic.main.dialog_payments.view.*
 import kotlinx.android.synthetic.main.dialog_posts.view.*
 import kotlinx.android.synthetic.main.sub_row_layout.view.*
@@ -133,7 +134,6 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                 transactionsModel[position].transactionChargePayment = 0.0
                                 transactionsModel[position].transactionChargePaymentDate = AccountDetails().transactionDate
                                 notifyDataSetChanged()
-                                Toast.makeText(mContext2, "Payment Reversed", Toast.LENGTH_SHORT).show()
                             }
 
                           //Zero Loan Repayment
@@ -144,7 +144,6 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                 transactionsModel[position].transactionLoanRepayment = 0.0
                                 transactionsModel[position].transactionLoanRepaymentDate = AccountDetails().transactionDate
                                 notifyDataSetChanged()
-                                Toast.makeText(mContext2, "Repayment Reversed", Toast.LENGTH_SHORT).show()
                             }
 
 
@@ -245,7 +244,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
             var availableCash  = 0.0
 
             val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE}"
-            val db = Home.dbHandler.readableDatabase
+            val db = dbHandler.readableDatabase
             val cursor = db.rawQuery(query, null)
 
 
@@ -289,11 +288,6 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
 
                                 paymentDialogLayout.etPayments.setText((transactionsModel[position].transactionLoanPayment +
                                         paymentDialogLayout.etPayments.text.toString().toDouble()).toString())
-
-                                if(paymentDialogLayout.etPayments.text.toString().toDouble() > availableCash){
-                                    Toast.makeText(mContext2, "Insufficient funds", Toast.LENGTH_SHORT).show()
-                                    return@setOnClickListener
-                                }
 
                                 val posts : Boolean = MainActivity.dbHandler.loanPayout(mContext2, transactionsModelPosition.transactionID,
                                         paymentDialogLayout.etPayments.text.toString(),

@@ -68,7 +68,7 @@ class AccountDetails : AppCompatActivity() {
         actionBar!!.title = "Transactions"
 
         getAccountDetails()
-        checkMonth()
+        detectChanges()
     }
 
 
@@ -359,11 +359,54 @@ class AccountDetails : AppCompatActivity() {
 
 
 
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    private fun detectChanges(){
+        val name = tvDetailsName.text
+
+        var shareSubmitted = 0.0
+        var loanSubmitted = 0.0
+        var chargeSubmitted = 0.0
+        var shareApproved = 0.0
+        var loanApproved = 0.0
+        var chargeApproved = 0.0
+
+
+        var query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = ?"
+        var db = dbHandler.readableDatabase
+        var cursor = db.rawQuery(query, arrayOf(name.toString()))
+        if (cursor.moveToFirst()) {
+            shareSubmitted = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_SHARE_COL))
+            loanSubmitted = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL))
+            chargeSubmitted = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
+        }
+
+
+        query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = ?"
+        db = dbHandler.readableDatabase
+        cursor = db.rawQuery(query, arrayOf(name.toString()))
+        if (cursor.moveToFirst()) {
+            shareApproved = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
+            loanApproved = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
+            chargeApproved = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_COL))
+        }
+
+        if (shareApproved != shareSubmitted){
+            checkMonth()
+        }else if (loanApproved != loanSubmitted){
+            checkMonth()
+        }else if (chargeApproved != chargeSubmitted){
+            checkMonth()
+        }else{
+            viewTransactions()
+        }
+    }
+
+
+
     @SuppressLint("SimpleDateFormat")
     @RequiresApi(Build.VERSION_CODES.N)
     private fun checkMonth(){
-
-
         val c: Calendar = GregorianCalendar()
         c.time = Date()
         val sdf = java.text.SimpleDateFormat("MMMM yyyy")
@@ -373,21 +416,38 @@ class AccountDetails : AppCompatActivity() {
         //println(sdf.format(c.time)) // One month ago
         val transactionLastMonth = (sdf.format(c.time))
 
-
         val name = tvDetailsName.text
-        val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} = ? AND ${DBHandler.TRANSACTION_NAME_COL} = ?"
-        val db = dbHandler.readableDatabase
-        val cursor = db.rawQuery(query, arrayOf(transactionMonth, name.toString()))
-        if (cursor.count == 0){
-            createMonth()
-            Toast.makeText(this, "New Month", Toast.LENGTH_SHORT).show()
-        }else{
-            updateMonth()
-            Toast.makeText(this, transactionMonth, Toast.LENGTH_SHORT).show()
-        }
-        cursor.close()
-        db.close()
-        viewTransactions()
+
+        AlertDialog.Builder(this)
+                .setTitle("Changes have been made?")
+                .setPositiveButton("Approve") {_,_->
+
+                    val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} = ? AND ${DBHandler.TRANSACTION_NAME_COL} = ?"
+                    val db = dbHandler.readableDatabase
+                    val cursor = db.rawQuery(query, arrayOf(transactionMonth, name.toString()))
+                    if (cursor.count == 0){
+                        createMonth()
+                        Toast.makeText(this, "New Month", Toast.LENGTH_SHORT).show()
+                    }else{
+                        updateMonth()
+                        Toast.makeText(this, transactionMonth, Toast.LENGTH_SHORT).show()
+                    }
+                    cursor.close()
+                    db.close()
+                    viewTransactions()
+                }
+
+                .setNeutralButton("Undo") {_,_->
+
+
+                }
+
+                .setNegativeButton("View") {_,_->
+                    viewTransactions()
+                }
+                .show()
+
+
     }
 
 
