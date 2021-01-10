@@ -3,11 +3,12 @@ package com.villagebanking
 import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.DialogInterface
+import android.content.Intent
 import android.icu.text.DateFormat
 import android.icu.text.SimpleDateFormat
 import android.os.Build
 import android.os.Bundle
-import android.view.LayoutInflater
+import android.service.autofill.DateValueSanitizer
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -16,11 +17,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.account_details.*
-import kotlinx.android.synthetic.main.bank_info.view.*
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.math.roundToInt
-import kotlin.math.roundToLong
+
 
 
 class AccountDetails : AppCompatActivity() {
@@ -74,7 +73,6 @@ class AccountDetails : AppCompatActivity() {
 
 
     override fun onBackPressed() {
-        updateShareOut()
         finish()
         super.onBackPressed()
     }
@@ -109,6 +107,18 @@ class AccountDetails : AppCompatActivity() {
             }
             R.id.arrears_charge_payment -> {
                 viewArrearsCharges()
+            }
+            R.id.payments_shares -> {
+                sharePayment()
+            }
+            R.id.payments_loan_payout -> {
+                loanPayment()
+            }
+            R.id.payments_loan_repayments -> {
+                loanRepayment()
+            }
+            R.id.payments_charges -> {
+                chargePayment()
             }
         }
         return true
@@ -149,7 +159,7 @@ class AccountDetails : AppCompatActivity() {
             transactions.transactionID = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_ID_COL))
             transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
             transactions.transactionInterest = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_INTEREST_COL))
-            transactions.transactionShares = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
+            transactions.transactionShares = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
             transactions.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
             transactions.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
             transactions.transactionShareDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_DATE_COL))
@@ -185,9 +195,9 @@ class AccountDetails : AppCompatActivity() {
 
     @SuppressLint("SimpleDateFormat")
     @RequiresApi(Build.VERSION_CODES.N)
-    private fun createMonth(){
+    fun createMonth(){
         val name = tvDetailsName.text
-        var share = 0.0
+        var share = 0
         var shareValue = 0.0
         var interest = 0.0
         var loan = 0.0
@@ -208,7 +218,7 @@ class AccountDetails : AppCompatActivity() {
         db = dbHandler.readableDatabase
         cursor =  db.rawQuery(query, arrayOf(name.toString()))
         if(cursor.moveToFirst()){
-            share = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_SHARE_COL))
+            share = cursor.getInt(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_SHARE_COL))
             loan = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL))
             charge = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
         }
@@ -244,14 +254,14 @@ class AccountDetails : AppCompatActivity() {
 
             transactionModel.transactionName = name.toString()
             transactionModel.transactionMonth = transactionMonth
-            transactionModel.transactionShares = share.roundToLong() *10.0/10.0
-            transactionModel.transactionShareAmount = (shareValue * share).roundToLong() *10.0/10.0
+            transactionModel.transactionShares = share
+            transactionModel.transactionShareAmount = shareValue * share
             transactionModel.transactionShareDate = transactionDate
-            transactionModel.transactionLoanApp = loan.roundToLong() *10.0/10.0
+            transactionModel.transactionLoanApp = loan
             transactionModel.transactionLoanPaymentDate = transactionDate
-            transactionModel.transactionLoanToRepay = (loanToRepay * interest).roundToLong() *10.0/10.0
+            transactionModel.transactionLoanToRepay = loanToRepay * interest
             transactionModel.transactionLoanRepaymentDate = transactionDate
-            transactionModel.transactionCharge = charge.roundToLong() *10.0/10.0
+            transactionModel.transactionCharge = charge
             transactionModel.transactionChargePaymentDate = transactionDate
             transactionModel.transactionInterest = interest
             dbHandler.createMonth(this, transactionModel)
@@ -264,7 +274,7 @@ class AccountDetails : AppCompatActivity() {
      @SuppressLint("SimpleDateFormat")
      private fun updateMonth(){
         val name = tvDetailsName.text
-        var share = 0.0
+        var share = 0
         var shareValue = 0.0
         var loan = 0.0
         var charge = 0.0
@@ -280,7 +290,7 @@ class AccountDetails : AppCompatActivity() {
         db = dbHandler.readableDatabase
         cursor =  db.rawQuery(query, arrayOf(name.toString()))
         if(cursor.moveToFirst()){
-            share = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_SHARE_COL))
+            share = cursor.getInt(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_SHARE_COL))
             loan = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL))
             charge = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
         }
@@ -298,13 +308,13 @@ class AccountDetails : AppCompatActivity() {
         val transactionModel = Model()
         transactionModel.transactionName = name.toString()
         transactionModel.transactionMonth = transactionMonth
-        transactionModel.transactionShares = share.roundToLong()*10.0/10.0
-        transactionModel.transactionShareAmount = (shareValue * share).roundToLong() *10.0/10.0
+        transactionModel.transactionShares = share
+        transactionModel.transactionShareAmount = (shareValue * share)
         //transactionModel.transactionSharePayment
-        transactionModel.transactionLoanApp = loan.roundToLong()*10.0/10.0
+        transactionModel.transactionLoanApp = loan
         //transactionModel.transactionLoanPayment
         //transactionModel.transactionLoanRepayment
-        transactionModel.transactionCharge = charge.roundToLong()*10.0/10.0
+        transactionModel.transactionCharge = charge
         //transactionModel.transactionChargePayment
         dbHandler.updateMonth(this, transactionModel, name.toString(), transactionMonth)
     }
@@ -360,8 +370,18 @@ class AccountDetails : AppCompatActivity() {
 
 
 
+    @SuppressLint("SimpleDateFormat")
     @RequiresApi(Build.VERSION_CODES.N)
     private fun detectChanges(){
+        val c: Calendar = GregorianCalendar()
+        c.time = Date()
+        val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        //println(sdf.format(c.time)) // NOW
+        val transactionMonth = (sdf.format(c.time))
+        c.add(Calendar.MONTH, -1)
+        //println(sdf.format(c.time)) // One month ago
+        val transactionLastMonth = (sdf.format(c.time))
+
         val name = tvDetailsName.text
 
         var shareSubmitted = 0.0
@@ -382,9 +402,9 @@ class AccountDetails : AppCompatActivity() {
         }
 
 
-        query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = ?"
+        query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = ? AND ${DBHandler.TRANSACTION_MONTH_COL} = ?"
         db = dbHandler.readableDatabase
-        cursor = db.rawQuery(query, arrayOf(name.toString()))
+        cursor = db.rawQuery(query, arrayOf(name.toString(), transactionMonth))
         if (cursor.moveToFirst()) {
             shareApproved = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
             loanApproved = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
@@ -418,6 +438,33 @@ class AccountDetails : AppCompatActivity() {
 
         val name = tvDetailsName.text
 
+        var shareSubmitted = 0.0
+        var loanSubmitted = 0.0
+        var chargeSubmitted = 0.0
+        var shareApproved = 0.0
+        var loanApproved = 0.0
+        var chargeApproved = 0.0
+
+
+        var query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = ?"
+        var db = dbHandler.readableDatabase
+        var cursor = db.rawQuery(query, arrayOf(name.toString()))
+        if (cursor.moveToFirst()) {
+            shareSubmitted = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_SHARE_COL))
+            loanSubmitted = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL))
+            chargeSubmitted = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
+        }
+
+
+        query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = ? AND ${DBHandler.TRANSACTION_MONTH_COL} = ?"
+        db = dbHandler.readableDatabase
+        cursor = db.rawQuery(query, arrayOf(name.toString(), transactionMonth))
+        if (cursor.moveToFirst()) {
+            shareApproved = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
+            loanApproved = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
+            chargeApproved = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_COL))
+        }
+
         AlertDialog.Builder(this)
                 .setTitle("Changes have been made?")
                 .setPositiveButton("Approve") {_,_->
@@ -427,10 +474,10 @@ class AccountDetails : AppCompatActivity() {
                     val cursor = db.rawQuery(query, arrayOf(transactionMonth, name.toString()))
                     if (cursor.count == 0){
                         createMonth()
-                        Toast.makeText(this, "New Month", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Approved", Toast.LENGTH_SHORT).show()
                     }else{
                         updateMonth()
-                        Toast.makeText(this, transactionMonth, Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Approved", Toast.LENGTH_SHORT).show()
                     }
                     cursor.close()
                     db.close()
@@ -438,8 +485,15 @@ class AccountDetails : AppCompatActivity() {
                 }
 
                 .setNeutralButton("Undo") {_,_->
-
-
+                    val contentValues = ContentValues()
+                    contentValues.put(DBHandler.ACCOUNT_HOLDERS_SHARE_COL, shareApproved)
+                    contentValues.put(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL, loanApproved)
+                    contentValues.put(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL, chargeApproved)
+                    db = dbHandler.writableDatabase
+                    db.update(DBHandler.ACCOUNT_HOLDERS_TABLE, contentValues, "${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = ?", arrayOf(name.toString()))
+                    val intent = Intent(this, AccountHolders::class.java)
+                    startActivity(intent)
+                    AccountDetails().finish()
                 }
 
                 .setNegativeButton("View") {_,_->
@@ -478,54 +532,6 @@ class AccountDetails : AppCompatActivity() {
 
 
 
-    private fun updateShareOut(){
-        val name = tvDetailsName.text
-        var currentShareOut = 0.0
-        var shareAmount = 0.0
-        var sharePayment = 0.0
-        var loanApp = 0.0
-        var loanPayout = 0.0
-        var loanToRepay = 0.0
-        var loanRepayment = 0.0
-        var charge = 0.0
-        var chargePayment = 0.0
-        var arrears = 0.0
-        var payments = 0.0
-
-        val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = ?"
-        val db = dbHandler.readableDatabase
-        val cursor = db.rawQuery(query, arrayOf(name.toString()))
-
-        while (cursor.moveToNext()){
-            currentShareOut += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_OUT_COL))
-            shareAmount += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
-            sharePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
-            loanApp += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
-            loanPayout += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
-            loanToRepay += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_TO_REPAY_COL))
-            loanRepayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL))
-            charge += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_COL))
-            chargePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
-        }
-
-        arrears = shareAmount + loanToRepay + charge - loanApp
-        payments = sharePayment + loanRepayment + chargePayment - loanPayout
-
-        val contentValues = ContentValues()
-        if (arrears == payments){
-            contentValues.put(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL, "No Arrears")
-            contentValues.put(DBHandler.ACCOUNT_HOLDERS_ASSET_COL, currentShareOut.roundToInt()*10.0/10.0)
-            contentValues.put(DBHandler.ACCOUNT_HOLDERS_LIABILITY_COL, (payments - arrears).roundToLong()*10.0/10.0)
-        }else{
-            contentValues.put(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL, "")
-            contentValues.put(DBHandler.ACCOUNT_HOLDERS_ASSET_COL, currentShareOut.roundToInt()*10.0/10.0)
-            contentValues.put(DBHandler.ACCOUNT_HOLDERS_LIABILITY_COL, (payments - arrears).roundToLong()*10.0/10.0)
-        }
-        db.update(DBHandler.ACCOUNT_HOLDERS_TABLE, contentValues, "${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = ?", arrayOf(name.toString()))
-        cursor.close()
-    }
-
-
 
 
 
@@ -544,7 +550,7 @@ class AccountDetails : AppCompatActivity() {
             transactions.transactionID = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_ID_COL))
             transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
             transactions.transactionInterest = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_INTEREST_COL))
-            transactions.transactionShares = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
+            transactions.transactionShares = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
             transactions.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
             transactions.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
             transactions.transactionShareDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_DATE_COL))
@@ -590,7 +596,7 @@ class AccountDetails : AppCompatActivity() {
             transactions.transactionID = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_ID_COL))
             transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
             transactions.transactionInterest = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_INTEREST_COL))
-            transactions.transactionShares = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
+            transactions.transactionShares = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
             transactions.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
             transactions.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
             transactions.transactionShareDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_DATE_COL))
@@ -635,7 +641,7 @@ class AccountDetails : AppCompatActivity() {
             transactions.transactionID = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_ID_COL))
             transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
             transactions.transactionInterest = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_INTEREST_COL))
-            transactions.transactionShares = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
+            transactions.transactionShares = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
             transactions.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
             transactions.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
             transactions.transactionShareDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_DATE_COL))
@@ -680,7 +686,7 @@ class AccountDetails : AppCompatActivity() {
             transactions.transactionID = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_ID_COL))
             transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
             transactions.transactionInterest = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_INTEREST_COL))
-            transactions.transactionShares = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
+            transactions.transactionShares = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
             transactions.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
             transactions.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
             transactions.transactionShareDate = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_DATE_COL))
@@ -708,6 +714,72 @@ class AccountDetails : AppCompatActivity() {
         rv2.setHasFixedSize(true)
         rv2.adapter = adapter
     }
+
+
+
+    private fun sharePayment(){
+        val name = tvDetailsName.text
+        AlertDialog.Builder(this)
+                .setTitle("Settle all share payments for $name?")
+                .setPositiveButton("Yes") {_,_->
+                    val query = "UPDATE ${DBHandler.TRANSACTION_TABLE} SET ${DBHandler.TRANSACTION_SHARE_PAYMENT_COL} = " +
+                            "${DBHandler.TRANSACTION_SHARE_AMOUNT_COL} WHERE ${DBHandler.TRANSACTION_NAME_COL} = '${name}'"
+                    val db = dbHandler.writableDatabase
+                    db.execSQL(query)
+                    viewTransactions()
+                }
+                .setNegativeButton("No") {_,_->}
+                .show()
+    }
+
+
+    private fun loanPayment(){
+        val name = tvDetailsName.text
+        AlertDialog.Builder(this)
+                .setTitle("Clear all loan payouts for $name?")
+                .setPositiveButton("Yes") {_,_->
+                    val query = "UPDATE ${DBHandler.TRANSACTION_TABLE} SET ${DBHandler.TRANSACTION_LOAN_PAYMENT_COL} = " +
+                            "${DBHandler.TRANSACTION_LOAN_APP_COL} WHERE ${DBHandler.TRANSACTION_NAME_COL} = '${name}'"
+                    val db = dbHandler.writableDatabase
+                    db.execSQL(query)
+                    viewTransactions()
+                }
+                .setNegativeButton("No") {_,_->}
+                .show()
+    }
+
+
+    private fun loanRepayment(){
+        val name = tvDetailsName.text
+        AlertDialog.Builder(this)
+                .setTitle("Settle all loan repayments for $name?")
+                .setPositiveButton("Yes") {_,_->
+                    val query = "UPDATE ${DBHandler.TRANSACTION_TABLE} SET ${DBHandler.TRANSACTION_LOAN_REPAYMENT_COL} = " +
+                            "${DBHandler.TRANSACTION_LOAN_TO_REPAY_COL} WHERE ${DBHandler.TRANSACTION_NAME_COL} = '${name}'"
+                    val db = dbHandler.writableDatabase
+                    db.execSQL(query)
+                    viewTransactions()
+                }
+                .setNegativeButton("No") {_,_->}
+                .show()
+    }
+
+
+    private fun chargePayment(){
+        val name = tvDetailsName.text
+        AlertDialog.Builder(this)
+                .setTitle("Clear all charges for $name?")
+                .setPositiveButton("Yes") {_,_->
+                    val query = "UPDATE ${DBHandler.TRANSACTION_TABLE} SET ${DBHandler.TRANSACTION_CHARGE_PAYMENT_COL} = " +
+                            "${DBHandler.TRANSACTION_CHARGE_COL} WHERE ${DBHandler.TRANSACTION_NAME_COL} = '${name}'"
+                    val db = dbHandler.writableDatabase
+                    db.execSQL(query)
+                    viewTransactions()
+                }
+                .setNegativeButton("No") {_,_->}
+                .show()
+    }
+
 
 
 }

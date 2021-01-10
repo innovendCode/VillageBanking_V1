@@ -2,31 +2,57 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <item
-        android:id="@+id/information"
-        android:title="Info" />
+
     <item
         android:id="@+id/viewAll"
         android:title="View All" />
     <item
             android:id="@+id/transactions_arrears"
-            android:title="View Arrears">
+            android:title="Arrears">
         <menu >
             <item
                 android:id="@+id/arrears_shares"
                 android:title="Shares" />
             <item
                 android:id="@+id/arrears_loan_payout"
-                android:title="Loan Payout" />
+                android:title="Loans" />
             <item
                 android:id="@+id/arrears_loan_repayment"
-                android:title="Loan Repayment" />
+                android:title="Loan Repayments" />
             <item
                 android:id="@+id/arrears_charge_payment"
-                android:title="Charge Payment" />
+                android:title="Charges" />
         </menu>
     </item>
 
+
+
+    <item
+        android:id="@+id/transactions_payments"
+        android:title="Payments">
+        <menu >
+            <item
+                android:id="@+id/payments_shares"
+                android:title="Shares" />
+            <item
+                android:id="@+id/payments_loan_payout"
+                android:title="Loans" />
+            <item
+                android:id="@+id/payments_loan_repayments"
+                android:title="Loan Repayments" />
+            <item
+                android:id="@+id/payments_charges"
+                android:title="Charges" />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/information"
+        android:title="Info" />
+
+    <item
+        android:id="@+id/statement"
+        android:title="Statement" />
 
     <item
             android:id="@+id/finalShareOut"

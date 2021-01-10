@@ -48,7 +48,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/account_holder_name"
                 android:textColor="@color/black"
-                android:textSize="22sp"
+                android:textSize="18sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
@@ -69,7 +69,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/administrator"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tvName" />
 
@@ -78,7 +78,7 @@
                 android:id="@+id/textView2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="15dp"
+                android:layout_marginTop="10dp"
                 android:text="@string/shares"
                 android:textColor="@color/black"
                 app:layout_constraintStart_toStartOf="parent"
@@ -121,25 +121,20 @@
                 android:id="@+id/tvAsset"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="5dp"
-                android:layout_marginRight="5dp"
                 android:text="@string/main_charges"
-                android:textColor="#09AA9B"
                 android:textStyle="bold"
-                app:layout_constraintEnd_toStartOf="@+id/imgClearedAll"
-                app:layout_constraintTop_toBottomOf="@+id/btnPostings" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/tvLiability"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="5dp"
-                android:layout_marginRight="5dp"
                 android:text="@string/main_charges"
                 android:textColor="#BA0707"
                 android:textStyle="bold"
-                app:layout_constraintEnd_toStartOf="@+id/imgClearedAll"
-                app:layout_constraintTop_toBottomOf="@+id/tvAsset" />
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
 
             <TextView
                 android:id="@+id/tvApproved"
@@ -154,21 +149,24 @@
 
             <ImageButton
                 android:id="@+id/btnPostings"
-                android:layout_width="109dp"
-                android:layout_height="65dp"
-                android:src="@drawable/ic_edit"
+                android:layout_width="116dp"
+                android:layout_height="59dp"
+                android:src="@drawable/ic_forward_red"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
                 android:id="@+id/imgClearedAll"
-                android:layout_width="33dp"
-                android:layout_height="38dp"
-                android:layout_marginEnd="7dp"
-                android:layout_marginRight="7dp"
-                android:src="@drawable/ic_approved"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/btnPostings" />
+                android:layout_width="34dp"
+                android:layout_height="26dp"
+                android:layout_marginEnd="1dp"
+                android:layout_marginRight="1dp"
+                android:src="@drawable/ic_forward_green"
+                app:layout_constraintBottom_toBottomOf="@+id/btnPostings"
+                app:layout_constraintEnd_toEndOf="@+id/btnPostings"
+                app:layout_constraintStart_toStartOf="@+id/btnPostings"
+                app:layout_constraintTop_toTopOf="@+id/btnPostings" />
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>

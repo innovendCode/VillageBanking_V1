@@ -4,6 +4,8 @@ import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.DialogInterface
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -30,6 +32,7 @@ import kotlinx.android.synthetic.main.main_row_layout.*
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
 class AccountHolders: AppCompatActivity() {
@@ -61,6 +64,8 @@ class AccountHolders: AppCompatActivity() {
 
         checkIfCurrentMonth()
         availableCash()
+        getLiabilities()
+        firstTime()
     }
 
 
@@ -95,24 +100,26 @@ class AccountHolders: AppCompatActivity() {
             R.id.searchName ->{
 
             }
-            R.id.approveAll ->{
-                approveAll()
+            R.id.approve ->{
+                createMonthIfNotExists()
+                selectApproval()
             }
-            R.id.ViewAll -> {
-                viewAccountHolders()
-            }
-            R.id.ViewAdmins -> {
-                viewAccountAdmins()
+            R.id.payment -> {
+                createMonthIfNotExists()
+                selectPayment()
             }
             R.id.arrears ->{
+                createMonthIfNotExists()
+                getLiabilities()
                 viewArrears()
+            }
+            R.id.accounts -> {
+                selectAccounts()
             }
             R.id.delAllAccountHolders -> {
                 deleteAllAccounts()
                 viewAccountHolders()
             }
-
-
 
 
 
@@ -126,6 +133,7 @@ class AccountHolders: AppCompatActivity() {
         super.onResume()
         availableCash()
         viewAccountHolders()
+        getLiabilities()
     }
 
 
@@ -191,8 +199,25 @@ class AccountHolders: AppCompatActivity() {
         contentValues.put(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL, 0.0)
         db.update(DBHandler.ACCOUNT_HOLDERS_TABLE, contentValues, null, null)
         Toast.makeText(this,"All postings reset to Zero", Toast.LENGTH_SHORT).show()
+        getLiabilities()
     }
 
+
+    private fun selectAccounts(){
+        AlertDialog.Builder(this)
+                .setTitle("Select Account to View")
+                .setIcon(R.drawable.ic_account_holders)
+                .setPositiveButton("All Accounts") {_,_->
+                    viewAccountHolders()
+                    getLiabilities()
+                }
+                .setNeutralButton("Admins") {_,_->
+                    getLiabilities()
+                    viewAccountAdmins()
+
+                }
+                .show()
+    }
 
 
     private fun viewAccountHolders(){
@@ -365,6 +390,7 @@ class AccountHolders: AppCompatActivity() {
 
 
 
+
     private fun deleteAllAccounts(){
         val deleteDialogLayout = LayoutInflater.from(this).inflate(R.layout.delete_confirmation, null)
             AlertDialog.Builder(this)
@@ -400,7 +426,6 @@ class AccountHolders: AppCompatActivity() {
                 }
                     .show()
     }
-
 
 
 
@@ -460,15 +485,6 @@ class AccountHolders: AppCompatActivity() {
             db = dbHandler.writableDatabase
             db.insert(DBHandler.TRANSACTION_TABLE, null, contentValues)
 
-            //Update arrears
-/*            val contentValues2 = ContentValues()
-            contentValues2.put(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL, "")
-            contentValues2.put(DBHandler.ACCOUNT_HOLDERS_LIABILITY_COL, 0.0)
-            contentValues2.put(DBHandler.ACCOUNT_HOLDERS_ASSET_COL, 0.0)
-            db = dbHandler.writableDatabase
-            db.update(DBHandler.ACCOUNT_HOLDERS_TABLE, contentValues2, "${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = ?", arrayOf(name))*/
-
-            //Populate current share out
             query = "UPDATE ${DBHandler.TRANSACTION_TABLE} SET ${DBHandler.TRANSACTION_SHARE_OUT_COL} = " +
                     "${DBHandler.TRANSACTION_SHARE_PAYMENT_COL} * ${DBHandler.TRANSACTION_INTEREST_COL} WHERE " +
                     "${DBHandler.TRANSACTION_MONTH_COL} = '$transactionLastMonth' AND ${DBHandler.TRANSACTION_NAME_COL} = '$name'"
@@ -476,22 +492,15 @@ class AccountHolders: AppCompatActivity() {
         }
 
 
-
-
         var shareAmount = 0.0
         var sharePayment = 0.0
-
         var loanToRepay = 0.0
         var loanRepayment = 0.0
-
-
         var loanPayment= 0.0
-
         var charge = 0.0
         var chargePayment = 0.0
-
-
         var currentShareOut = 0.0
+
         query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} = ?"
         db = dbHandler.readableDatabase
         cursor = db.rawQuery(query, arrayOf(transactionLastMonth))
@@ -513,12 +522,257 @@ class AccountHolders: AppCompatActivity() {
             val liability = (sharePayment - shareAmount) + (loanRepayment - loanToRepay) + (chargePayment - charge)
 
             val contentValues3 = ContentValues()
-            contentValues3.put(DBHandler.ACCOUNT_HOLDERS_ASSET_COL, currentShareOut.roundToLong()*10.0/10.0)
+            contentValues3.put(DBHandler.ACCOUNT_HOLDERS_ASSET_COL, currentShareOut)
             contentValues3.put(DBHandler.ACCOUNT_HOLDERS_LIABILITY_COL, liability*10.0/10.0)
             db = dbHandler.writableDatabase
             db.update(DBHandler.ACCOUNT_HOLDERS_TABLE, contentValues3, "${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = ?", arrayOf(name))
         }
         viewAccountHolders()
+    }
+
+
+
+
+
+    @SuppressLint("SimpleDateFormat")
+    fun createMonthIfNotExists(){
+
+        val c: Calendar = GregorianCalendar()
+        c.time = Date()
+        val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        //println(sdf.format(c.time)) // NOW
+        val transactionMonth = (sdf.format(c.time))
+        c.add(Calendar.MONTH, -1)
+        //println(sdf.format(c.time)) // One month ago
+        val transactionLastMonth = (sdf.format(c.time))
+
+        var interest = 0.0
+        var name = ""
+
+        //Get interest rate and share value
+        var query = "SELECT * FROM ${DBHandler.SETTINGS_TABLE}"
+        var db = dbHandler.readableDatabase
+        val cursor = db.rawQuery(query, null)
+        if (cursor.moveToFirst()){
+            interest = cursor.getDouble(cursor.getColumnIndex(DBHandler.SETTINGS_INTEREST_RATE_COL))
+        }
+
+        interest = (interest/100)+1
+
+        query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
+        db = dbHandler.readableDatabase
+        val cursor1 = db.rawQuery(query, null)
+        while (cursor1.moveToNext()) {
+            name = cursor1.getString(cursor1.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_NAME_COL))
+
+            val contentValues = ContentValues()
+            contentValues.put(DBHandler.TRANSACTION_NAME_COL, name)
+            contentValues.put(DBHandler.TRANSACTION_MONTH_COL, transactionMonth)
+            contentValues.put(DBHandler.TRANSACTION_SHARE_COL, 0.0)
+            contentValues.put(DBHandler.TRANSACTION_SHARE_AMOUNT_COL, 0.0)
+            contentValues.put(DBHandler.TRANSACTION_SHARE_PAYMENT_COL, 0.0)
+            contentValues.put(DBHandler.TRANSACTION_SHARE_DATE_COL, transactionDate)
+            contentValues.put(DBHandler.TRANSACTION_LOAN_APP_COL, 0.0)
+            contentValues.put(DBHandler.TRANSACTION_LOAN_PAYMENT_COL, 0.0)
+            contentValues.put(DBHandler.TRANSACTION_LOAN_PAYMENT_DATE_COL, transactionDate)
+            contentValues.put(DBHandler.TRANSACTION_LOAN_TO_REPAY_COL, 0.0)
+            contentValues.put(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL, 0.0)
+            contentValues.put(DBHandler.TRANSACTION_LOAN_REPAYMENT_DATE_COL, transactionDate)
+            contentValues.put(DBHandler.TRANSACTION_CHARGE_NAME_COL, "")
+            contentValues.put(DBHandler.TRANSACTION_CHARGE_COL, 0.0)
+            contentValues.put(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL, 0.0)
+            contentValues.put(DBHandler.TRANSACTION_CHARGE_DATE_COL, transactionDate)
+            contentValues.put(DBHandler.TRANSACTION_INTEREST_COL, interest)
+            contentValues.put(DBHandler.TRANSACTION_SHARE_OUT_COL, 0.0)
+            contentValues.put(DBHandler.TRANSACTION_ARREARS_COL, "")
+
+            query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = ?"
+            db = dbHandler.readableDatabase
+            val cursor2 = db.rawQuery(query, arrayOf(name))
+            if (cursor2.count < 1){
+                db = dbHandler.writableDatabase
+                db.insert(DBHandler.TRANSACTION_TABLE, null, contentValues)
+
+                query = "UPDATE ${DBHandler.TRANSACTION_TABLE} SET ${DBHandler.TRANSACTION_SHARE_OUT_COL} = " +
+                        "${DBHandler.TRANSACTION_SHARE_PAYMENT_COL} * ${DBHandler.TRANSACTION_INTEREST_COL} WHERE " +
+                        "${DBHandler.TRANSACTION_MONTH_COL} = '$transactionLastMonth' AND ${DBHandler.TRANSACTION_NAME_COL} = '$name'"
+                db.execSQL(query)
+
+            }
+        }
+
+    }
+
+
+
+
+
+
+    private fun selectApproval(){
+        AlertDialog.Builder(this)
+                .setTitle("Select item to approve")
+                .setIcon(R.drawable.ic_money)
+                .setPositiveButton("Shares") {_,_->
+                    approveShares()
+                }
+                .setNeutralButton("Loans") {_,_->
+                    approveLoans()
+                }
+                .setNegativeButton("Charges") {_,_->
+                    approveCharges()
+                }
+                .show()
+    }
+
+
+
+
+
+    @SuppressLint("SimpleDateFormat")
+    private fun approveShares(){
+        val c: Calendar = GregorianCalendar()
+        c.time = Date()
+        val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        //println(sdf.format(c.time)) // NOW
+        val transactionMonth = (sdf.format(c.time))
+        c.add(Calendar.MONTH, -1)
+        //println(sdf.format(c.time)) // One month ago
+        val transactionLastMonth = (sdf.format(c.time))
+
+        var interest = 0.0
+        var shareValue = 0.0
+
+        var name = ""
+        var shares = 0.0
+        var charge = 0.0
+
+        //Get interest rate and share value
+        var query = "SELECT * FROM ${DBHandler.SETTINGS_TABLE}"
+        var db = dbHandler.readableDatabase
+        var cursor = db.rawQuery(query, null)
+        if (cursor.moveToFirst()){
+            shareValue = cursor.getDouble(cursor.getColumnIndex(DBHandler.SETTINGS_SHARE_VALUE_COL))
+        }
+
+        query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
+        db = dbHandler.readableDatabase
+        cursor = db.rawQuery(query, null)
+
+        while (cursor.moveToNext()) {
+            name = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_NAME_COL))
+            shares = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_SHARE_COL))
+            charge = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
+
+            val contentValues = ContentValues()
+            contentValues.put(DBHandler.TRANSACTION_SHARE_COL, shares)
+            contentValues.put(DBHandler.TRANSACTION_SHARE_AMOUNT_COL, shares * shareValue)
+            contentValues.put(DBHandler.TRANSACTION_SHARE_DATE_COL, transactionDate)
+            contentValues.put(DBHandler.TRANSACTION_ARREARS_COL, "")
+            db.update(DBHandler.TRANSACTION_TABLE, contentValues, "${DBHandler.TRANSACTION_NAME_COL} = ? AND " +
+                    "${DBHandler.TRANSACTION_MONTH_COL} = ?", arrayOf(name, transactionMonth))
+        }
+        getLiabilities()
+    }
+
+
+
+
+
+    @SuppressLint("SimpleDateFormat")
+    fun approveLoans(){
+        val c: Calendar = GregorianCalendar()
+        c.time = Date()
+        val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        //println(sdf.format(c.time)) // NOW
+        val transactionMonth = (sdf.format(c.time))
+        c.add(Calendar.MONTH, -1)
+        //println(sdf.format(c.time)) // One month ago
+        val transactionLastMonth = (sdf.format(c.time))
+
+        var interest = 0.0
+        var shareValue = 0.0
+
+        var name = ""
+        var shares = 0.0
+        var loanApplication = 0.0
+        var charge = 0.0
+
+        //Get interest rate and share value
+        var query = "SELECT * FROM ${DBHandler.SETTINGS_TABLE}"
+        var db = dbHandler.readableDatabase
+        var cursor = db.rawQuery(query, null)
+        if (cursor.moveToFirst()){
+            interest = cursor.getDouble(cursor.getColumnIndex(DBHandler.SETTINGS_INTEREST_RATE_COL))
+            shareValue = cursor.getDouble(cursor.getColumnIndex(DBHandler.SETTINGS_SHARE_VALUE_COL))
+        }
+
+        query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
+        db = dbHandler.readableDatabase
+        cursor = db.rawQuery(query, null)
+
+        while (cursor.moveToNext()) {
+            name = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_NAME_COL))
+            loanApplication = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL))
+
+            val contentValues = ContentValues()
+            contentValues.put(DBHandler.TRANSACTION_LOAN_APP_COL, loanApplication)
+            contentValues.put(DBHandler.TRANSACTION_LOAN_PAYMENT_DATE_COL, transactionDate)
+            contentValues.put(DBHandler.TRANSACTION_ARREARS_COL, "")
+            db.update(DBHandler.TRANSACTION_TABLE, contentValues, "${DBHandler.TRANSACTION_NAME_COL} = ? AND " +
+                    "${DBHandler.TRANSACTION_MONTH_COL} = ?", arrayOf(name, transactionMonth))
+        }
+        getLiabilities()
+    }
+
+
+
+
+
+
+    @SuppressLint("SimpleDateFormat")
+    private fun approveCharges(){
+        val c: Calendar = GregorianCalendar()
+        c.time = Date()
+        val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        //println(sdf.format(c.time)) // NOW
+        val transactionMonth = (sdf.format(c.time))
+        c.add(Calendar.MONTH, -1)
+        //println(sdf.format(c.time)) // One month ago
+        val transactionLastMonth = (sdf.format(c.time))
+
+        var interest = 0.0
+        var shareValue = 0.0
+
+        var name = ""
+        var shares = 0.0
+        var charge = 0.0
+        var loanApplication= 0.0
+
+        //Get interest rate and share value
+        var query = "SELECT * FROM ${DBHandler.SETTINGS_TABLE}"
+        var db = dbHandler.readableDatabase
+        var cursor = db.rawQuery(query, null)
+        if (cursor.moveToFirst()){
+            interest = cursor.getDouble(cursor.getColumnIndex(DBHandler.SETTINGS_INTEREST_RATE_COL))
+            shareValue = cursor.getDouble(cursor.getColumnIndex(DBHandler.SETTINGS_SHARE_VALUE_COL))
+        }
+
+        query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
+        db = dbHandler.readableDatabase
+        cursor = db.rawQuery(query, null)
+
+        while (cursor.moveToNext()) {
+            name = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_NAME_COL))
+            charge = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
+
+            val contentValues = ContentValues()
+            contentValues.put(DBHandler.TRANSACTION_CHARGE_NAME_COL, "")
+            contentValues.put(DBHandler.TRANSACTION_CHARGE_COL, charge)
+            contentValues.put(DBHandler.TRANSACTION_CHARGE_DATE_COL, transactionDate)
+            contentValues.put(DBHandler.TRANSACTION_ARREARS_COL, "")
+            db.update(DBHandler.TRANSACTION_TABLE, contentValues, "${DBHandler.TRANSACTION_NAME_COL} = ? AND ${DBHandler.TRANSACTION_MONTH_COL} = ?", arrayOf(name, transactionMonth))
+        }
+        getLiabilities()
     }
 
 
@@ -531,11 +785,215 @@ class AccountHolders: AppCompatActivity() {
 
 
 
+    @SuppressLint("SimpleDateFormat")
+    private fun getLiabilities(){
+        val c: Calendar = GregorianCalendar()
+        c.time = Date()
+        val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        //println(sdf.format(c.time)) // NOW
+        val transactionMonth = (sdf.format(c.time))
+        c.add(Calendar.MONTH, -1)
+        //println(sdf.format(c.time)) // One month ago
+        val transactionLastMonth = (sdf.format(c.time))
+
+        var name = ""
+
+        var arrears = 0.0
+        var payments = 0.0
+
+        var query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
+        var db = dbHandler.readableDatabase
+        val cursor1 = db.rawQuery(query, null)
+
+        while (cursor1.moveToNext()){
+            name = cursor1.getString(cursor1.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_NAME_COL))
+
+            var shareAmount = 0.0
+            var sharePayment = 0.0
+            var loanToRepay = 0.0
+            var loanRepayment = 0.0
+            var loanApplication = 0.0
+            var loanPayout = 0.0
+            var charge = 0.0
+            var chargePayment = 0.0
+            var currentShareOut = 0.0
+
+            query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = ?"
+            db = dbHandler.readableDatabase
+            val cursor2 = db.rawQuery(query, arrayOf(name))
+            while (cursor2.moveToNext()) {
+
+                shareAmount += cursor2.getDouble(cursor2.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
+                sharePayment += cursor2.getDouble(cursor2.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
+                loanApplication += cursor2.getDouble(cursor2.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
+                loanPayout += cursor2.getDouble(cursor2.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
+                loanToRepay += cursor2.getDouble(cursor2.getColumnIndex(DBHandler.TRANSACTION_LOAN_TO_REPAY_COL))
+                loanRepayment += cursor2.getDouble(cursor2.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL))
+                charge += cursor2.getDouble(cursor2.getColumnIndex(DBHandler.TRANSACTION_CHARGE_COL))
+                chargePayment += cursor2.getDouble(cursor2.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
+                currentShareOut += cursor2.getDouble(cursor2.getColumnIndex(DBHandler.TRANSACTION_SHARE_OUT_COL))
+            }
+
+            arrears = shareAmount + loanToRepay + charge - loanApplication
+            payments = sharePayment + loanRepayment + chargePayment - loanPayout
+
+            val liability = payments - arrears
+
+            val contentValues3 = ContentValues()
+            if (payments == arrears){
+                contentValues3.put(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL, "No Arrears")
+                contentValues3.put(DBHandler.ACCOUNT_HOLDERS_ASSET_COL, currentShareOut)
+                contentValues3.put(DBHandler.ACCOUNT_HOLDERS_LIABILITY_COL, liability*10.0/10.0)
+            }else{
+                contentValues3.put(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL, "")
+                contentValues3.put(DBHandler.ACCOUNT_HOLDERS_ASSET_COL, currentShareOut)
+                contentValues3.put(DBHandler.ACCOUNT_HOLDERS_LIABILITY_COL, liability*10.0/10.0)
+            }
+
+            if (shareAmount == 0.0){
+                contentValues3.put(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL, "")
+            }
+
+            db = dbHandler.writableDatabase
+            db.update(DBHandler.ACCOUNT_HOLDERS_TABLE, contentValues3, "${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = ?", arrayOf(name))
+        }
+        viewAccountHolders()
+    }
 
 
 
 
 
+
+
+    @SuppressLint("SimpleDateFormat")
+    private fun selectPayment() {
+        AlertDialog.Builder(this)
+                .setTitle("Select Payment")
+                .setMessage("All submissions NOT approved will automatically be approved")
+                .setPositiveButton("Shares") {_,_->
+                    payShare()
+                    approveShares()
+                    getLiabilities()
+                }
+                .setNeutralButton("Loans") {_,_->
+                    payLoan()
+                    approveLoans()
+                    getLiabilities()
+                }
+                .setNegativeButton("Charges") {_,_->
+                    payCharges()
+                    approveCharges()
+                    getLiabilities()
+                }
+                .show()
+
+
+
+    }
+
+
+
+    @SuppressLint("SimpleDateFormat")
+    private fun payShare(){
+
+        val c: Calendar = GregorianCalendar()
+        c.time = Date()
+        val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        //println(sdf.format(c.time)) // NOW
+        val transactionMonth = (sdf.format(c.time))
+        c.add(Calendar.MONTH, -1)
+
+        var shareValue = 0.0
+
+        var name = ""
+        var share = 0.0
+
+        //Get interest rate and share value
+        var query = "SELECT * FROM ${DBHandler.SETTINGS_TABLE}"
+        var db = dbHandler.readableDatabase
+        var cursor = db.rawQuery(query, null)
+        if (cursor.moveToFirst()){
+            shareValue = cursor.getDouble(cursor.getColumnIndex(DBHandler.SETTINGS_SHARE_VALUE_COL))
+        }
+
+        query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
+        db = dbHandler.readableDatabase
+        cursor = db.rawQuery(query, null)
+        while (cursor.moveToNext()){
+            name = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_NAME_COL))
+            share = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_SHARE_COL))
+
+            val contentValues = ContentValues()
+            contentValues.put(DBHandler.TRANSACTION_SHARE_PAYMENT_COL, share * shareValue)
+            db.update(DBHandler.TRANSACTION_TABLE, contentValues, "${DBHandler.TRANSACTION_NAME_COL} = ? AND " +
+                    "${DBHandler.TRANSACTION_MONTH_COL} = ?", arrayOf(name, transactionMonth))
+
+        }
+    }
+
+
+
+
+
+
+    @SuppressLint("SimpleDateFormat")
+    private fun payLoan(){
+
+        val c: Calendar = GregorianCalendar()
+        c.time = Date()
+        val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        //println(sdf.format(c.time)) // NOW
+        val transactionMonth = (sdf.format(c.time))
+        c.add(Calendar.MONTH, -1)
+
+        var name = ""
+        var loan = 0.0
+
+        val query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
+        val db = dbHandler.readableDatabase
+        val cursor = db.rawQuery(query, null)
+        while (cursor.moveToNext()){
+            name = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_NAME_COL))
+            loan = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL))
+
+            val contentValues = ContentValues()
+            contentValues.put(DBHandler.TRANSACTION_LOAN_PAYMENT_COL, loan)
+            db.update(DBHandler.TRANSACTION_TABLE, contentValues, "${DBHandler.TRANSACTION_NAME_COL} = ? AND " +
+                    "${DBHandler.TRANSACTION_MONTH_COL} = ?", arrayOf(name, transactionMonth))
+        }
+    }
+
+
+
+
+
+    @SuppressLint("SimpleDateFormat")
+    private fun payCharges(){
+
+        val c: Calendar = GregorianCalendar()
+        c.time = Date()
+        val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        //println(sdf.format(c.time)) // NOW
+        val transactionMonth = (sdf.format(c.time))
+        c.add(Calendar.MONTH, -1)
+
+        var name = ""
+        var charge = 0.0
+
+        val query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
+        val db = dbHandler.readableDatabase
+        val cursor = db.rawQuery(query, null)
+        while (cursor.moveToNext()){
+            name = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_NAME_COL))
+            charge = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
+
+            val contentValues = ContentValues()
+            contentValues.put(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL, charge)
+            db.update(DBHandler.TRANSACTION_TABLE, contentValues, "${DBHandler.TRANSACTION_NAME_COL} = ? AND " +
+                    "${DBHandler.TRANSACTION_MONTH_COL} = ?", arrayOf(name, transactionMonth))
+        }
+    }
 
 
 
@@ -586,22 +1044,22 @@ class AccountHolders: AppCompatActivity() {
                     contentValues.put(DBHandler.TRANSACTION_MONTH_COL, transactionMonth)
                     contentValues.put(DBHandler.TRANSACTION_SHARE_COL, shares)
                     contentValues.put(DBHandler.TRANSACTION_SHARE_AMOUNT_COL, shares * shareValue)
-                    contentValues.put(DBHandler.TRANSACTION_SHARE_PAYMENT_COL, 0.0)
+                    //contentValues.put(DBHandler.TRANSACTION_SHARE_PAYMENT_COL, 0.0)
                     contentValues.put(DBHandler.TRANSACTION_SHARE_DATE_COL, transactionDate)
                     contentValues.put(DBHandler.TRANSACTION_LOAN_APP_COL, loanApplication)
-                    contentValues.put(DBHandler.TRANSACTION_LOAN_PAYMENT_COL, 0.0)
+                    //contentValues.put(DBHandler.TRANSACTION_LOAN_PAYMENT_COL, 0.0)
                     contentValues.put(DBHandler.TRANSACTION_LOAN_PAYMENT_DATE_COL, transactionDate)
-                    contentValues.put(DBHandler.TRANSACTION_LOAN_TO_REPAY_COL, 0.0)
-                    contentValues.put(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL, 0.0)
+                    //contentValues.put(DBHandler.TRANSACTION_LOAN_TO_REPAY_COL, 0.0)
+                    //contentValues.put(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL, 0.0)
                     contentValues.put(DBHandler.TRANSACTION_LOAN_REPAYMENT_DATE_COL, transactionDate)
                     contentValues.put(DBHandler.TRANSACTION_CHARGE_NAME_COL, "")
                     contentValues.put(DBHandler.TRANSACTION_CHARGE_COL, charge)
-                    contentValues.put(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL, 0.0)
+                    //contentValues.put(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL, 0.0)
                     contentValues.put(DBHandler.TRANSACTION_CHARGE_DATE_COL, transactionDate)
                     contentValues.put(DBHandler.TRANSACTION_INTEREST_COL, interest)
-                    contentValues.put(DBHandler.TRANSACTION_SHARE_OUT_COL, 0.0)
+                    //contentValues.put(DBHandler.TRANSACTION_SHARE_OUT_COL, 0.0)
                     contentValues.put(DBHandler.TRANSACTION_ARREARS_COL, "")
-                    db.update(DBHandler.TRANSACTION_TABLE, contentValues, "${DBHandler.TRANSACTION_NAME_COL} = ?", arrayOf(name))
+                    db.update(DBHandler.TRANSACTION_TABLE, contentValues, "${DBHandler.TRANSACTION_NAME_COL} = ? AND ${DBHandler.TRANSACTION_MONTH_COL} = ?", arrayOf(name, transactionMonth))
 
                     //Update arrears
                     val contentValues2 = ContentValues()
@@ -611,11 +1069,7 @@ class AccountHolders: AppCompatActivity() {
                     db.update(DBHandler.ACCOUNT_HOLDERS_TABLE, contentValues2, "${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = ?", arrayOf(name))
         }
             viewAccountHolders()
-
     }
-
-
-
 
 
 
@@ -644,10 +1098,27 @@ class AccountHolders: AppCompatActivity() {
         cursor.close()
     }
 
+    private fun firstTime(){
+        //No Chairperson Account
+        val query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
+        val db = dbHandler.readableDatabase
+        val cursor = db.rawQuery(query, null)
+
+        if (cursor.count == 0) {
+            AlertDialog.Builder(this)
+                    .setTitle("No Members/Accounts")
+                    .setMessage("Create new membership accounts here")
+                    .setIcon(R.drawable.ic_add_account_holder)
+                    .setNegativeButton("Got it") {_,_->}
+                    .show()
+            cursor.close()
+        }
+    }
 
 
     private fun availableCash(){
         var sharePayment = 0.0
+        var loanApplication = 0.0
         var loanPayout = 0.0
         var loanRepayment = 0.0
         var chargePayment = 0.0
@@ -658,13 +1129,15 @@ class AccountHolders: AppCompatActivity() {
 
         while (cursor.moveToNext()){
             sharePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
+            loanApplication += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
             loanPayout += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
             loanRepayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL))
             chargePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
         }
 
-        val availableCash ="Avail Balance: ${(sharePayment + loanRepayment + chargePayment - loanPayout).roundToLong()*10.0/10.0}"
+        val availableCash ="Avail Balance: ${(sharePayment + loanRepayment + chargePayment - loanPayout).roundToLong()*10.00/10.00}"
         tvCashAvailable.text = availableCash
+        cursor.close()
     }
 
 

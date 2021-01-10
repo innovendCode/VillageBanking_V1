@@ -33,7 +33,7 @@
 
             <ImageButton
                 android:id="@+id/btnChargePayment"
-                android:layout_width="74dp"
+                android:layout_width="50dp"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_money_white"
                 app:layout_constraintBottom_toBottomOf="@+id/tvTransactionChargePaymentDate"
@@ -41,7 +41,7 @@
 
             <ImageButton
                 android:id="@+id/btnLoanRepayment"
-                android:layout_width="74dp"
+                android:layout_width="50dp"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_money_white"
                 app:layout_constraintBottom_toBottomOf="@+id/tvTransactionLoanRepaymentDate"
@@ -49,7 +49,7 @@
 
             <ImageButton
                 android:id="@+id/btnSharePayment"
-                android:layout_width="74dp"
+                android:layout_width="50dp"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_money_white"
                 app:layout_constraintBottom_toBottomOf="@+id/tvTransactionShareDate"
@@ -315,7 +315,7 @@
 
             <ImageButton
                 android:id="@+id/btnLoanPayout"
-                android:layout_width="74dp"
+                android:layout_width="50dp"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_money_white"
                 app:layout_constraintBottom_toBottomOf="@+id/tvTransactionLoanPaymentDate"

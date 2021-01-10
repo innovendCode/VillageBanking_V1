@@ -16,32 +16,22 @@
         android:icon="@drawable/ic_add_account_holder"/>
 
 
-            <item
-                android:id="@+id/approveAll"
-                android:title="Approve All"
-                android:icon="@drawable/ic_account_holders"/>
-            <item
-                android:id="@+id/ViewAll"
-                android:title="@string/account_holders_menu_all_accounts"
-                android:icon="@drawable/ic_account_holders"/>
+        <item
+            android:id="@+id/approve"
+            android:title="Approval"/>
+        <item
+            android:id="@+id/payment"
+            android:title="Payment"/>
+        <item
+            android:id="@+id/arrears"
+            android:title="@string/arrears"/>
+        <item
+            android:id="@+id/accounts"
+            android:title="Accounts"/>
+        <item
+            android:id="@+id/delAllAccountHolders"
+            android:title="@string/delete_all"/>
 
-            <item
-                android:id="@+id/ViewAdmins"
-                android:title="@string/account_holders_menu_admins"
-                android:icon="@drawable/ic_admin"/>
-
-
-
-    <item
-        android:id="@+id/arrears"
-        android:title="@string/arrears"
-        android:icon="@drawable/ic_money"/>
-
-
-    <item
-        android:id="@+id/delAllAccountHolders"
-        android:title="@string/delete_all"
-        android:icon="@drawable/ic_delete_all"/>
 
 
 </menu>

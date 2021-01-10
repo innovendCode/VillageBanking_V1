@@ -71,7 +71,7 @@ class MainActivity : AppCompatActivity() {
                val pinHint = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_PIN_HINT_COL))
                 Toast.makeText(this, "Your PIN Hint is: $pinHint", Toast.LENGTH_LONG).show()
             }else{
-                Toast.makeText(this, "PIN not set. Click LOGIN", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "PIN not set. Click LOGIN", Toast.LENGTH_SHORT).show()
             }
             cursor.close()
             db.close()
@@ -94,8 +94,8 @@ class MainActivity : AppCompatActivity() {
 
         if (cursor.count == 0){
             val firstTimeAlert = AlertDialog.Builder(this)
-                    .setTitle("Welcome to Sonka - Village Banking")
-                    .setMessage("First time use does not require a PIN. LOGIN to begin")
+                    .setTitle("Welcome to - Village Banking by Innovend General Dealers©")
+                    .setMessage("First time use does not require a PIN.\n\nPress LOGIN to begin")
                     .setNeutralButton("OK") { _: DialogInterface, _: Int -> }
             firstTimeAlert.show()
         }

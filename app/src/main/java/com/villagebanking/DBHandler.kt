@@ -138,14 +138,12 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         val db = this.readableDatabase
         val cursor = db.rawQuery(query, null)
         val accountHolderModel = ArrayList<Model>()
-        if(cursor.count == 0)
-            Toast.makeText(mContext, "Create Accounts Here", Toast.LENGTH_SHORT).show() else
-        {while (cursor.moveToNext()){
+        while (cursor.moveToNext()){
             val accountHolders = Model()
             accountHolders.accountHoldersID = cursor.getInt(cursor.getColumnIndex(ACCOUNT_HOLDERS_ID_COL))
             accountHolders.accountHoldersName = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_NAME_COL))
             accountHolders.accountHoldersAdmin = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ADMIN_COL))
-            accountHolders.accountHoldersShare = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_SHARE_COL))
+            accountHolders.accountHoldersShare = cursor.getInt(cursor.getColumnIndex(ACCOUNT_HOLDERS_SHARE_COL))
             accountHolders.accountHoldersLoanApp = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_LOAN_APP_COL))
             accountHolders.accountHolderBankInfo = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_BANK_INFO_COL))
             accountHolders.accountHolderContact = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_CONTACT_COL))
@@ -154,7 +152,6 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             accountHolders.accountHoldersAsset = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_ASSET_COL))
             accountHolders.accountHoldersLiability = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_LIABILITY_COL))
             accountHolderModel.add(accountHolders)
-        }
         }
             cursor.close()
             db.close()
@@ -175,7 +172,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             accountAdmins.accountHoldersID = cursor.getInt(cursor.getColumnIndex(ACCOUNT_HOLDERS_ID_COL))
             accountAdmins.accountHoldersName = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_NAME_COL))
             accountAdmins.accountHoldersAdmin = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ADMIN_COL))
-            accountAdmins.accountHoldersShare = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_SHARE_COL))
+            accountAdmins.accountHoldersShare = cursor.getInt(cursor.getColumnIndex(ACCOUNT_HOLDERS_SHARE_COL))
             accountAdmins.accountHoldersLoanApp = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_LOAN_APP_COL))
             accountAdmins.accountHolderBankInfo = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_BANK_INFO_COL))
             accountAdmins.accountHolderContact = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_CONTACT_COL))
@@ -203,7 +200,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             accountAdmins.accountHoldersID = cursor.getInt(cursor.getColumnIndex(ACCOUNT_HOLDERS_ID_COL))
             accountAdmins.accountHoldersName = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_NAME_COL))
             accountAdmins.accountHoldersAdmin = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ADMIN_COL))
-            accountAdmins.accountHoldersShare = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_SHARE_COL))
+            accountAdmins.accountHoldersShare = cursor.getInt(cursor.getColumnIndex(ACCOUNT_HOLDERS_SHARE_COL))
             accountAdmins.accountHoldersLoanApp = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_LOAN_APP_COL))
             accountAdmins.accountHolderBankInfo = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_BANK_INFO_COL))
             accountAdmins.accountHolderContact = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_CONTACT_COL))

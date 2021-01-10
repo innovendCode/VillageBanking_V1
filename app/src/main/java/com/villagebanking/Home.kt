@@ -5,13 +5,15 @@ import android.content.*
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import kotlinx.android.synthetic.main.home.*
-import kotlinx.android.synthetic.main.settings.*
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.text.DecimalFormat
+import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
 
@@ -34,7 +36,6 @@ class Home: AppCompatActivity() {
 
         getNoMembers()
         setSettingsTable()
-        myScreenLightBroadcast
 
         btnForceLoan.setOnClickListener {
             Toast.makeText(this, "Long press to apply force loan", Toast.LENGTH_SHORT).show()
@@ -77,7 +78,7 @@ class Home: AppCompatActivity() {
     private fun setSettingsTable(){
         val query = "SELECT * FROM ${DBHandler.SETTINGS_TABLE}"
         var db = dbHandler.writableDatabase
-        var cursor = db.rawQuery(query, null)
+        val cursor = db.rawQuery(query, null)
 
         if (cursor.count == 0){
             val contentValues = ContentValues()
@@ -103,9 +104,12 @@ class Home: AppCompatActivity() {
         var interestRate = 0.0
         var shareValue = 0.0
 
-        var shares = 0.0
+        var loanSubmitted = 0.0
+
+        var shares = 0
         var shareAmount = 0.0
         var sharePayment = 0.0
+        var loanApplication = 0.0
         var loanPayout = 0.0
         var loanToRepay = 0.0
         var loanRepayment = 0.0
@@ -124,6 +128,14 @@ class Home: AppCompatActivity() {
             shareValue = cursor.getDouble(cursor.getColumnIndex(DBHandler.SETTINGS_SHARE_VALUE_COL))
         }
 
+        query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
+        db = dbHandler.readableDatabase
+        cursor = db.rawQuery(query, null)
+        while (cursor.moveToNext()){
+            loanSubmitted += cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL))
+        }
+
+
         val showInterestRate = "Interest Rate: $interestRate%"
         val showShareValue = "Share Value: $shareValue"
         tvInterestRate.text = showInterestRate
@@ -134,26 +146,27 @@ class Home: AppCompatActivity() {
         db = dbHandler.readableDatabase
         cursor = db.rawQuery(query, null)
 
-
         if (cursor.count == 0){
-            "Total Shares: 0.0".also { tvTotalShares.text = it }
-            "Total Share Value: 0.0".also { tvTotalSharesAmount.text = it }
-            "Total Investment: 0.0".also { tvTotalInvestment.text = it }
+            "Shares: 0".also { tvTotalShares.text = it }
+            "Investment: 0.0".also { tvTotalSharesAmount.text = it }
+            "Return on Investment: 0.0".also { tvTotalInvestment.text = it }
 
-            "Available Cash: 0.0".also { tvTotalCash.text = it }
-
-            "Loans: 0.0".also { tvUnpaidLoans.text = it }
+            "Shares: 0.0".also { tvUnpaidShares.text = it }
+            "Loan Payout: 0.0".also { tvUnpaidLoans.text = it }
+            "Loan Repayments: 0.0".also { tvUnpaidLoanRepayments.text = it }
             "Charges 0.0".also { tvUnpaidCharges.text = it }
 
+            "Available Balance: 0.0".also { tvAvailableBalance.text = it }
+            "Virtual Balance: 0.0".also { tvVirtualBalance.text = it }
         }else {
 
             while (cursor.moveToNext()) {
-                shares += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
+                shares += cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
                 shareAmount += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
                 sharePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
+                loanApplication += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
                 loanPayout += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
                 loanToRepay += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_TO_REPAY_COL))
-
                 loanRepayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL))
                 charge += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_COL))
                 chargePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
@@ -164,26 +177,32 @@ class Home: AppCompatActivity() {
             cash = sharePayment + loanRepayment + chargePayment
 
 
-            val totalShares = "Total Shares: ${(sharePayment / shareValue).roundToLong() * 10.0 / 10.0}"
-            val totalShareAmount = "Total Share Value: ${sharePayment.roundToLong() * 10.0 / 10.0}"
-            val totalInvestment = "Total Investment: ${currentShareOut.roundToLong() * 10.0 / 10.0}"
 
-            val availableCash = "Available Cash: ${(cash - loanPayout).roundToLong() * 10.0 / 10.0}"
+            val totalShares = "Shares: ${(sharePayment / shareValue).roundToInt()}"
+            val totalShareAmount = "Investment: ${BigDecimal(sharePayment).setScale(2, RoundingMode.HALF_EVEN)}"
+            val totalInvestment = "Return on Investment: ${BigDecimal(currentShareOut).setScale(2, RoundingMode.HALF_EVEN)}"
 
-            val unpaidLoans = "Loans: ${loanToRepay - loanRepayment.roundToLong() * 10.0 / 10.0}"
-            val unpaidCharges = "Charges: ${charge - chargePayment.roundToLong() * 10.0 / 10.0}"
+            val unpaidShares = "Shares: ${(BigDecimal(shareAmount - sharePayment).setScale(2, RoundingMode.HALF_EVEN))}"
+            val unpaidLoans = "Loan Applications: ${BigDecimal(loanApplication - loanPayout).setScale(2, RoundingMode.HALF_EVEN)}"
+            val unpaidRepayments = "Loans Repayments: ${BigDecimal(loanToRepay - loanRepayment).setScale(2, RoundingMode.HALF_EVEN)}"
+            val unpaidCharges = "Charges: ${BigDecimal(charge - chargePayment).setScale(2, RoundingMode.HALF_EVEN)}"
+
+            val availableBalance = "Available Balance: ${BigDecimal(cash - loanPayout).setScale(2, RoundingMode.HALF_EVEN)}"
+            val virtualBalance = "Virtual Balance: ${BigDecimal(sharePayment + loanRepayment + chargePayment  - loanSubmitted).setScale(2, RoundingMode.HALF_EVEN)}"
 
             tvTotalShares.text = totalShares
             tvTotalSharesAmount.text = totalShareAmount
             tvTotalInvestment.text = totalInvestment
 
-            tvTotalCash.text = availableCash
-
+            tvUnpaidShares.text = unpaidShares
             tvUnpaidLoans.text = unpaidLoans
+            tvUnpaidLoanRepayments.text = unpaidRepayments
             tvUnpaidCharges.text = unpaidCharges
+
+            tvAvailableBalance.text = availableBalance
+            tvVirtualBalance.text = virtualBalance
         }
         cursor.close()
-        db.close()
     }
 
 
@@ -198,6 +217,9 @@ class Home: AppCompatActivity() {
         var loanRepayment = 0.0
         var chargePayment = 0.0
         var availableCash  = 0.0
+        var virtualCash = 0.0
+
+        var loanSubmitted = 0.0
 
         var query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE}"
         var db = dbHandler.readableDatabase
@@ -214,8 +236,18 @@ class Home: AppCompatActivity() {
                 chargePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
                 loanPayout += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
             }
-        availableCash  = sharePayment + loanRepayment + chargePayment - loanPayout
 
+
+        query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
+        db = dbHandler.readableDatabase
+        cursor = db.rawQuery(query, null)
+        while (cursor.moveToNext()){
+            loanSubmitted += cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL))
+        }
+
+
+        availableCash  = sharePayment + loanRepayment + chargePayment - loanPayout
+        virtualCash = sharePayment + loanRepayment + chargePayment  - loanSubmitted
 
         query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
         db = dbHandler.readableDatabase
@@ -224,16 +256,34 @@ class Home: AppCompatActivity() {
 
         cursor.close()
 
+        if (virtualCash != availableCash){
+            AlertDialog.Builder(this)
+                    .setTitle("Pending Loans")
+                    .setIcon(R.drawable.ic_info)
+                    .setMessage("loans amounting to ${loanSubmitted - loanPayout} have either not been approved or paid out.\n\n" +
+                            "Approve and payout all loans before applying force loan")
+                    .setNegativeButton("Got It") {_,_->}
+                    .show()
+            return
+        }
+
         val forceLoanAmount = availableCash / noMembers
 
+        AlertDialog.Builder(this)
+                .setTitle("Force Loan")
+                .setMessage("Apply Force Loan of ${BigDecimal(forceLoanAmount).setScale(2, RoundingMode.HALF_EVEN)} each?")
+                .setIcon(R.drawable.ic_info)
+                .setPositiveButton("Yes") {_,_->
+                    query = "UPDATE ${DBHandler.ACCOUNT_HOLDERS_TABLE} SET ${DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL} = ${DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL} +  $forceLoanAmount"
+                    db.execSQL(query)
+                    Toast.makeText(this, "Force Loan of ${BigDecimal(forceLoanAmount).setScale(2, RoundingMode.HALF_EVEN)} each approved", Toast.LENGTH_SHORT).show()
+                }
+                .setNegativeButton("No") {_,_->}
+                .show()
 
 
-        query = "UPDATE ${DBHandler.ACCOUNT_HOLDERS_TABLE} SET ${DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL} = ${DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL} +  $forceLoanAmount"
-        db.execSQL(query)
-
-        Toast.makeText(this, "Force Loan of ${forceLoanAmount.roundToLong()*10.0/10.0} each", Toast.LENGTH_SHORT).show()
         cursor.close()
-        db.close()
+        getTransactions()
     }
 
 
@@ -314,19 +364,6 @@ class Home: AppCompatActivity() {
     }
 
 
-    var myScreenLightBroadcast: BroadcastReceiver = object : BroadcastReceiver() {
-        // This will fire whenever Screen Light will be ON or OFF
-        override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == Intent.ACTION_SCREEN_ON) {
-                // Screen Light is On so you can close your all Activity Except your MainActivity
-                // Or you can move user to MainActivity by starting a NewActivity or Restarting Application
-                finish()
-            } else if(intent.action == Intent.ACTION_SCREEN_OFF) {
-                // this will call whenever your Screen will OFF
-                finish()
-            }
-        }
-    }
 
 
 

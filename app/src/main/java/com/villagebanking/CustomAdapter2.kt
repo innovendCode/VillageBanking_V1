@@ -1,29 +1,25 @@
 package com.villagebanking
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.graphics.Color
-import android.os.Build
+import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.villagebanking.MainActivity.Companion.dbHandler
 import kotlinx.android.synthetic.main.dialog_payments.view.*
 import kotlinx.android.synthetic.main.dialog_posts.view.*
 import kotlinx.android.synthetic.main.sub_row_layout.view.*
-import java.text.DecimalFormat
-import java.text.NumberFormat
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.math.round
-import kotlin.math.roundToLong
 
 class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayList<Model>): RecyclerView.Adapter<CustomAdapter2.ViewHolder>()  {
 
@@ -65,27 +61,109 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
 
 
 
-    @SuppressLint("SimpleDateFormat")
+    @SuppressLint("SimpleDateFormat", "SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val transactionsModelPosition : Model = transactionsModel[position]
         holder.tvTransactionID.text = transactionsModelPosition.transactionID.toString()
         holder.tvTransactionMonth.text = transactionsModelPosition.transactionMonth
         holder.tvTransactionInterest.text = transactionsModelPosition.transactionInterest.toString()
         holder.tvTransactionShares.text = transactionsModelPosition.transactionShares.toString()
-        holder.tvTransactionShareAmount.text = transactionsModelPosition.transactionShareAmount.toString()
-        holder.tvTransactionSharePayment.text = transactionsModelPosition.transactionSharePayment.toString()
+        holder.tvTransactionShareAmount.text = BigDecimal(transactionsModelPosition.transactionShareAmount).setScale(2, RoundingMode.HALF_EVEN).toString()
+        holder.tvTransactionSharePayment.text = BigDecimal(transactionsModelPosition.transactionSharePayment).setScale(2, RoundingMode.HALF_EVEN).toString()
         holder.tvTransactionShareDate.text = transactionsModelPosition.transactionShareDate
 
-        holder.tvTransactionLoan.text = transactionsModelPosition.transactionLoanApp.toString()
-        holder.tvTransactionLoanPayment.text = transactionsModelPosition.transactionLoanPayment.toString()
-        holder.tvTransactionLoanToRepay.text = transactionsModelPosition.transactionLoanToRepay.toString()
+        holder.tvTransactionLoan.text = BigDecimal(transactionsModelPosition.transactionLoanApp).setScale(2, RoundingMode.HALF_EVEN).toString()
+        holder.tvTransactionLoanPayment.text = BigDecimal(transactionsModelPosition.transactionLoanPayment).setScale(2, RoundingMode.HALF_EVEN).toString()
+        holder.tvTransactionLoanToRepay.text = BigDecimal(transactionsModelPosition.transactionLoanToRepay).setScale(2, RoundingMode.HALF_EVEN).toString()
         holder.tvTransactionLoanPaymentDate.text = transactionsModelPosition.transactionLoanPaymentDate
-        holder.tvTransactionLoanRepayment.text = transactionsModelPosition.transactionLoanRepayment.toString()
+        holder.tvTransactionLoanRepayment.text = BigDecimal(transactionsModelPosition.transactionLoanRepayment).setScale(2, RoundingMode.HALF_EVEN).toString()
         holder.tvTransactionLoanRepaymentDate.text = transactionsModelPosition.transactionLoanRepaymentDate
 
-        holder.tvTransactionCharge.text = transactionsModelPosition.transactionCharge.toString()
-        holder.tvTransactionChargePayment.text = transactionsModelPosition.transactionChargePayment.toString()
+        holder.tvTransactionCharge.text = BigDecimal(transactionsModelPosition.transactionCharge).setScale(2, RoundingMode.HALF_EVEN).toString()
+        holder.tvTransactionChargePayment.text = BigDecimal(transactionsModelPosition.transactionChargePayment).setScale(2, RoundingMode.HALF_EVEN).toString()
         holder.tvTransactionChargePaymentDate.text = transactionsModelPosition.transactionChargePaymentDate
+
+
+        val c: Calendar = GregorianCalendar()
+        c.time = Date()
+        val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        //println(sdf.format(c.time)) // NOW
+        val transactionMonth = (sdf.format(c.time))
+        c.add(Calendar.MONTH, -1)
+        //println(sdf.format(c.time)) // One month ago
+        val transactionLastMonth = (sdf.format(c.time))
+
+        var totalSharePayment = 0.0
+        var totalLoanPayout = 0.0
+        var totalLoanRepayment = 0.0
+        var totalChargePayment = 0.0
+        var availableCash  = 0.0
+
+        var query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE}"
+        var db = dbHandler.readableDatabase
+        var cursor = db.rawQuery(query, null)
+
+        while (cursor.moveToNext()) {
+            totalSharePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
+            totalLoanRepayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL))
+            totalChargePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
+            totalLoanPayout += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
+        }
+
+
+        var shareAmount = 0.0
+        var sharePayment = 0.0
+        var loanApplication = 0.0
+        var loanPayment = 0.0
+        var loanToRepay = 0.0
+        var loanRepayment = 0.0
+        var charge = 0.0
+        var chargePayment = 0.0
+
+/*        var month = ""
+        var name = ""
+        query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE}"
+        db = dbHandler.readableDatabase
+        cursor = db.rawQuery(query, null)
+        while (cursor.moveToNext()){
+            month = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
+            name = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_NAME_COL))
+
+
+            query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} = ?"
+            db = dbHandler.readableDatabase
+            val cursor1 = db.rawQuery(query, arrayOf(transactionMonth))
+
+            while (cursor1.moveToFirst()) {
+
+                shareAmount = cursor1.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
+                sharePayment = cursor1.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
+                loanApplication = cursor1.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
+                loanPayment = cursor1.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
+                loanToRepay = cursor1.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_TO_REPAY_COL))
+                loanRepayment = cursor1.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL))
+                charge = cursor1.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_COL))
+                chargePayment = cursor1.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
+
+                if (shareAmount != sharePayment){
+                    holder.tvTransactionSharePayment.setTextColor(Color.parseColor("#BA0707"))
+                    holder.tvTransactionSharePayment.setTypeface(null, Typeface.BOLD)
+                } else {
+                    holder.tvTransactionSharePayment.setTextColor(Color.parseColor("#757575"))
+                }
+            }
+        }*/
+
+
+
+
+
+
+
+        availableCash = totalSharePayment + totalLoanRepayment + totalChargePayment - totalLoanPayout
+
+
+
 
 
 
@@ -198,7 +276,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                         paymentDialogLayout.etPayments.text.toString(),
                                         AccountDetails().transactionDate)
                                 if (posts){
-                                    transactionsModel[position].transactionSharePayment = paymentDialogLayout.etPayments.text.toString().toDouble().roundToLong() *10.0/10.0
+                                    transactionsModel[position].transactionSharePayment = paymentDialogLayout.etPayments.text.toString().toDouble()
                                     transactionsModel[position].transactionShareDate = AccountDetails().transactionDate
                                     if (transactionsModel[position].transactionShareAmount == transactionsModel[position].transactionSharePayment){
                                         Toast.makeText(mContext2, "Payment Complete", Toast.LENGTH_SHORT).show()
@@ -219,7 +297,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
 
 
         holder.btnSharePayment.setOnLongClickListener {
-            val posts : Boolean = MainActivity.dbHandler.sharePayment(mContext2, transactionsModelPosition.transactionID,
+            val posts : Boolean = dbHandler.sharePayment(mContext2, transactionsModelPosition.transactionID,
                     0.0.toString(),
                     AccountDetails().transactionDate)
             if (posts){
@@ -236,29 +314,6 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
 
 
         holder.btnLoanPayout.setOnClickListener {
-
-            var sharePayment = 0.0
-            var loanPayout = 0.0
-            var loanRepayment = 0.0
-            var chargePayment = 0.0
-            var availableCash  = 0.0
-
-            val query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE}"
-            val db = dbHandler.readableDatabase
-            val cursor = db.rawQuery(query, null)
-
-
-            while (cursor.moveToNext()) {
-                sharePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
-                loanRepayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL))
-                chargePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
-                loanPayout += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
-            }
-            availableCash  = sharePayment + loanRepayment + chargePayment - loanPayout
-
-
-
-
 
             val balance = (transactionsModel[position].transactionLoanApp.toString().toDouble() -
                     transactionsModel[position].transactionLoanPayment.toString().toDouble()).toString()
@@ -280,6 +335,11 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                     return@setOnClickListener
                                 }
 
+                                if (paymentDialogLayout.etPayments.text.toString().toDouble() > availableCash){
+                                    Toast.makeText(mContext2, "Insufficient funds for loan application $availableCash", Toast.LENGTH_SHORT).show()
+                                    return@setOnClickListener
+                                }
+
                                 if(paymentDialogLayout.etPayments.text.toString().toDouble() == 0.0){
                                     Toast.makeText(mContext2, "Payment Complete", Toast.LENGTH_SHORT).show()
                                     dismiss()
@@ -289,11 +349,11 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                 paymentDialogLayout.etPayments.setText((transactionsModel[position].transactionLoanPayment +
                                         paymentDialogLayout.etPayments.text.toString().toDouble()).toString())
 
-                                val posts : Boolean = MainActivity.dbHandler.loanPayout(mContext2, transactionsModelPosition.transactionID,
+                                val posts : Boolean = dbHandler.loanPayout(mContext2, transactionsModelPosition.transactionID,
                                         paymentDialogLayout.etPayments.text.toString(),
                                         AccountDetails().transactionDate)
                                 if (posts){
-                                    transactionsModel[position].transactionLoanPayment = (paymentDialogLayout.etPayments.text.toString().toDouble() * 10.0).roundToLong() /10.0
+                                    transactionsModel[position].transactionLoanPayment = paymentDialogLayout.etPayments.text.toString().toDouble()
                                     transactionsModel[position].transactionLoanPaymentDate = AccountDetails().transactionDate
 
                                     if (transactionsModel[position].transactionLoanApp == transactionsModel[position].transactionLoanPayment){
@@ -365,7 +425,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                         paymentDialogLayout.etPayments.text.toString(),
                                         AccountDetails().transactionDate)
                                 if (posts){
-                                    transactionsModel[position].transactionChargePayment = paymentDialogLayout.etPayments.text.toString().toDouble().roundToLong() * 10.0/10.0
+                                    transactionsModel[position].transactionChargePayment = paymentDialogLayout.etPayments.text.toString().toDouble()
                                     transactionsModel[position].transactionChargePaymentDate = AccountDetails().transactionDate
 
                                     if (transactionsModel[position].transactionCharge == transactionsModel[position].transactionChargePayment){
@@ -441,7 +501,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                         paymentDialogLayout.etPayments.text.toString(),
                                         AccountDetails().transactionDate)
                                 if (posts){
-                                    transactionsModel[position].transactionLoanRepayment = paymentDialogLayout.etPayments.text.toString().toDouble().roundToLong() *10.0/10.0
+                                    transactionsModel[position].transactionLoanRepayment = paymentDialogLayout.etPayments.text.toString().toDouble()
                                     transactionsModel[position].transactionLoanRepaymentDate = AccountDetails().transactionDate
 
                                     if (transactionsModel[position].transactionLoanToRepay == transactionsModel[position].transactionLoanRepayment){
