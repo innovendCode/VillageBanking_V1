@@ -110,59 +110,15 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
             totalLoanPayout += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
         }
 
-
-        var shareAmount = 0.0
-        var sharePayment = 0.0
-        var loanApplication = 0.0
-        var loanPayment = 0.0
-        var loanToRepay = 0.0
-        var loanRepayment = 0.0
-        var charge = 0.0
-        var chargePayment = 0.0
-
-/*        var month = ""
-        var name = ""
-        query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE}"
-        db = dbHandler.readableDatabase
-        cursor = db.rawQuery(query, null)
-        while (cursor.moveToNext()){
-            month = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
-            name = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_NAME_COL))
-
-
-            query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} = ?"
-            db = dbHandler.readableDatabase
-            val cursor1 = db.rawQuery(query, arrayOf(transactionMonth))
-
-            while (cursor1.moveToFirst()) {
-
-                shareAmount = cursor1.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
-                sharePayment = cursor1.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
-                loanApplication = cursor1.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
-                loanPayment = cursor1.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
-                loanToRepay = cursor1.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_TO_REPAY_COL))
-                loanRepayment = cursor1.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL))
-                charge = cursor1.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_COL))
-                chargePayment = cursor1.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
-
-                if (shareAmount != sharePayment){
-                    holder.tvTransactionSharePayment.setTextColor(Color.parseColor("#BA0707"))
-                    holder.tvTransactionSharePayment.setTypeface(null, Typeface.BOLD)
-                } else {
-                    holder.tvTransactionSharePayment.setTextColor(Color.parseColor("#757575"))
-                }
-            }
-        }*/
-
-
-
-
-
-
-
         availableCash = totalSharePayment + totalLoanRepayment + totalChargePayment - totalLoanPayout
 
 
+
+
+        holder.itemView.setOnClickListener {
+
+
+        }
 
 
 

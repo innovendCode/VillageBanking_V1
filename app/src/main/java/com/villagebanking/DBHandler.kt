@@ -20,7 +20,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         SQLiteOpenHelper(context, DATABASE_NAME, factory, DATABASE_VERSION) {
 
     companion object{
-        private const val DATABASE_NAME = "village_banking.db"
+        const val DATABASE_NAME = "village_banking.db"
         private const val DATABASE_VERSION = 1
 
         const val ACCOUNT_HOLDERS_TABLE = "account_holders"
@@ -66,7 +66,20 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val SETTINGS_INTEREST_RATE_COL = "interest_rate"
         const val SETTINGS_NOTES_COL = "notes"
 
-
+        const val STATEMENT_TABLE = "statement"
+        const val STATEMENT_TABLE_ID = "_st_id"
+        const val STATEMENT_NAME = "st_name"
+        const val STATEMENT_MONTH = "st_month"
+        const val STATEMENT_DATE = "st_date"
+        const val STATEMENT_SHARE = "st_share"
+        const val STATEMENT_SHARE_AMOUNT = "st_share_amount"
+        const val STATEMENT_SHARE_PAYMENT = "st_share_payment"
+        const val STATEMENT_LOAN_APP = "st_loan_application"
+        const val STATEMENT_LOAN_PAYMENT = "st_loan_payment"
+        const val STATEMENT_LOAN_REPAYMENT = "st_loan_repayment"
+        const val STATEMENT_CHARGE_NAME = "st_charge_name"
+        const val STATEMENT_CHARGE = "st_charge"
+        const val STATEMENT_CHARGE_PAYMENT = "st_charge_payment"
 
     }
 

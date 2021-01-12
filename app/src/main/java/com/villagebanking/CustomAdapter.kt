@@ -144,6 +144,17 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
             chargePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
         }
 
+        var previousLoanPayouts = 0.0
+
+        query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} != ?"
+        db = dbHandler.readableDatabase
+        cursor = db.rawQuery(query, arrayOf(transactionMonth))
+        while (cursor.moveToNext()) {
+            previousLoanPayouts += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
+        }
+
+
+
         query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
         db = dbHandler.readableDatabase
         cursor = db.rawQuery(query, null)
@@ -153,7 +164,8 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
             totalChargeSubmitted += cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
         }
 
-        virtualBalance = sharePayment + loanRepayment + chargePayment - totalLoanSubmitted
+
+        virtualBalance = sharePayment + loanRepayment + chargePayment - totalLoanSubmitted - previousLoanPayouts
         actualBalance = sharePayment + loanRepayment + chargePayment - loanPayout
 
         query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = ?"
@@ -164,6 +176,7 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
             loanSubmitted = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL))
             chargeSubmitted = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
         }
+
 
         query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = ? AND ${DBHandler.TRANSACTION_MONTH_COL} = ?"
         db = dbHandler.readableDatabase

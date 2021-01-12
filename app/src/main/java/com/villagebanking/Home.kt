@@ -1,20 +1,27 @@
 package com.villagebanking
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.*
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Environment
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.home.*
+import java.io.File
+import java.io.FileWriter
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.text.DecimalFormat
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
-import kotlin.math.roundToLong
 
 
 class Home: AppCompatActivity() {
@@ -24,10 +31,17 @@ class Home: AppCompatActivity() {
     }
 
 
+    //Backup Permissions
+    private val STORAGE_REQUEST_CODE_EXPORT = 1
+    private val STORAGE_REQUEST_CODE_IMPORT = 2
+    private lateinit var storagePermission:Array<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home)
+
+        //init Array Permissions
+        storagePermission = arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
         val actionbar = supportActionBar
         actionbar!!.title = "Home"
@@ -47,6 +61,70 @@ class Home: AppCompatActivity() {
         }
 
     }
+
+    private fun checkStoragePermissions(): Boolean {
+
+
+        return ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == (PackageManager.PERMISSION_GRANTED)
+    }
+
+    private fun requestStoragePermissionImport(){
+        ActivityCompat.requestPermissions(this, storagePermission, STORAGE_REQUEST_CODE_IMPORT)
+    }
+
+    private fun requestStoragePermissionExport(){
+        ActivityCompat.requestPermissions(this, storagePermission, STORAGE_REQUEST_CODE_EXPORT)
+    }
+
+    private fun importDB() {
+
+    }
+
+    private fun exportDB() {
+        val folder =
+            File("${Environment.getExternalStorageDirectory()}/VillageBanking")
+
+        var isFolderCreated = false
+        if (!folder.exists()) isFolderCreated = folder.mkdir()
+
+        val csvFileName = "VillageBankingBackup.csv"
+        val fileNameAndPath = "$folder/$csvFileName"
+
+        //get Records to save backup
+        var recordList = ArrayList<Model>()
+        recordList.clear()
+        recordList = dbHandler.getAccountHolders(this)
+
+        try {
+            val fw = FileWriter(fileNameAndPath)
+
+            for (i in recordList.indices) {
+                fw.append(""+ recordList[i].accountHoldersID)
+                fw.append(""+ recordList[i].accountHoldersName)
+                fw.append(""+ recordList[i].accountHoldersAdmin)
+                fw.append(""+ recordList[i].accountHolderContact)
+                fw.append(""+ recordList[i].accountHolderBankInfo)
+                fw.append(""+ recordList[i].accountHolderPin)
+                fw.append(""+ recordList[i].accountHolderPinHint)
+                fw.append(""+ recordList[i].accountHoldersShare)
+                fw.append(""+ recordList[i].accountHoldersLoanApp)
+                fw.append(""+ recordList[i].accountHoldersCharges)
+                fw.append(""+ recordList[i].accountHoldersApproved)
+                fw.append(""+ recordList[i].accountHoldersAsset)
+                fw.append(""+ recordList[i].accountHoldersLiability)
+                fw.append("\n")
+            }
+            fw.flush()
+            fw.close()
+
+            Toast.makeText(this, "Backup exported to $fileNameAndPath", Toast.LENGTH_SHORT).show()
+        }catch (e: Exception){
+            Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
+        }
+
+    }
+
+
 
 
     override fun onRestart() {
@@ -101,6 +179,15 @@ class Home: AppCompatActivity() {
 
 
     private fun getTransactions(){
+        val c: Calendar = GregorianCalendar()
+        c.time = Date()
+        val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        //println(sdf.format(c.time)) // NOW
+        val transactionMonth = (sdf.format(c.time))
+        c.add(Calendar.MONTH, -1)
+        //println(sdf.format(c.time)) // One month ago
+        val transactionLastMonth = (sdf.format(c.time))
+
         var interestRate = 0.0
         var shareValue = 0.0
 
@@ -173,6 +260,16 @@ class Home: AppCompatActivity() {
                 currentShareOut += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_OUT_COL))
             }
 
+
+            var previousLoanPayouts = 0.0
+
+            query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} != ?"
+            db = dbHandler.readableDatabase
+            cursor = db.rawQuery(query, arrayOf(transactionMonth))
+            while (cursor.moveToNext()) {
+                previousLoanPayouts += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
+            }
+
             arrears = shareAmount + loanPayout + charge
             cash = sharePayment + loanRepayment + chargePayment
 
@@ -188,7 +285,7 @@ class Home: AppCompatActivity() {
             val unpaidCharges = "Charges: ${BigDecimal(charge - chargePayment).setScale(2, RoundingMode.HALF_EVEN)}"
 
             val availableBalance = "Available Balance: ${BigDecimal(cash - loanPayout).setScale(2, RoundingMode.HALF_EVEN)}"
-            val virtualBalance = "Virtual Balance: ${BigDecimal(sharePayment + loanRepayment + chargePayment  - loanSubmitted).setScale(2, RoundingMode.HALF_EVEN)}"
+            val virtualBalance = "Virtual Balance: ${BigDecimal(cash - loanSubmitted - previousLoanPayouts).setScale(2, RoundingMode.HALF_EVEN)}"
 
             tvTotalShares.text = totalShares
             tvTotalSharesAmount.text = totalShareAmount
@@ -210,9 +307,20 @@ class Home: AppCompatActivity() {
 
 
 
+    @SuppressLint("SimpleDateFormat")
     private fun forceLoan(){
 
+        val c: Calendar = GregorianCalendar()
+        c.time = Date()
+        val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        //println(sdf.format(c.time)) // NOW
+        val transactionMonth = (sdf.format(c.time))
+        c.add(Calendar.MONTH, -1)
+        //println(sdf.format(c.time)) // One month ago
+        val transactionLastMonth = (sdf.format(c.time))
+
         var sharePayment = 0.0
+        var loanApplication = 0.0
         var loanPayout = 0.0
         var loanRepayment = 0.0
         var chargePayment = 0.0
@@ -229,13 +337,23 @@ class Home: AppCompatActivity() {
             Toast.makeText(this, "No Transactions found", Toast.LENGTH_SHORT).show()
             return
         }
-
-            while (cursor.moveToNext()) {
+        while (cursor.moveToNext()) {
                 sharePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
                 loanRepayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL))
                 chargePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
                 loanPayout += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
+                loanApplication += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
             }
+
+
+        var previousLoanPayouts = 0.0
+
+        query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} != ?"
+        db = dbHandler.readableDatabase
+        cursor = db.rawQuery(query, arrayOf(transactionMonth))
+        while (cursor.moveToNext()) {
+            previousLoanPayouts += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
+        }
 
 
         query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
@@ -247,7 +365,7 @@ class Home: AppCompatActivity() {
 
 
         availableCash  = sharePayment + loanRepayment + chargePayment - loanPayout
-        virtualCash = sharePayment + loanRepayment + chargePayment  - loanSubmitted
+        virtualCash = sharePayment + loanRepayment + chargePayment  - loanSubmitted - previousLoanPayouts
 
         query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
         db = dbHandler.readableDatabase
@@ -260,9 +378,9 @@ class Home: AppCompatActivity() {
             AlertDialog.Builder(this)
                     .setTitle("Pending Loans")
                     .setIcon(R.drawable.ic_info)
-                    .setMessage("loans amounting to ${loanSubmitted - loanPayout} have either not been approved or paid out.\n\n" +
-                            "Approve and payout all loans before applying force loan")
-                    .setNegativeButton("Got It") {_,_->}
+                    .setMessage("A sum of $loanSubmitted loan(s) are pending approval and/or payout.\n\n" +
+                            "Approve and payout all loans before applying force loan.")
+                    .setNegativeButton("Got It") { _, _->}
                     .show()
             return
         }
@@ -273,12 +391,12 @@ class Home: AppCompatActivity() {
                 .setTitle("Force Loan")
                 .setMessage("Apply Force Loan of ${BigDecimal(forceLoanAmount).setScale(2, RoundingMode.HALF_EVEN)} each?")
                 .setIcon(R.drawable.ic_info)
-                .setPositiveButton("Yes") {_,_->
+                .setPositiveButton("Yes") { _, _->
                     query = "UPDATE ${DBHandler.ACCOUNT_HOLDERS_TABLE} SET ${DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL} = ${DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL} +  $forceLoanAmount"
                     db.execSQL(query)
                     Toast.makeText(this, "Force Loan of ${BigDecimal(forceLoanAmount).setScale(2, RoundingMode.HALF_EVEN)} each approved", Toast.LENGTH_SHORT).show()
                 }
-                .setNegativeButton("No") {_,_->}
+                .setNegativeButton("No") { _, _->}
                 .show()
 
 
@@ -314,10 +432,49 @@ class Home: AppCompatActivity() {
                 val intent = Intent(this, Settings::class.java)
                 startActivity(intent)
             }
+            R.id.importDB ->{
+                if (checkStoragePermissions()){
+                    importDB()
+                }else{
+                    requestStoragePermissionImport()
+                }
+            }
+            R.id.exportDB ->{
+                if (checkStoragePermissions()){
+                    exportDB()
+                }else{
+                    requestStoragePermissionExport()
+                }
+
+            }
         }
         return true
     }
 
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        when (requestCode){
+            STORAGE_REQUEST_CODE_EXPORT ->{
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    exportDB()
+                }else {
+                    Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            STORAGE_REQUEST_CODE_IMPORT ->{
+                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    importDB()
+                }else {
+                    Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+
+    }
 
     private fun gotoAccounts(){
         var interestRate = 0.0
@@ -362,10 +519,6 @@ class Home: AppCompatActivity() {
                 }
         .show()
     }
-
-
-
-
 
 
 

@@ -8,6 +8,15 @@
         android:icon="@drawable/ic_back_arrow"
         android:title="Log Off"/>
     <item
+        android:id="@+id/importDB"
+        android:icon="@drawable/ic_back_arrow"
+        android:title="Restore"/>
+    <item
+        android:id="@+id/exportDB"
+        android:icon="@drawable/ic_back_arrow"
+        android:title="Backup"/>
+
+    <item
         android:id="@+id/settings"
         android:icon="@drawable/ic_settings"
         android:title="Settings"

@@ -125,7 +125,7 @@ class Settings : AppCompatActivity() {
                     .setTitle("Warning!!!")
                     .setIcon(R.drawable.ic_warning)
                     .setMessage("Changing INTEREST RATES and SHARE VALUE after transactions " +
-                            "have already been made may give inaccurate accounts.\n \n" +
+                            "have already been made may result in irregularities.\n \n" +
                             "Personal Notes and Rules can be edited anytime.")
                     .setNegativeButton("Understood"){_,_->}
                     .show()
