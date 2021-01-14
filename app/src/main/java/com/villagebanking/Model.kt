@@ -41,6 +41,20 @@ class Model {
     var settingsShareValue: Double = 0.00
     var settingsInterestRate: Int = 0
     var settingsNotes: String = ""
+
+    var statementsID: Int = 0
+    var statementsMonth: String = ""
+    var statementsDate: String = ""
+    var statementsTime: String = ""
+    var statementsName: String = ""
+    var statementsAction: String = ""
+    var statementsShare: Int = 0
+    var statementsShareAmount: Double = 0.0
+    var statementsLoan: Double = 0.0
+    var statementsCharge: Double = 0.0
+
+
+
 }
 
 

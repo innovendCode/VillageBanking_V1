@@ -3,6 +3,8 @@ package com.villagebanking
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
+import android.database.Cursor
 import android.graphics.Color
 import android.graphics.Typeface
 import android.view.LayoutInflater
@@ -18,6 +20,7 @@ import kotlinx.android.synthetic.main.dialog_posts.view.*
 import kotlinx.android.synthetic.main.sub_row_layout.view.*
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.time.Instant
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -29,6 +32,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
     class ViewHolder (itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvTransactionID : TextView = itemView.tvTransactionID
         val tvTransactionMonth : TextView = itemView.tvTransactionMonth
+        val tvTransactionName : TextView = itemView.tvTransactionName
         val tvTransactionInterest : TextView = itemView.tvTransactionInterest
         val tvTransactionShares : TextView = itemView.tvTransactionShares
         val tvTransactionShareAmount : TextView = itemView.tvTransactionShareAmount
@@ -67,6 +71,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
         holder.tvTransactionID.text = transactionsModelPosition.transactionID.toString()
         holder.tvTransactionMonth.text = transactionsModelPosition.transactionMonth
         holder.tvTransactionInterest.text = transactionsModelPosition.transactionInterest.toString()
+        holder.tvTransactionName.text = transactionsModelPosition.transactionName
         holder.tvTransactionShares.text = transactionsModelPosition.transactionShares.toString()
         holder.tvTransactionShareAmount.text = BigDecimal(transactionsModelPosition.transactionShareAmount).setScale(2, RoundingMode.HALF_EVEN).toString()
         holder.tvTransactionSharePayment.text = BigDecimal(transactionsModelPosition.transactionSharePayment).setScale(2, RoundingMode.HALF_EVEN).toString()
@@ -117,7 +122,28 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
 
         holder.itemView.setOnClickListener {
 
+            query = "SELECT * FROM ${DBHandler.STATEMENT_TABLE} WHERE ${DBHandler.STATEMENT_MONTH} = ? AND ${DBHandler.STATEMENT_NAME} = ?"
+            db = dbHandler.readableDatabase
+            cursor = db.rawQuery(query, arrayOf(transactionsModelPosition.transactionMonth, transactionsModelPosition.transactionName))
 
+            val buffer = StringBuffer()
+            if (cursor.count == 0)
+                Toast.makeText(mContext2, "No Records Found", Toast.LENGTH_SHORT).show() else {
+                while (cursor.moveToNext()) {
+                    buffer.append(" Date: ${cursor.getString(cursor.getColumnIndex(DBHandler.STATEMENT_DATE))}\n")
+                    buffer.append(" Time: ${cursor.getString(cursor.getColumnIndex(DBHandler.STATEMENT_TIME))}\n")
+                    buffer.append(" Action: ${cursor.getString(cursor.getColumnIndex(DBHandler.STATEMENT_ACTION))}\n")
+                    buffer.append("  -Shares: ${cursor.getDouble(cursor.getColumnIndex(DBHandler.STATEMENT_SHARE))}\n")
+                    buffer.append("  -Share Amount: ${cursor.getDouble(cursor.getColumnIndex(DBHandler.STATEMENT_SHARE_AMOUNT))}\n")
+                    buffer.append("  -Loan Application: ${cursor.getDouble(cursor.getColumnIndex(DBHandler.STATEMENT_LOAN_APP))}\n")
+                    buffer.append("  -Charge: ${cursor.getDouble(cursor.getColumnIndex(DBHandler.STATEMENT_CHARGE))}\n\n")
+                }
+                AlertDialog.Builder(mContext2)
+                        .setTitle("${transactionsModelPosition.transactionMonth}\nStatement")
+                        .setMessage(buffer.toString())
+                        .setNegativeButton("OK") { _, _ -> }
+                        .show()
+            }
         }
 
 
@@ -141,7 +167,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                         .setPositiveButton("Yes") {_,_->
 
                             //Zero Share Payment
-                            val zeroShare : Boolean = MainActivity.dbHandler.sharePayment(mContext2, transactionsModelPosition.transactionID,
+                            val zeroShare : Boolean = dbHandler.sharePayment(mContext2, transactionsModelPosition.transactionID,
                                     0.0.toString(),
                                     AccountDetails().transactionDate)
                             if (zeroShare){
@@ -151,7 +177,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                             }
 
                             //Zero Loan Payout
-                            val zeroLoanPayment : Boolean = MainActivity.dbHandler.loanPayout(mContext2, transactionsModelPosition.transactionID,
+                            val zeroLoanPayment : Boolean = dbHandler.loanPayout(mContext2, transactionsModelPosition.transactionID,
                                     0.0.toString(),
                                     AccountDetails().transactionDate)
                             if (zeroLoanPayment){
@@ -161,7 +187,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                             }
 
                             //Zero Charge Payment
-                            val zeroChargePayment : Boolean = MainActivity.dbHandler.chargePayment(mContext2, transactionsModelPosition.transactionID,
+                            val zeroChargePayment : Boolean = dbHandler.chargePayment(mContext2, transactionsModelPosition.transactionID,
                                     0.0.toString(),
                                     AccountDetails().transactionDate)
                             if (zeroChargePayment){
@@ -171,7 +197,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                             }
 
                           //Zero Loan Repayment
-                            val zeroLR : Boolean = MainActivity.dbHandler.loanRepayment(mContext2, transactionsModelPosition.transactionID,
+                            val zeroLR : Boolean = dbHandler.loanRepayment(mContext2, transactionsModelPosition.transactionID,
                                     0.0.toString(),
                                     AccountDetails().transactionDate)
                             if (zeroLR){
@@ -181,7 +207,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                             }
 
 
-                    MainActivity.dbHandler.deleteMonth(transactionsModelPosition.transactionID)
+                    dbHandler.deleteMonth(transactionsModelPosition.transactionID)
                     Toast.makeText(mContext2, "${transactionsModel[position].transactionMonth} deleted", Toast.LENGTH_SHORT).show()
                             transactionsModel.removeAt(position)
                             notifyItemRemoved(position)

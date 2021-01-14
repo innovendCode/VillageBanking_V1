@@ -7,10 +7,7 @@ import android.content.DialogInterface
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
-import android.view.LayoutInflater
-import android.widget.Button
 import android.widget.Toast
-import kotlinx.android.synthetic.main.delete_confirmation.view.*
 import kotlin.Exception
 import kotlin.collections.ArrayList
 
@@ -67,10 +64,12 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val SETTINGS_NOTES_COL = "notes"
 
         const val STATEMENT_TABLE = "statement"
-        const val STATEMENT_TABLE_ID = "_st_id"
-        const val STATEMENT_NAME = "st_name"
+        const val STATEMENT_ID = "_id"
         const val STATEMENT_MONTH = "st_month"
         const val STATEMENT_DATE = "st_date"
+        const val STATEMENT_TIME = "st_time"
+        const val STATEMENT_NAME = "st_name"
+        const val STATEMENT_ACTION = "action"
         const val STATEMENT_SHARE = "st_share"
         const val STATEMENT_SHARE_AMOUNT = "st_share_amount"
         const val STATEMENT_SHARE_PAYMENT = "st_share_payment"
@@ -130,9 +129,30 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 "$SETTINGS_INTEREST_RATE_COL PERCENTAGE, " +
                 "$SETTINGS_NOTES_COL TEXT)")
 
+        val createStatementsTable = ("CREATE TABLE $STATEMENT_TABLE (" +
+                "$STATEMENT_ID INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "$STATEMENT_MONTH DATE, " +
+                "$STATEMENT_DATE DATE, " +
+                "$STATEMENT_TIME DATE, " +
+                "$STATEMENT_NAME TEXT, " +
+                "$STATEMENT_ACTION TEXT, " +
+                "$STATEMENT_SHARE DOUBLE, " +
+                "$STATEMENT_SHARE_AMOUNT DOUBLE, " +
+                "$STATEMENT_SHARE_PAYMENT DOUBLE, " +
+                "$STATEMENT_LOAN_APP DOUBLE, " +
+                "$STATEMENT_LOAN_PAYMENT DOUBLE, " +
+                "$STATEMENT_LOAN_REPAYMENT DOUBLE, " +
+                "$STATEMENT_CHARGE_NAME TEXT, " +
+                "$STATEMENT_CHARGE DOUBLE, " +
+                "$STATEMENT_CHARGE_PAYMENT DOUBLE)")
+
+
+
+
         db?.execSQL(createAccountHoldersTable)
         db?.execSQL(createTransactionTable)
         db?.execSQL(createSettingsTable)
+        db?.execSQL(createStatementsTable)
     }
 
 
@@ -141,6 +161,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         db?.execSQL("DROP TABLE IF EXISTS $ACCOUNT_HOLDERS_TABLE;")
         db?.execSQL("DROP TABLE IF EXISTS $TRANSACTION_TABLE;")
         db?.execSQL("DROP TABLE IF EXISTS $SETTINGS_TABLE;")
+        db?.execSQL("DROP TABLE IF EXISTS $STATEMENT_TABLE;")
         onCreate(db)
     }
 
@@ -463,6 +484,46 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
 
 
+    fun getStatementApproveMember(mContext: Context, statements: Model){
+        val contentValues = ContentValues()
+        contentValues.put(STATEMENT_MONTH, statements.statementsMonth)
+        contentValues.put(STATEMENT_DATE, statements.statementsDate)
+        contentValues.put(STATEMENT_TIME, statements.statementsTime)
+        contentValues.put(STATEMENT_NAME, statements.statementsName)
+        contentValues.put(STATEMENT_ACTION, statements.statementsAction)
+        contentValues.put(STATEMENT_SHARE, statements.statementsShare)
+        contentValues.put(STATEMENT_SHARE_AMOUNT, statements.statementsShareAmount)
+        contentValues.put(STATEMENT_LOAN_APP, statements.statementsLoan)
+        contentValues.put(STATEMENT_CHARGE, statements.statementsCharge)
+        val db = writableDatabase
+        try {
+            db.insert(STATEMENT_TABLE, null, contentValues)
+        }catch (e : Exception){
+            Toast.makeText(mContext, e.message,Toast.LENGTH_SHORT).show()
+        }
+        db.close()
+    }
+
+
+    fun getStatementApproveShares(mContext: Context, statements: Model){
+        val contentValues = ContentValues()
+        contentValues.put(STATEMENT_MONTH, statements.statementsMonth)
+        contentValues.put(STATEMENT_DATE, statements.statementsDate)
+        contentValues.put(STATEMENT_TIME, statements.statementsTime)
+        contentValues.put(STATEMENT_NAME, statements.statementsName)
+        contentValues.put(STATEMENT_ACTION, statements.statementsAction)
+        contentValues.put(STATEMENT_SHARE, statements.statementsShare)
+        contentValues.put(STATEMENT_SHARE_AMOUNT, statements.statementsShareAmount)
+        contentValues.put(STATEMENT_LOAN_APP, statements.statementsLoan)
+        contentValues.put(STATEMENT_CHARGE, statements.statementsCharge)
+        val db = writableDatabase
+        try {
+            db.insert(STATEMENT_TABLE, null, contentValues)
+        }catch (e : Exception){
+            Toast.makeText(mContext, e.message,Toast.LENGTH_SHORT).show()
+        }
+        db.close()
+    }
 
 
 

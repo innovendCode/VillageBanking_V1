@@ -2,13 +2,11 @@ package com.villagebanking
 
 import android.annotation.SuppressLint
 import android.content.ContentValues
-import android.content.DialogInterface
 import android.content.Intent
 import android.icu.text.DateFormat
 import android.icu.text.SimpleDateFormat
 import android.os.Build
 import android.os.Bundle
-import android.service.autofill.DateValueSanitizer
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
@@ -17,9 +15,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.account_details.*
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.*
 import kotlin.collections.ArrayList
-
 
 
 class AccountDetails : AppCompatActivity() {
@@ -30,7 +29,6 @@ class AccountDetails : AppCompatActivity() {
 
     //Format date to Month Year
     //Reference date for loan payout
-
 /*    @RequiresApi(Build.VERSION_CODES.O)
     val now: YearMonth = YearMonth.now()
     @RequiresApi(Build.VERSION_CODES.O)
@@ -159,6 +157,7 @@ class AccountDetails : AppCompatActivity() {
             transactions.transactionID = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_ID_COL))
             transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
             transactions.transactionInterest = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_INTEREST_COL))
+            transactions.transactionName = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_NAME_COL))
             transactions.transactionShares = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
             transactions.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
             transactions.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
@@ -227,17 +226,16 @@ class AccountDetails : AppCompatActivity() {
 
         interest = (interest/100) + 1
 
-
         val c: Calendar = GregorianCalendar()
         c.time = Date()
         val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        val stf = java.text.SimpleDateFormat("kk:mm")
         //println(sdf.format(c.time)) // NOW
         val transactionMonth = (sdf.format(c.time))
         c.add(Calendar.MONTH, -1)
         //println(sdf.format(c.time)) // One month ago
         val transactionLastMonth = (sdf.format(c.time))
-
-
+        val currentTime = (stf.format(c.time))
 
         query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} = ? AND ${DBHandler.TRANSACTION_NAME_COL} = ?"
         db = dbHandler.readableDatabase
@@ -267,12 +265,24 @@ class AccountDetails : AppCompatActivity() {
             dbHandler.createMonth(this, transactionModel)
             populateInvestment()
 
+        transactionModel.statementsMonth = transactionMonth
+        transactionModel.statementsDate = transactionDate
+        transactionModel.statementsTime = currentTime
+        transactionModel.statementsName = name.toString()
+        transactionModel.statementsAction = "Approved Submissions"
+        transactionModel.statementsShare = share
+        transactionModel.statementsShareAmount = shareValue * share
+        transactionModel.statementsLoan = BigDecimal(loan).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+        transactionModel.statementsCharge = BigDecimal(charge).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+        dbHandler.getStatementApproveMember(this, transactionModel)
+
     }
 
 
 
      @SuppressLint("SimpleDateFormat")
      private fun updateMonth(){
+
         val name = tvDetailsName.text
         var share = 0
         var shareValue = 0.0
@@ -301,22 +311,30 @@ class AccountDetails : AppCompatActivity() {
          val c: Calendar = GregorianCalendar()
          c.time = Date()
          val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+         val stf = java.text.SimpleDateFormat("kk:mm")
          //println(sdf.format(c.time)) // NOW
          val transactionMonth = (sdf.format(c.time))
-
+         val currentTime = (stf.format(c.time))
 
         val transactionModel = Model()
         transactionModel.transactionName = name.toString()
         transactionModel.transactionMonth = transactionMonth
         transactionModel.transactionShares = share
         transactionModel.transactionShareAmount = (shareValue * share)
-        //transactionModel.transactionSharePayment
         transactionModel.transactionLoanApp = loan
-        //transactionModel.transactionLoanPayment
-        //transactionModel.transactionLoanRepayment
         transactionModel.transactionCharge = charge
-        //transactionModel.transactionChargePayment
         dbHandler.updateMonth(this, transactionModel, name.toString(), transactionMonth)
+
+        transactionModel.statementsMonth = transactionMonth
+        transactionModel.statementsDate = transactionDate
+        transactionModel.statementsTime = currentTime
+        transactionModel.statementsName = name.toString()
+        transactionModel.statementsAction = "Approved Submissions"
+        transactionModel.statementsShare = share
+        transactionModel.statementsShareAmount = BigDecimal(shareValue * share).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+        transactionModel.statementsLoan = BigDecimal(loan).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+        transactionModel.statementsCharge = BigDecimal(charge).setScale(2, RoundingMode.HALF_EVEN).toDouble()
+        dbHandler.getStatementApproveMember(this, transactionModel)
     }
 
 
@@ -400,7 +418,6 @@ class AccountDetails : AppCompatActivity() {
             loanSubmitted = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL))
             chargeSubmitted = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
         }
-
 
         query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = ? AND ${DBHandler.TRANSACTION_MONTH_COL} = ?"
         db = dbHandler.readableDatabase
@@ -500,9 +517,11 @@ class AccountDetails : AppCompatActivity() {
                     viewTransactions()
                 }
                 .show()
-
-
     }
+
+
+
+
 
 
 
@@ -550,6 +569,7 @@ class AccountDetails : AppCompatActivity() {
             transactions.transactionID = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_ID_COL))
             transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
             transactions.transactionInterest = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_INTEREST_COL))
+            transactions.transactionName = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_NAME_COL))
             transactions.transactionShares = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
             transactions.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
             transactions.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
@@ -596,6 +616,7 @@ class AccountDetails : AppCompatActivity() {
             transactions.transactionID = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_ID_COL))
             transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
             transactions.transactionInterest = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_INTEREST_COL))
+            transactions.transactionName = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_NAME_COL))
             transactions.transactionShares = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
             transactions.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
             transactions.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
@@ -641,6 +662,7 @@ class AccountDetails : AppCompatActivity() {
             transactions.transactionID = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_ID_COL))
             transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
             transactions.transactionInterest = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_INTEREST_COL))
+            transactions.transactionName = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_NAME_COL))
             transactions.transactionShares = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
             transactions.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
             transactions.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))
@@ -686,6 +708,7 @@ class AccountDetails : AppCompatActivity() {
             transactions.transactionID = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_ID_COL))
             transactions.transactionMonth = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_MONTH_COL))
             transactions.transactionInterest = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_INTEREST_COL))
+            transactions.transactionName = cursor.getString(cursor.getColumnIndex(DBHandler.TRANSACTION_NAME_COL))
             transactions.transactionShares = cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
             transactions.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
             transactions.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_PAYMENT_COL))

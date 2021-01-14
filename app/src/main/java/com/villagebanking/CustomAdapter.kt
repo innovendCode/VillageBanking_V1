@@ -16,7 +16,7 @@ import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.core.view.isGone
 import androidx.recyclerview.widget.RecyclerView
-import com.villagebanking.MainActivity.Companion.dbHandler
+import com.villagebanking.Home.Companion.dbHandler
 import kotlinx.android.synthetic.main.account_holders.*
 import kotlinx.android.synthetic.main.account_holders.view.*
 import kotlinx.android.synthetic.main.delete_confirmation.view.*
@@ -33,7 +33,6 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.math.roundToLong
 
 
 class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList<Model>): RecyclerView.Adapter<CustomAdapter.ViewHolder>() {
@@ -56,7 +55,7 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
 
 
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CustomAdapter.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.main_row_layout, parent, false)
         return ViewHolder(view)
     }
@@ -65,7 +64,7 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
 
     @SuppressLint("SimpleDateFormat", "SetTextI18n")
     @RequiresApi(Build.VERSION_CODES.N)
-    override fun onBindViewHolder(holder: CustomAdapter.ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val accountHolderModelPosition: Model = accountHolderModel[position]
         holder.tvID.text = accountHolderModelPosition.accountHoldersID.toString()
         holder.tvName.text = accountHolderModelPosition.accountHoldersName
@@ -618,6 +617,7 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                     .show()
             true
         }
+
 
         cursor.close()
     }

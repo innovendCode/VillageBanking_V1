@@ -21,6 +21,17 @@
             android:padding="10dp">
 
             <TextView
+                android:id="@+id/tvTransactionName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2000"
+                android:textSize="16sp"
+                android:visibility="gone"
+                app:layout_constraintStart_toEndOf="@+id/tvTransactionMonth"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:visibility="gone" />
+
+            <TextView
                 android:id="@+id/tvTransactionInterest"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
