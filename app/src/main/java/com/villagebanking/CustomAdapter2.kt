@@ -2,17 +2,18 @@ package com.villagebanking
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.content.ContentValues
 import android.content.Context
-import android.content.Intent
-import android.database.Cursor
-import android.graphics.Color
-import android.graphics.Typeface
+import android.icu.text.DateFormat
+import android.icu.text.SimpleDateFormat
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.villagebanking.MainActivity.Companion.dbHandler
 import kotlinx.android.synthetic.main.dialog_payments.view.*
@@ -20,7 +21,6 @@ import kotlinx.android.synthetic.main.dialog_posts.view.*
 import kotlinx.android.synthetic.main.sub_row_layout.view.*
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.time.Instant
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -65,6 +65,7 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
 
 
 
+    @RequiresApi(Build.VERSION_CODES.N)
     @SuppressLint("SimpleDateFormat", "SetTextI18n")
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val transactionsModelPosition : Model = transactionsModel[position]
@@ -92,11 +93,17 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
         val c: Calendar = GregorianCalendar()
         c.time = Date()
         val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        val stf = java.text.SimpleDateFormat("kk:mm")
         //println(sdf.format(c.time)) // NOW
         val transactionMonth = (sdf.format(c.time))
         c.add(Calendar.MONTH, -1)
         //println(sdf.format(c.time)) // One month ago
         val transactionLastMonth = (sdf.format(c.time))
+        val currentTime = (stf.format(c.time))
+
+        val date = Calendar.getInstance().time
+        val dateFormat: DateFormat = SimpleDateFormat.getDateInstance()
+        val transactionDate: String = dateFormat.format(date)
 
         var totalSharePayment = 0.0
         var totalLoanPayout = 0.0
@@ -132,10 +139,10 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                 while (cursor.moveToNext()) {
                     buffer.append(" Date: ${cursor.getString(cursor.getColumnIndex(DBHandler.STATEMENT_DATE))}\n")
                     buffer.append(" Time: ${cursor.getString(cursor.getColumnIndex(DBHandler.STATEMENT_TIME))}\n")
-                    buffer.append(" Action: ${cursor.getString(cursor.getColumnIndex(DBHandler.STATEMENT_ACTION))}\n")
+                    buffer.append(" ${cursor.getString(cursor.getColumnIndex(DBHandler.STATEMENT_ACTION))}\n")
                     buffer.append("  -Shares: ${cursor.getDouble(cursor.getColumnIndex(DBHandler.STATEMENT_SHARE))}\n")
                     buffer.append("  -Share Amount: ${cursor.getDouble(cursor.getColumnIndex(DBHandler.STATEMENT_SHARE_AMOUNT))}\n")
-                    buffer.append("  -Loan Application: ${cursor.getDouble(cursor.getColumnIndex(DBHandler.STATEMENT_LOAN_APP))}\n")
+                    buffer.append("  -Loan: ${cursor.getDouble(cursor.getColumnIndex(DBHandler.STATEMENT_LOAN))}\n")
                     buffer.append("  -Charge: ${cursor.getDouble(cursor.getColumnIndex(DBHandler.STATEMENT_CHARGE))}\n\n")
                 }
                 AlertDialog.Builder(mContext2)
@@ -251,10 +258,21 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                     return@setOnClickListener
                                 }
 
+                                val contentValues = ContentValues()
+                                val payment : Double = paymentDialogLayout.etPayments.text.toString().toDouble()
+                                contentValues.put(DBHandler.STATEMENT_MONTH, transactionMonth)
+                                contentValues.put(DBHandler.STATEMENT_DATE, transactionDate)
+                                contentValues.put(DBHandler.STATEMENT_TIME, currentTime)
+                                contentValues.put(DBHandler.STATEMENT_NAME, transactionsModelPosition.transactionName)
+                                contentValues.put(DBHandler.STATEMENT_ACTION, "Share Payment")
+                                contentValues.put(DBHandler.STATEMENT_SHARE_AMOUNT, BigDecimal(payment).setScale(2, RoundingMode.HALF_EVEN).toDouble())
+                                db = dbHandler.writableDatabase
+                                db.insert(DBHandler.STATEMENT_TABLE, null, contentValues)
+
                                 paymentDialogLayout.etPayments.setText((transactionsModel[position].transactionSharePayment +
                                         paymentDialogLayout.etPayments.text.toString().toDouble()).toString())
 
-                                val posts : Boolean = MainActivity.dbHandler.sharePayment(mContext2, transactionsModelPosition.transactionID,
+                                val posts : Boolean = dbHandler.sharePayment(mContext2, transactionsModelPosition.transactionID,
                                         paymentDialogLayout.etPayments.text.toString(),
                                         AccountDetails().transactionDate)
                                 if (posts){
@@ -279,6 +297,23 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
 
 
         holder.btnSharePayment.setOnLongClickListener {
+
+            if (transactionsModelPosition.transactionSharePayment > availableCash){
+                Toast.makeText(mContext2, "Insufficient cash for a refund", Toast.LENGTH_SHORT).show()
+                return@setOnLongClickListener true
+            }
+
+            val contentValues = ContentValues()
+            contentValues.put(DBHandler.STATEMENT_MONTH, transactionMonth)
+            contentValues.put(DBHandler.STATEMENT_DATE, transactionDate)
+            contentValues.put(DBHandler.STATEMENT_TIME, currentTime)
+            contentValues.put(DBHandler.STATEMENT_NAME, transactionsModelPosition.transactionName)
+            contentValues.put(DBHandler.STATEMENT_ACTION, "Share Payment Reversed")
+            contentValues.put(DBHandler.STATEMENT_SHARE, transactionsModelPosition.transactionShares*-1)
+            contentValues.put(DBHandler.STATEMENT_SHARE_AMOUNT, BigDecimal(transactionsModelPosition.transactionSharePayment *-1).setScale(2, RoundingMode.HALF_EVEN).toDouble())
+            db = dbHandler.writableDatabase
+            db.insert(DBHandler.STATEMENT_TABLE, null, contentValues)
+
             val posts : Boolean = dbHandler.sharePayment(mContext2, transactionsModelPosition.transactionID,
                     0.0.toString(),
                     AccountDetails().transactionDate)
@@ -328,6 +363,17 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                     return@setOnClickListener
                                 }
 
+                                val contentValues = ContentValues()
+                                val payment : Double = paymentDialogLayout.etPayments.text.toString().toDouble()
+                                contentValues.put(DBHandler.STATEMENT_MONTH, transactionMonth)
+                                contentValues.put(DBHandler.STATEMENT_DATE, transactionDate)
+                                contentValues.put(DBHandler.STATEMENT_TIME, currentTime)
+                                contentValues.put(DBHandler.STATEMENT_NAME, transactionsModelPosition.transactionName)
+                                contentValues.put(DBHandler.STATEMENT_ACTION, "Loan Payment")
+                                contentValues.put(DBHandler.STATEMENT_LOAN, BigDecimal(payment).setScale(2, RoundingMode.HALF_EVEN).toDouble())
+                                db = dbHandler.writableDatabase
+                                db.insert(DBHandler.STATEMENT_TABLE, null, contentValues)
+
                                 paymentDialogLayout.etPayments.setText((transactionsModel[position].transactionLoanPayment +
                                         paymentDialogLayout.etPayments.text.toString().toDouble()).toString())
 
@@ -357,6 +403,17 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
 
 
         holder.btnLoanPayout.setOnLongClickListener {
+
+            val contentValues = ContentValues()
+            contentValues.put(DBHandler.STATEMENT_MONTH, transactionMonth)
+            contentValues.put(DBHandler.STATEMENT_DATE, transactionDate)
+            contentValues.put(DBHandler.STATEMENT_TIME, currentTime)
+            contentValues.put(DBHandler.STATEMENT_NAME, transactionsModelPosition.transactionName)
+            contentValues.put(DBHandler.STATEMENT_ACTION, "Loan Payment Reversed")
+            contentValues.put(DBHandler.STATEMENT_LOAN, BigDecimal(transactionsModelPosition.transactionLoanPayment*-1).setScale(2, RoundingMode.HALF_EVEN).toDouble())
+            db = dbHandler.writableDatabase
+            db.insert(DBHandler.STATEMENT_TABLE, null, contentValues)
+
             val posts : Boolean = MainActivity.dbHandler.loanPayout(mContext2, transactionsModelPosition.transactionID,
                     0.0.toString(),
                     AccountDetails().transactionDate)
@@ -400,6 +457,17 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                     return@setOnClickListener
                                 }
 
+                                val contentValues = ContentValues()
+                                val payment : Double = paymentDialogLayout.etPayments.text.toString().toDouble()
+                                contentValues.put(DBHandler.STATEMENT_MONTH, transactionMonth)
+                                contentValues.put(DBHandler.STATEMENT_DATE, transactionDate)
+                                contentValues.put(DBHandler.STATEMENT_TIME, currentTime)
+                                contentValues.put(DBHandler.STATEMENT_NAME, transactionsModelPosition.transactionName)
+                                contentValues.put(DBHandler.STATEMENT_ACTION, "Loan Payment")
+                                contentValues.put(DBHandler.STATEMENT_CHARGE, BigDecimal(payment).setScale(2, RoundingMode.HALF_EVEN).toDouble())
+                                db = dbHandler.writableDatabase
+                                db.insert(DBHandler.STATEMENT_TABLE, null, contentValues)
+
                                 paymentDialogLayout.etPayments.setText((transactionsModel[position].transactionChargePayment +
                                         paymentDialogLayout.etPayments.text.toString().toDouble()).toString())
 
@@ -424,12 +492,37 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                         }
                     }
                     .show()
+            val contentValues = ContentValues()
+            contentValues.put(DBHandler.STATEMENT_MONTH, transactionMonth)
+            contentValues.put(DBHandler.STATEMENT_DATE, transactionDate)
+            contentValues.put(DBHandler.STATEMENT_TIME, currentTime)
+            contentValues.put(DBHandler.STATEMENT_NAME, transactionsModelPosition.transactionName)
+            contentValues.put(DBHandler.STATEMENT_ACTION, "Charge Payment")
+            contentValues.put(DBHandler.STATEMENT_CHARGE, BigDecimal(transactionsModelPosition.transactionChargePayment).setScale(2, RoundingMode.HALF_EVEN).toDouble())
+            db = dbHandler.writableDatabase
+            db.insert(DBHandler.STATEMENT_TABLE, null, contentValues)
         }
 
 
 
         holder.btnChargePayment.setOnLongClickListener {
-            val posts : Boolean = MainActivity.dbHandler.chargePayment(mContext2, transactionsModelPosition.transactionID,
+
+            if (transactionsModelPosition.transactionChargePayment > availableCash){
+                Toast.makeText(mContext2, "Insufficient cash for a refund", Toast.LENGTH_SHORT).show()
+                return@setOnLongClickListener true
+            }
+
+            val contentValues = ContentValues()
+            contentValues.put(DBHandler.STATEMENT_MONTH, transactionMonth)
+            contentValues.put(DBHandler.STATEMENT_DATE, transactionDate)
+            contentValues.put(DBHandler.STATEMENT_TIME, currentTime)
+            contentValues.put(DBHandler.STATEMENT_NAME, transactionsModelPosition.transactionName)
+            contentValues.put(DBHandler.STATEMENT_ACTION, "Charge Payment Reversed")
+            contentValues.put(DBHandler.STATEMENT_CHARGE, BigDecimal(transactionsModelPosition.transactionChargePayment*-1).setScale(2, RoundingMode.HALF_EVEN).toDouble())
+            db = dbHandler.writableDatabase
+            db.insert(DBHandler.STATEMENT_TABLE, null, contentValues)
+
+            val posts : Boolean = dbHandler.chargePayment(mContext2, transactionsModelPosition.transactionID,
                     0.0.toString(),
                     AccountDetails().transactionDate)
             if (posts){
@@ -446,8 +539,6 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
 
 
         holder.btnLoanRepayment.setOnClickListener {
-
-
 
             val balance = (transactionsModel[position].transactionLoanToRepay.toString().toDouble() -
                     transactionsModel[position].transactionLoanRepayment.toString().toDouble()).toString()
@@ -475,6 +566,19 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                                     return@setOnClickListener
                                 }
 
+
+                                val contentValues = ContentValues()
+                                val payment : Double = paymentDialogLayout.etPayments.text.toString().toDouble()
+                                contentValues.put(DBHandler.STATEMENT_MONTH, transactionMonth)
+                                contentValues.put(DBHandler.STATEMENT_DATE, transactionDate)
+                                contentValues.put(DBHandler.STATEMENT_TIME, currentTime)
+                                contentValues.put(DBHandler.STATEMENT_NAME, transactionsModelPosition.transactionName)
+                                contentValues.put(DBHandler.STATEMENT_ACTION, "Loan Payment")
+                                contentValues.put(DBHandler.STATEMENT_LOAN, BigDecimal(payment).setScale(2, RoundingMode.HALF_EVEN).toDouble())
+                                db = dbHandler.writableDatabase
+                                db.insert(DBHandler.STATEMENT_TABLE, null, contentValues)
+
+
                                 paymentDialogLayout.etPayments.setText((transactionsModel[position].transactionLoanRepayment +
                                         paymentDialogLayout.etPayments.text.toString().toDouble()).toString())
 
@@ -500,14 +604,37 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                         }
                     }
                     .show()
-
-
+            val contentValues = ContentValues()
+            contentValues.put(DBHandler.STATEMENT_MONTH, transactionMonth)
+            contentValues.put(DBHandler.STATEMENT_DATE, transactionDate)
+            contentValues.put(DBHandler.STATEMENT_TIME, currentTime)
+            contentValues.put(DBHandler.STATEMENT_NAME, transactionsModelPosition.transactionName)
+            contentValues.put(DBHandler.STATEMENT_ACTION, "Loan Repayment")
+            contentValues.put(DBHandler.STATEMENT_LOAN, BigDecimal(transactionsModelPosition.transactionLoanRepayment).setScale(2, RoundingMode.HALF_EVEN).toDouble())
+            db = dbHandler.writableDatabase
+            db.insert(DBHandler.STATEMENT_TABLE, null, contentValues)
         }
 
 
 
         holder.btnLoanRepayment.setOnLongClickListener {
-            val posts : Boolean = MainActivity.dbHandler.loanRepayment(mContext2, transactionsModelPosition.transactionID,
+
+            if (transactionsModelPosition.transactionLoanRepayment > availableCash){
+                Toast.makeText(mContext2, "Insufficient cash for a refund", Toast.LENGTH_SHORT).show()
+                return@setOnLongClickListener true
+            }
+
+            val contentValues = ContentValues()
+            contentValues.put(DBHandler.STATEMENT_MONTH, transactionMonth)
+            contentValues.put(DBHandler.STATEMENT_DATE, transactionDate)
+            contentValues.put(DBHandler.STATEMENT_TIME, currentTime)
+            contentValues.put(DBHandler.STATEMENT_NAME, transactionsModelPosition.transactionName)
+            contentValues.put(DBHandler.STATEMENT_ACTION, "Loan Repayment Reversed")
+            contentValues.put(DBHandler.STATEMENT_LOAN, BigDecimal(transactionsModelPosition.transactionLoanRepayment*-1).setScale(2, RoundingMode.HALF_EVEN).toDouble())
+            db = dbHandler.writableDatabase
+            db.insert(DBHandler.STATEMENT_TABLE, null, contentValues)
+
+            val posts : Boolean = dbHandler.loanRepayment(mContext2, transactionsModelPosition.transactionID,
                     0.0.toString(),
                     AccountDetails().transactionDate)
             if (posts){
@@ -518,8 +645,6 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
             }else{
                 Toast.makeText(mContext2, "Something wrong", Toast.LENGTH_SHORT).show()
             }
-
-
             true
         }
 

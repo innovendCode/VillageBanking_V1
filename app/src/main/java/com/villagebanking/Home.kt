@@ -1,26 +1,25 @@
 package com.villagebanking
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.*
-import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
+import android.os.Environment.getExternalStorageDirectory
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import kotlinx.android.synthetic.main.dialog_payments.view.*
 import kotlinx.android.synthetic.main.home.*
 import java.io.File
-import java.io.FileWriter
+import java.io.FileOutputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 
 
@@ -31,17 +30,11 @@ class Home: AppCompatActivity() {
     }
 
 
-    //Backup Permissions
-    private val STORAGE_REQUEST_CODE_EXPORT = 1
-    private val STORAGE_REQUEST_CODE_IMPORT = 2
-    private lateinit var storagePermission:Array<String>
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home)
-
-        //init Array Permissions
-        storagePermission = arrayOf(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
 
         val actionbar = supportActionBar
         actionbar!!.title = "Home"
@@ -62,65 +55,102 @@ class Home: AppCompatActivity() {
 
     }
 
-    private fun checkStoragePermissions(): Boolean {
 
 
-        return ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == (PackageManager.PERMISSION_GRANTED)
-    }
-
-    private fun requestStoragePermissionImport(){
-        ActivityCompat.requestPermissions(this, storagePermission, STORAGE_REQUEST_CODE_IMPORT)
-    }
-
-    private fun requestStoragePermissionExport(){
-        ActivityCompat.requestPermissions(this, storagePermission, STORAGE_REQUEST_CODE_EXPORT)
-    }
 
     private fun importDB() {
 
     }
 
-    private fun exportDB() {
-        val folder =
-            File("${Environment.getExternalStorageDirectory()}/VillageBanking")
 
-        var isFolderCreated = false
-        if (!folder.exists()) isFolderCreated = folder.mkdir()
+    private fun export() {
+        //generate data
 
-        val csvFileName = "VillageBankingBackup.csv"
-        val fileNameAndPath = "$folder/$csvFileName"
-
-        //get Records to save backup
         var recordList = ArrayList<Model>()
         recordList.clear()
         recordList = dbHandler.getAccountHolders(this)
 
+            val accountHolders = StringBuffer()
+            for (i in recordList.indices) {
+                accountHolders.append(""+ recordList[i].accountHoldersID)
+                accountHolders.append(""+ recordList[i].accountHoldersName)
+                accountHolders.append(""+ recordList[i].accountHoldersAdmin)
+                accountHolders.append(""+ recordList[i].accountHolderContact)
+                accountHolders.append(""+ recordList[i].accountHolderBankInfo)
+                accountHolders.append(""+ recordList[i].accountHolderPin)
+                accountHolders.append(""+ recordList[i].accountHolderPinHint)
+                accountHolders.append(""+ recordList[i].accountHoldersShare)
+                accountHolders.append(""+ recordList[i].accountHoldersLoanApp)
+                accountHolders.append(""+ recordList[i].accountHoldersCharges)
+                accountHolders.append(""+ recordList[i].accountHoldersApproved)
+                accountHolders.append(""+ recordList[i].accountHoldersAsset)
+                accountHolders.append(""+ recordList[i].accountHoldersLiability)
+                accountHolders.append("\n")
+            }
+
+
         try {
-            val fw = FileWriter(fileNameAndPath)
+            //saving the file into device
+            val out: FileOutputStream = openFileOutput("Account Holders.csv", MODE_PRIVATE)
+            out.write(accountHolders.toString().toByteArray())
+            out.close()
+
+            //exporting
+            val context = applicationContext
+            val fileLocation = File(filesDir, "Account Holders.csv")
+            val path: Uri = FileProvider.getUriForFile(context, "com.villagebanking.fileprovider", fileLocation)
+            val fileIntent = Intent(Intent.ACTION_SEND)
+            fileIntent.type = "text/csv"
+            fileIntent.putExtra(Intent.EXTRA_SUBJECT, "Data")
+            fileIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            fileIntent.putExtra(Intent.EXTRA_STREAM, path)
+            startActivity(Intent.createChooser(fileIntent, "Send mail"))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+
+
+
+
+
+    private fun exportDB() {
+
+/*        var recordList = ArrayList<Model>()
+        recordList.clear()
+        recordList = dbHandler.getAccountHolders(this)
+
+        try {
+
+            val buffer = StringBuffer()
 
             for (i in recordList.indices) {
-                fw.append(""+ recordList[i].accountHoldersID)
-                fw.append(""+ recordList[i].accountHoldersName)
-                fw.append(""+ recordList[i].accountHoldersAdmin)
-                fw.append(""+ recordList[i].accountHolderContact)
-                fw.append(""+ recordList[i].accountHolderBankInfo)
-                fw.append(""+ recordList[i].accountHolderPin)
-                fw.append(""+ recordList[i].accountHolderPinHint)
-                fw.append(""+ recordList[i].accountHoldersShare)
-                fw.append(""+ recordList[i].accountHoldersLoanApp)
-                fw.append(""+ recordList[i].accountHoldersCharges)
-                fw.append(""+ recordList[i].accountHoldersApproved)
-                fw.append(""+ recordList[i].accountHoldersAsset)
-                fw.append(""+ recordList[i].accountHoldersLiability)
-                fw.append("\n")
+                buffer.append(""+ recordList[i].accountHoldersID)
+                buffer.append(""+ recordList[i].accountHoldersName)
+                buffer.append(""+ recordList[i].accountHoldersAdmin)
+                buffer.append(""+ recordList[i].accountHolderContact)
+                buffer.append(""+ recordList[i].accountHolderBankInfo)
+                buffer.append(""+ recordList[i].accountHolderPin)
+                buffer.append(""+ recordList[i].accountHolderPinHint)
+                buffer.append(""+ recordList[i].accountHoldersShare)
+                buffer.append(""+ recordList[i].accountHoldersLoanApp)
+                buffer.append(""+ recordList[i].accountHoldersCharges)
+                buffer.append(""+ recordList[i].accountHoldersApproved)
+                buffer.append(""+ recordList[i].accountHoldersAsset)
+                buffer.append(""+ recordList[i].accountHoldersLiability)
+                buffer.append("\n")
             }
-            fw.flush()
-            fw.close()
 
-            Toast.makeText(this, "Backup exported to $fileNameAndPath", Toast.LENGTH_SHORT).show()
+            AlertDialog.Builder(this)
+                    .setMessage(buffer.toString())
+                    .show()
+
+
+            Toast.makeText(this, "Backup exported", Toast.LENGTH_SHORT).show()
         }catch (e: Exception){
             Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
-        }
+        }*/
 
     }
 
@@ -432,49 +462,75 @@ class Home: AppCompatActivity() {
                 val intent = Intent(this, Settings::class.java)
                 startActivity(intent)
             }
-            R.id.importDB ->{
-                if (checkStoragePermissions()){
-                    importDB()
-                }else{
-                    requestStoragePermissionImport()
-                }
+            R.id.importDB -> {
+                importDB()
             }
-            R.id.exportDB ->{
-                if (checkStoragePermissions()){
-                    exportDB()
-                }else{
-                    requestStoragePermissionExport()
-                }
-
+            R.id.exportDB -> {
+                //exportDB()
+                export()
+            }
+            R.id.reset -> {
+                factoryReset()
             }
         }
         return true
     }
 
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
 
-        when (requestCode){
-            STORAGE_REQUEST_CODE_EXPORT ->{
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    exportDB()
-                }else {
-                    Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show()
-                }
-            }
+    private fun factoryReset(){
+        var pin = ""
+        val query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_ADMIN_COL} = ?"
+        val db = dbHandler.readableDatabase
+        val cursor = db.rawQuery(query, arrayOf("Chairperson"))
 
-            STORAGE_REQUEST_CODE_IMPORT ->{
-                if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    importDB()
-                }else {
-                    Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show()
-                }
-            }
+
+        if (cursor.count == 0){
+            Toast.makeText(this@Home, "Create Chairperson Account to Reset", Toast.LENGTH_LONG).show()
+            return
         }
 
+        if (cursor.moveToFirst()){
+            pin = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_PIN_COL))
+        }
 
+        val confirmDialog = LayoutInflater.from(this).inflate(R.layout.dialog_payments, null)
+
+        AlertDialog.Builder(this)
+                .setTitle("Factory Reset System")
+                .setMessage("Enter Chairperson PIN to Reset")
+                .setView(confirmDialog)
+                .setNegativeButton("Cancel") { _, _->}
+                .setPositiveButton("Confirm", null)
+                .create().apply {
+                    setOnShowListener {
+                        getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                            Toast.makeText(this@Home, "Long press to reset", Toast.LENGTH_LONG).show()
+                        }
+
+                        getButton(AlertDialog.BUTTON_POSITIVE).setOnLongClickListener {
+                            if (confirmDialog.etPayments.text.toString() == pin){
+                                dbHandler.deleteAllAccounts(this@Home)
+                                dbHandler.deleteAllTransactions(this@Home)
+                                dbHandler.deleteAllSettings(this@Home)
+                                dbHandler.deleteAllStatements(this@Home)
+                                Toast.makeText(this@Home, "System Reset Successful", Toast.LENGTH_LONG).show()
+                                dismiss()
+                                finish()
+                            }else{
+                                Toast.makeText(this@Home, "Invalid Pin $pin", Toast.LENGTH_LONG).show()
+                            }
+                            true
+                        }
+                    }
+                }
+                .show()
+
+        cursor.close()
     }
+
+
+
 
     private fun gotoAccounts(){
         var interestRate = 0.0

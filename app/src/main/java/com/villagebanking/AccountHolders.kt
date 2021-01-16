@@ -4,8 +4,6 @@ import android.annotation.SuppressLint
 import android.content.ContentValues
 import android.content.Context
 import android.content.DialogInterface
-import android.graphics.Color
-import android.graphics.Typeface
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -34,7 +32,6 @@ import java.math.RoundingMode
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
 class AccountHolders: AppCompatActivity() {
@@ -101,6 +98,8 @@ class AccountHolders: AppCompatActivity() {
             }
             R.id.searchName ->{
 
+
+
             }
             R.id.approve ->{
                 createMonthIfNotExists()
@@ -122,7 +121,6 @@ class AccountHolders: AppCompatActivity() {
                 deleteAllAccounts()
                 viewAccountHolders()
             }
-
 
 
         }
@@ -747,7 +745,7 @@ class AccountHolders: AppCompatActivity() {
             contentValues2.put(DBHandler.STATEMENT_TIME,  currentTime)
             contentValues2.put(DBHandler.STATEMENT_NAME,  name)
             contentValues2.put(DBHandler.STATEMENT_ACTION, "Approved Loans")
-            contentValues2.put(DBHandler.STATEMENT_LOAN_APP, BigDecimal(loan).setScale(2, RoundingMode.HALF_EVEN).toDouble())
+            contentValues2.put(DBHandler.STATEMENT_LOAN, BigDecimal(loan).setScale(2, RoundingMode.HALF_EVEN).toDouble())
             db.insert(DBHandler.STATEMENT_TABLE, null, contentValues2)
         }
         getLiabilities()
@@ -932,8 +930,6 @@ class AccountHolders: AppCompatActivity() {
                 }
                 .show()
 
-
-
     }
 
 
@@ -1027,7 +1023,7 @@ class AccountHolders: AppCompatActivity() {
             contentValues2.put(DBHandler.STATEMENT_TIME,  currentTime)
             contentValues2.put(DBHandler.STATEMENT_NAME,  name)
             contentValues2.put(DBHandler.STATEMENT_ACTION, "Loan Payments")
-            contentValues2.put(DBHandler.STATEMENT_LOAN_APP, BigDecimal(loan).setScale(2, RoundingMode.HALF_EVEN).toDouble())
+            contentValues2.put(DBHandler.STATEMENT_LOAN, BigDecimal(loan).setScale(2, RoundingMode.HALF_EVEN).toDouble())
             db.insert(DBHandler.STATEMENT_TABLE, null, contentValues2)
         }
     }
@@ -1220,6 +1216,11 @@ class AccountHolders: AppCompatActivity() {
         cursor.close()
     }
 
+
+
+    fun searchName(){
+
+    }
 
 
 }

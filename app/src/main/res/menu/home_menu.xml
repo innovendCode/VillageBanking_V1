@@ -15,21 +15,18 @@
         android:id="@+id/exportDB"
         android:icon="@drawable/ic_back_arrow"
         android:title="Backup"/>
-
+    <item
+        android:id="@+id/reset"
+        android:icon="@drawable/ic_back_arrow"
+        android:title="Factory Reset"/>
     <item
         android:id="@+id/settings"
         android:icon="@drawable/ic_settings"
         android:title="Settings"
         app:showAsAction="always"/>
-
     <item
         android:id="@+id/accountHolders"
         android:icon="@drawable/ic_forward"
         android:title="Account Holders"
         app:showAsAction="always"/>
-
-
-
-
-
 </menu>

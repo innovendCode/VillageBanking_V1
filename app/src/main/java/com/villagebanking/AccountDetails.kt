@@ -740,67 +740,188 @@ class AccountDetails : AppCompatActivity() {
 
 
 
+    @SuppressLint("SimpleDateFormat")
     private fun sharePayment(){
+        val c: Calendar = GregorianCalendar()
+        c.time = Date()
+        val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        val stf = java.text.SimpleDateFormat("kk:mm")
+        //println(sdf.format(c.time)) // NOW
+        val transactionMonth = (sdf.format(c.time))
+        c.add(Calendar.MONTH, -1)
+        //println(sdf.format(c.time)) // One month ago
+        val transactionLastMonth = (sdf.format(c.time))
+        val currentTime = (stf.format(c.time))
+
         val name = tvDetailsName.text
+        var totalCash = 0.0
+        var totalShares = 0
+
+        var query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = ?"
+        var db = dbHandler.readableDatabase
+        val cursor = db.rawQuery(query, arrayOf(name.toString()))
+        while (cursor.moveToNext()){
+            totalCash += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_AMOUNT_COL))
+            totalShares += cursor.getInt(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
+        }
         AlertDialog.Builder(this)
                 .setTitle("Settle all share payments for $name?")
                 .setPositiveButton("Yes") {_,_->
-                    val query = "UPDATE ${DBHandler.TRANSACTION_TABLE} SET ${DBHandler.TRANSACTION_SHARE_PAYMENT_COL} = " +
+                    query = "UPDATE ${DBHandler.TRANSACTION_TABLE} SET ${DBHandler.TRANSACTION_SHARE_PAYMENT_COL} = " +
                             "${DBHandler.TRANSACTION_SHARE_AMOUNT_COL} WHERE ${DBHandler.TRANSACTION_NAME_COL} = '${name}'"
-                    val db = dbHandler.writableDatabase
+                    db = dbHandler.writableDatabase
                     db.execSQL(query)
                     viewTransactions()
                 }
                 .setNegativeButton("No") {_,_->}
                 .show()
+
+        val contentValues = ContentValues()
+        contentValues.put(DBHandler.STATEMENT_MONTH, transactionMonth)
+        contentValues.put(DBHandler.STATEMENT_DATE, transactionDate)
+        contentValues.put(DBHandler.STATEMENT_TIME, currentTime)
+        contentValues.put(DBHandler.STATEMENT_NAME, name.toString())
+        contentValues.put(DBHandler.STATEMENT_ACTION, "Settled All Share Arrears")
+        contentValues.put(DBHandler.STATEMENT_SHARE, totalShares)
+        contentValues.put(DBHandler.STATEMENT_SHARE_AMOUNT, BigDecimal(totalCash).setScale(2, RoundingMode.HALF_EVEN).toDouble())
+        db.insert(DBHandler.STATEMENT_TABLE, null, contentValues)
     }
 
 
+    @SuppressLint("SimpleDateFormat")
     private fun loanPayment(){
+        val c: Calendar = GregorianCalendar()
+        c.time = Date()
+        val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        val stf = java.text.SimpleDateFormat("kk:mm")
+        //println(sdf.format(c.time)) // NOW
+        val transactionMonth = (sdf.format(c.time))
+        c.add(Calendar.MONTH, -1)
+        //println(sdf.format(c.time)) // One month ago
+        val transactionLastMonth = (sdf.format(c.time))
+        val currentTime = (stf.format(c.time))
+
         val name = tvDetailsName.text
+        var totalCash = 0.0
+
+        var query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = ?"
+        var db = dbHandler.readableDatabase
+        val cursor = db.rawQuery(query, arrayOf(name.toString()))
+        while (cursor.moveToNext()){
+            totalCash += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
+        }
+
+
         AlertDialog.Builder(this)
                 .setTitle("Clear all loan payouts for $name?")
                 .setPositiveButton("Yes") {_,_->
-                    val query = "UPDATE ${DBHandler.TRANSACTION_TABLE} SET ${DBHandler.TRANSACTION_LOAN_PAYMENT_COL} = " +
+                    query = "UPDATE ${DBHandler.TRANSACTION_TABLE} SET ${DBHandler.TRANSACTION_LOAN_PAYMENT_COL} = " +
                             "${DBHandler.TRANSACTION_LOAN_APP_COL} WHERE ${DBHandler.TRANSACTION_NAME_COL} = '${name}'"
-                    val db = dbHandler.writableDatabase
+                    db = dbHandler.writableDatabase
                     db.execSQL(query)
                     viewTransactions()
                 }
                 .setNegativeButton("No") {_,_->}
                 .show()
+
+        val contentValues = ContentValues()
+        contentValues.put(DBHandler.STATEMENT_MONTH, transactionMonth)
+        contentValues.put(DBHandler.STATEMENT_DATE, transactionDate)
+        contentValues.put(DBHandler.STATEMENT_TIME, currentTime)
+        contentValues.put(DBHandler.STATEMENT_NAME, name.toString())
+        contentValues.put(DBHandler.STATEMENT_ACTION, "Paid All Loan Applications")
+        contentValues.put(DBHandler.STATEMENT_LOAN, BigDecimal(totalCash).setScale(2, RoundingMode.HALF_EVEN).toDouble())
+        db.insert(DBHandler.STATEMENT_TABLE, null, contentValues)
+
     }
 
 
+    @SuppressLint("SimpleDateFormat")
     private fun loanRepayment(){
+        val c: Calendar = GregorianCalendar()
+        c.time = Date()
+        val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        val stf = java.text.SimpleDateFormat("kk:mm")
+        //println(sdf.format(c.time)) // NOW
+        val transactionMonth = (sdf.format(c.time))
+        c.add(Calendar.MONTH, -1)
+        //println(sdf.format(c.time)) // One month ago
+        val transactionLastMonth = (sdf.format(c.time))
+        val currentTime = (stf.format(c.time))
+
         val name = tvDetailsName.text
+        var totalCash = 0.0
+
+        var query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = ?"
+        var db = dbHandler.readableDatabase
+        val cursor = db.rawQuery(query, arrayOf(name.toString()))
+        while (cursor.moveToNext()){
+            totalCash += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_TO_REPAY_COL))
+        }
         AlertDialog.Builder(this)
                 .setTitle("Settle all loan repayments for $name?")
                 .setPositiveButton("Yes") {_,_->
-                    val query = "UPDATE ${DBHandler.TRANSACTION_TABLE} SET ${DBHandler.TRANSACTION_LOAN_REPAYMENT_COL} = " +
+                    query = "UPDATE ${DBHandler.TRANSACTION_TABLE} SET ${DBHandler.TRANSACTION_LOAN_REPAYMENT_COL} = " +
                             "${DBHandler.TRANSACTION_LOAN_TO_REPAY_COL} WHERE ${DBHandler.TRANSACTION_NAME_COL} = '${name}'"
-                    val db = dbHandler.writableDatabase
+                    db = dbHandler.writableDatabase
                     db.execSQL(query)
                     viewTransactions()
                 }
                 .setNegativeButton("No") {_,_->}
                 .show()
+        val contentValues = ContentValues()
+        contentValues.put(DBHandler.STATEMENT_MONTH, transactionMonth)
+        contentValues.put(DBHandler.STATEMENT_DATE, transactionDate)
+        contentValues.put(DBHandler.STATEMENT_TIME, currentTime)
+        contentValues.put(DBHandler.STATEMENT_NAME, name.toString())
+        contentValues.put(DBHandler.STATEMENT_ACTION, "Settled All Loan Repayments")
+        contentValues.put(DBHandler.STATEMENT_LOAN, BigDecimal(totalCash).setScale(2, RoundingMode.HALF_EVEN).toDouble())
+        db.insert(DBHandler.STATEMENT_TABLE, null, contentValues)
     }
 
 
+    @SuppressLint("SimpleDateFormat")
     private fun chargePayment(){
+        val c: Calendar = GregorianCalendar()
+        c.time = Date()
+        val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        val stf = java.text.SimpleDateFormat("kk:mm")
+        //println(sdf.format(c.time)) // NOW
+        val transactionMonth = (sdf.format(c.time))
+        c.add(Calendar.MONTH, -1)
+        //println(sdf.format(c.time)) // One month ago
+        val transactionLastMonth = (sdf.format(c.time))
+        val currentTime = (stf.format(c.time))
+
         val name = tvDetailsName.text
+        var totalCash = 0.0
+
+        var query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_NAME_COL} = ?"
+        var db = dbHandler.readableDatabase
+        val cursor = db.rawQuery(query, arrayOf(name.toString()))
+        while (cursor.moveToNext()){
+            totalCash += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_COL))
+        }
         AlertDialog.Builder(this)
                 .setTitle("Clear all charges for $name?")
                 .setPositiveButton("Yes") {_,_->
-                    val query = "UPDATE ${DBHandler.TRANSACTION_TABLE} SET ${DBHandler.TRANSACTION_CHARGE_PAYMENT_COL} = " +
+                    query = "UPDATE ${DBHandler.TRANSACTION_TABLE} SET ${DBHandler.TRANSACTION_CHARGE_PAYMENT_COL} = " +
                             "${DBHandler.TRANSACTION_CHARGE_COL} WHERE ${DBHandler.TRANSACTION_NAME_COL} = '${name}'"
-                    val db = dbHandler.writableDatabase
+                    db = dbHandler.writableDatabase
                     db.execSQL(query)
                     viewTransactions()
                 }
                 .setNegativeButton("No") {_,_->}
                 .show()
+
+        val contentValues = ContentValues()
+        contentValues.put(DBHandler.STATEMENT_MONTH, transactionMonth)
+        contentValues.put(DBHandler.STATEMENT_DATE, transactionDate)
+        contentValues.put(DBHandler.STATEMENT_TIME, currentTime)
+        contentValues.put(DBHandler.STATEMENT_NAME, name.toString())
+        contentValues.put(DBHandler.STATEMENT_ACTION, "Settled All Charges")
+        contentValues.put(DBHandler.STATEMENT_CHARGE, BigDecimal(totalCash).setScale(2, RoundingMode.HALF_EVEN).toDouble())
+        db.insert(DBHandler.STATEMENT_TABLE, null, contentValues)
     }
 
 

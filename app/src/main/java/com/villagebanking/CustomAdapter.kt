@@ -273,25 +273,30 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                                     etPostsCharges.setText("0")
                                 }
 
-                                if (postsDialogLayout.etPostsLoanApplication.text.toString().toDouble() > (virtualBalance + loanSubmitted)) {
-                                    Toast.makeText(mContext, "Insufficient funds for loan application", Toast.LENGTH_SHORT).show()
+
+                                val shareDifference : Double = postsDialogLayout.etPostsShares.text.toString().toDouble() * shareValue -
+                                                                accountHolderModelPosition.accountHoldersShare * shareValue
+
+                                val loanDifference : Double = postsDialogLayout.etPostsLoanApplication.text.toString().toDouble() -
+                                        accountHolderModelPosition.accountHoldersLoanApp
+
+                                val chargeDifference : Double = postsDialogLayout.etPostsCharges.text.toString().toDouble() -
+                                        accountHolderModelPosition.accountHoldersCharges
+
+
+                                if (loanDifference > virtualBalance + shareDifference + chargeDifference ){
+
+                                    if (shareDifference != 0.0){
+                                        Toast.makeText(mContext, "Insufficient cash for share refund", Toast.LENGTH_SHORT).show()
+                                    }else if (loanDifference != 0.0) {
+                                        Toast.makeText(mContext, "Insufficient funds loan application", Toast.LENGTH_SHORT).show()
+                                    }else if (charge != 0.0) {
+                                        Toast.makeText(mContext, "Insufficient cash for charge refund", Toast.LENGTH_SHORT).show()
+                                    }else
+                                   Toast.makeText(mContext, "Insufficient cash for this transaction", Toast.LENGTH_SHORT).show()
                                     return@setOnClickListener
                                 }
 
-                                if (postsDialogLayout.etPostsShares.text.toString().toDouble() < shareSubmitted) {
-
-                                    val difference = (shareApproved * shareValue) - (postsDialogLayout.etPostsShares.text.toString().toDouble() * shareValue)
-
-                                    if (virtualBalance != actualBalance) {
-                                        Toast.makeText(mContext, "Settle pending loan applications before reducing share", Toast.LENGTH_LONG).show()
-                                        return@setOnClickListener
-                                    }
-
-                                    if (actualBalance + 0.1 < difference) {
-                                        Toast.makeText(mContext, "Insufficient cash for $difference refund", Toast.LENGTH_SHORT).show()
-                                        return@setOnClickListener
-                                    }
-                                }
 
                                 val posts: Boolean = dbHandler.postings(mContext, accountHolderModelPosition.accountHoldersID,
                                         postsDialogLayout.etPostsShares.text.toString(),

@@ -73,7 +73,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val STATEMENT_SHARE = "st_share"
         const val STATEMENT_SHARE_AMOUNT = "st_share_amount"
         const val STATEMENT_SHARE_PAYMENT = "st_share_payment"
-        const val STATEMENT_LOAN_APP = "st_loan_application"
+        const val STATEMENT_LOAN = "st_loan_application"
         const val STATEMENT_LOAN_PAYMENT = "st_loan_payment"
         const val STATEMENT_LOAN_REPAYMENT = "st_loan_repayment"
         const val STATEMENT_CHARGE_NAME = "st_charge_name"
@@ -124,7 +124,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 "$TRANSACTION_ARREARS_COL TEXT)")
 
         val createSettingsTable = ("CREATE TABLE $SETTINGS_TABLE (" +
-                "$SETTINGS_ID_COL INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "$SETTINGS_ID_COL INTEGER PRIMARY KEY, " +
                 "$SETTINGS_SHARE_VALUE_COL DOUBLE, " +
                 "$SETTINGS_INTEREST_RATE_COL PERCENTAGE, " +
                 "$SETTINGS_NOTES_COL TEXT)")
@@ -139,7 +139,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 "$STATEMENT_SHARE DOUBLE, " +
                 "$STATEMENT_SHARE_AMOUNT DOUBLE, " +
                 "$STATEMENT_SHARE_PAYMENT DOUBLE, " +
-                "$STATEMENT_LOAN_APP DOUBLE, " +
+                "$STATEMENT_LOAN DOUBLE, " +
                 "$STATEMENT_LOAN_PAYMENT DOUBLE, " +
                 "$STATEMENT_LOAN_REPAYMENT DOUBLE, " +
                 "$STATEMENT_CHARGE_NAME TEXT, " +
@@ -416,6 +416,21 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
 
 
+    fun deleteAllStatements(mContext: Context): Boolean{
+        val db = writableDatabase
+        var result : Boolean = false
+        try{
+            db.delete(STATEMENT_TABLE, null, null)
+            result = true
+        }catch (e : Exception){
+            Log.e(ContentValues.TAG, "Something wrong. Cannot Delete")
+        }
+        db.close()
+        return result
+    }
+
+
+
     fun postings(mContext: Context, AccountID: Int, shares: String, loanApplication: String, charges: String) : Boolean{
         val result: Boolean
         val contentValues = ContentValues()
@@ -493,7 +508,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         contentValues.put(STATEMENT_ACTION, statements.statementsAction)
         contentValues.put(STATEMENT_SHARE, statements.statementsShare)
         contentValues.put(STATEMENT_SHARE_AMOUNT, statements.statementsShareAmount)
-        contentValues.put(STATEMENT_LOAN_APP, statements.statementsLoan)
+        contentValues.put(STATEMENT_LOAN, statements.statementsLoan)
         contentValues.put(STATEMENT_CHARGE, statements.statementsCharge)
         val db = writableDatabase
         try {
@@ -505,25 +520,9 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
     }
 
 
-    fun getStatementApproveShares(mContext: Context, statements: Model){
-        val contentValues = ContentValues()
-        contentValues.put(STATEMENT_MONTH, statements.statementsMonth)
-        contentValues.put(STATEMENT_DATE, statements.statementsDate)
-        contentValues.put(STATEMENT_TIME, statements.statementsTime)
-        contentValues.put(STATEMENT_NAME, statements.statementsName)
-        contentValues.put(STATEMENT_ACTION, statements.statementsAction)
-        contentValues.put(STATEMENT_SHARE, statements.statementsShare)
-        contentValues.put(STATEMENT_SHARE_AMOUNT, statements.statementsShareAmount)
-        contentValues.put(STATEMENT_LOAN_APP, statements.statementsLoan)
-        contentValues.put(STATEMENT_CHARGE, statements.statementsCharge)
-        val db = writableDatabase
-        try {
-            db.insert(STATEMENT_TABLE, null, contentValues)
-        }catch (e : Exception){
-            Toast.makeText(mContext, e.message,Toast.LENGTH_SHORT).show()
-        }
-        db.close()
-    }
+
+
+
 
 
 
@@ -531,9 +530,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
     fun sharePayment(mContext: Context, TransactionID: Int, Payment: String, Date: String) : Boolean{
         val result: Boolean
-
         val contentValues = ContentValues()
-
         contentValues.put(TRANSACTION_SHARE_PAYMENT_COL, Payment)
         contentValues.put(TRANSACTION_SHARE_DATE_COL, Date)
         val db = writableDatabase
