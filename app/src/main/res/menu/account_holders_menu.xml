@@ -6,7 +6,7 @@
         android:id="@+id/searchName"
         android:icon="@drawable/ic_search_black_24dp"
         android:title="@string/account_holders_menu_search"
-        app:showAsAction="ifRoom|collapseActionView"
+        app:showAsAction="ifRoom"
         app:actionViewClass="androidx.appcompat.widget.SearchView"/>
 
     <item

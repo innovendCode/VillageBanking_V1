@@ -35,9 +35,10 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList<Model>): RecyclerView.Adapter<CustomAdapter.ViewHolder>() {
+class CustomAdapter(mContext: Context, private var accountHolderModel: ArrayList<Model>): RecyclerView.Adapter<CustomAdapter.ViewHolder>(){
 
     val mContext = mContext
+
 
     class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView){
         val tvID: TextView = itemView.tvID
@@ -118,6 +119,7 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
         var shareApproved = 0.0
         var loanApproved = 0.0
         var chargeApproved = 0.0
+        var loanPayment = 0.0
 
         var query = "SELECT * FROM ${DBHandler.SETTINGS_TABLE}"
         var db = dbHandler.readableDatabase
@@ -183,6 +185,7 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
         if (cursor.moveToFirst()) {
             shareApproved = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_SHARE_COL))
             loanApproved = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_APP_COL))
+            loanPayment = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
             chargeApproved = cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_COL))
         }
 
@@ -260,6 +263,17 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                     .create().apply {
                         setOnShowListener {
                             getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+
+
+                                if (postsDialogLayout.etPostsLoanApplication.text.toString().toDouble() < loanPayment){
+                                    AlertDialog.Builder(mContext)
+                                            .setTitle("Loan Paid out")
+                                            .setMessage("Please reverse this loan payout before approving the loan reduction.")
+                                            .setNegativeButton("got it") {_,_->}
+                                            .show()
+                                    return@setOnClickListener
+                                }
+
 
                                 if (etPostsShares.text.toString() == "") {
                                     etPostsShares.setText("0")
@@ -444,7 +458,6 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                                     return@setOnClickListener
                                 }
 
-
                                 if (selectedAdmin != "Account Holder") {
                                     val query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_ADMIN_COL} = ?"
                                     val db = dbHandler.readableDatabase
@@ -475,9 +488,7 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                                 }
 
 
-
                                 if (selectedAdmin == "Account Holder") {
-
                                     val update: Boolean = dbHandler.editAccountHolder(mContext,
                                             accountHolderModelPosition.accountHoldersID.toString().toInt(),
                                             etFullNameName.text.toString(),
@@ -575,20 +586,17 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
                                                 }
                                             }
                                             .show()
-
                                 }
                             }
                         }
                     }
                     .show()
-
             true
         }
 
 
 
         holder.btnPosting?.setOnClickListener {
-
             val id = holder.tvID.text
             val intent = Intent(mContext, AccountDetails::class.java)
             intent.putExtra("ID", id)
@@ -628,15 +636,10 @@ class CustomAdapter(mContext: Context, private val accountHolderModel: ArrayList
     }
 
 
-
-
-
-
-
-
     override fun getItemCount(): Int {
         return accountHolderModel.size
     }
+
 
 }
 

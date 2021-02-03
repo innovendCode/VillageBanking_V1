@@ -7,15 +7,14 @@
     android:orientation="vertical"
     android:background="#FF3B99A5">
 
-
     <TextView
-        android:id="@+id/tvCashAvailable"
+        android:id="@+id/tvAvailableCash"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="5dp"
         android:text="@string/info"
         android:textColor="@color/white"
-        android:textSize="18sp" />
+        android:textSize="18sp"/>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView1"

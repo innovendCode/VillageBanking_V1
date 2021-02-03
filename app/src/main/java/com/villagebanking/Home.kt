@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.*
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment.getExternalStorageDirectory
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
@@ -13,13 +12,16 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.core.content.FileProvider
+import com.opencsv.CSVReaderHeaderAware
 import kotlinx.android.synthetic.main.dialog_payments.view.*
 import kotlinx.android.synthetic.main.home.*
 import java.io.File
 import java.io.FileOutputStream
+import java.io.FileReader
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 
 
@@ -43,6 +45,7 @@ class Home: AppCompatActivity() {
 
         getNoMembers()
         setSettingsTable()
+        getTransactions()
 
         btnForceLoan.setOnClickListener {
             Toast.makeText(this, "Long press to apply force loan", Toast.LENGTH_SHORT).show()
@@ -58,35 +61,180 @@ class Home: AppCompatActivity() {
 
 
 
+    @SuppressLint("SdCardPath")
     private fun importDB() {
+
+        val model = Model()
+
+        val reader = CSVReaderHeaderAware(FileReader("/data/data/com.villagebanking/files/Account Holders.csv"))
+
+        for (i in reader){
+
+            if (model.accountHoldersName == "Transactions"){
+
+                reader.readNext()
+                Toast.makeText(this, model.accountHoldersName, Toast.LENGTH_SHORT).show()
+            }
+
+            model.accountHoldersName = i[1]
+
+
+
+            Toast.makeText(this, model.accountHoldersName, Toast.LENGTH_SHORT).show()
+
+        }
+
+
+
+
 
     }
 
 
+    @SuppressLint("SdCardPath")
     private fun export() {
+        //generate data
+        var model = ArrayList<Model>()
+        model.clear()
+        model = dbHandler.getAccountHolders(this)
+
+            val accountHolders = StringBuffer()
+            accountHolders.append("\n")
+
+             for (i in model.indices) {
+                accountHolders.append(
+                        "${model[i].accountHoldersID}," +
+                                "${model[i].accountHoldersName}," +
+                                "${model[i].accountHoldersAdmin}," +
+                                "${model[i].accountHolderContact}," +
+                                "${model[i].accountHolderBankInfo}," +
+                                "${model[i].accountHolderPin}," +
+                                "${model[i].accountHolderPinHint}," +
+                                "${model[i].accountHoldersShare}," +
+                                "${model[i].accountHoldersLoanApp}," +
+                                "${model[i].accountHoldersCharges}," +
+                                "${model[i].accountHoldersApproved}," +
+                                "${model[i].accountHoldersAsset}," +
+                                "${model[i].accountHoldersLiability}")
+                accountHolders.append("\n")
+            }
+
+        model = dbHandler.getTransactions(this)
+
+        val transactions = StringBuffer()
+        transactions.append("\n")
+
+        for (i in model.indices) {
+            transactions.append(
+                    "${model[i].transactionID}," +
+                            "${model[i].transactionMonth}," +
+                            "${model[i].transactionShareAmount}," +
+                            "${model[i].transactionSharePayment},")
+            transactions.append("\n")
+        }
+
+
+
+
+
+        try {
+            //saving the file into device
+            val accountHoldersOut: FileOutputStream = openFileOutput("Account Holders.csv", MODE_PRIVATE)
+            accountHoldersOut.write(accountHolders.toString().toByteArray())
+            accountHoldersOut.close()
+
+            val transactionsOut: FileOutputStream = openFileOutput("Transactions.csv", MODE_PRIVATE)
+            transactionsOut.write(transactions.toString().toByteArray())
+            transactionsOut.close()
+/*
+
+            //exporting
+            val context = applicationContext
+            val fileLocation = File(filesDir, "Account Holders.csv")
+            val path: Uri = FileProvider.getUriForFile(context, "com.villagebanking.fileprovider", fileLocation)
+            val fileIntent = Intent(Intent.ACTION_SEND)
+            fileIntent.type = "message/rfc822"
+            fileIntent.putExtra(Intent.EXTRA_SUBJECT, "Village Banking Backup")
+            fileIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            fileIntent.putExtra(Intent.EXTRA_STREAM, path)
+            startActivity(Intent.createChooser(fileIntent,"Google Drive Backup"))
+
+*/
+
+            //exporting
+            val context = applicationContext
+            val fileLocation = File(filesDir, "Account Holders.csv")
+            val path: Uri = FileProvider.getUriForFile(context, "com.villagebanking.fileprovider", fileLocation)
+            val fileIntent = Intent(Intent.ACTION_SEND_MULTIPLE)
+            fileIntent.type = "message/rfc822"
+            fileIntent.putExtra(Intent.EXTRA_SUBJECT, "Village Banking Backup")
+            fileIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            fileIntent.putExtra(Intent.EXTRA_STREAM, path)
+            startActivity(Intent.createChooser(fileIntent,"Google Drive Backup"))
+
+
+
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+    }
+
+
+
+
+
+
+
+
+    private fun exportDB() {
+
         //generate data
 
         var recordList = ArrayList<Model>()
         recordList.clear()
         recordList = dbHandler.getAccountHolders(this)
 
-            val accountHolders = StringBuffer()
-            for (i in recordList.indices) {
-                accountHolders.append(""+ recordList[i].accountHoldersID)
-                accountHolders.append(""+ recordList[i].accountHoldersName)
-                accountHolders.append(""+ recordList[i].accountHoldersAdmin)
-                accountHolders.append(""+ recordList[i].accountHolderContact)
-                accountHolders.append(""+ recordList[i].accountHolderBankInfo)
-                accountHolders.append(""+ recordList[i].accountHolderPin)
-                accountHolders.append(""+ recordList[i].accountHolderPinHint)
-                accountHolders.append(""+ recordList[i].accountHoldersShare)
-                accountHolders.append(""+ recordList[i].accountHoldersLoanApp)
-                accountHolders.append(""+ recordList[i].accountHoldersCharges)
-                accountHolders.append(""+ recordList[i].accountHoldersApproved)
-                accountHolders.append(""+ recordList[i].accountHoldersAsset)
-                accountHolders.append(""+ recordList[i].accountHoldersLiability)
-                accountHolders.append("\n")
-            }
+        val accountHolders = StringBuffer()
+
+        val account = StringBuffer()
+
+        for (i in recordList.indices) {
+            accountHolders.append("${recordList[i].accountHoldersID}," +
+                    "${recordList[i].accountHoldersName}," +
+                    "${recordList[i].accountHoldersAdmin}," +
+                    "${recordList[i].accountHolderContact}," +
+                    "${recordList[i].accountHolderBankInfo}," +
+                    "${recordList[i].accountHolderPin}," +
+                    "${recordList[i].accountHolderPinHint}," +
+                    "${recordList[i].accountHoldersShare}," +
+                    "${recordList[i].accountHoldersLoanApp}," +
+                    "${recordList[i].accountHoldersCharges}," +
+                    "${recordList[i].accountHoldersApproved}," +
+                    "${recordList[i].accountHoldersAsset}," +
+                    "${recordList[i].accountHoldersLiability}")
+            accountHolders.append("\n")
+        }
+
+
+        for (i in recordList.indices) {
+            account.append("${recordList[i].accountHoldersID}," +
+                    "${recordList[i].accountHoldersName}," +
+                    "${recordList[i].accountHoldersAdmin}," +
+                    "${recordList[i].accountHolderContact}," +
+                    "${recordList[i].accountHolderBankInfo}," +
+                    "${recordList[i].accountHolderPin}," +
+                    "${recordList[i].accountHolderPinHint}," +
+                    "${recordList[i].accountHoldersShare}," +
+                    "${recordList[i].accountHoldersLoanApp}," +
+                    "${recordList[i].accountHoldersCharges}," +
+                    "${recordList[i].accountHoldersApproved}," +
+                    "${recordList[i].accountHoldersAsset}," +
+                    "${recordList[i].accountHoldersLiability}")
+            account.append("\n")
+        }
+
 
 
         try {
@@ -94,6 +242,11 @@ class Home: AppCompatActivity() {
             val out: FileOutputStream = openFileOutput("Account Holders.csv", MODE_PRIVATE)
             out.write(accountHolders.toString().toByteArray())
             out.close()
+
+            //saving the file into device
+            val out2: FileOutputStream = openFileOutput("Account.csv", MODE_PRIVATE)
+            out2.write(account.toString().toByteArray())
+            out2.close()
 
             //exporting
             val context = applicationContext
@@ -108,49 +261,6 @@ class Home: AppCompatActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-    }
-
-
-
-
-
-
-    private fun exportDB() {
-
-/*        var recordList = ArrayList<Model>()
-        recordList.clear()
-        recordList = dbHandler.getAccountHolders(this)
-
-        try {
-
-            val buffer = StringBuffer()
-
-            for (i in recordList.indices) {
-                buffer.append(""+ recordList[i].accountHoldersID)
-                buffer.append(""+ recordList[i].accountHoldersName)
-                buffer.append(""+ recordList[i].accountHoldersAdmin)
-                buffer.append(""+ recordList[i].accountHolderContact)
-                buffer.append(""+ recordList[i].accountHolderBankInfo)
-                buffer.append(""+ recordList[i].accountHolderPin)
-                buffer.append(""+ recordList[i].accountHolderPinHint)
-                buffer.append(""+ recordList[i].accountHoldersShare)
-                buffer.append(""+ recordList[i].accountHoldersLoanApp)
-                buffer.append(""+ recordList[i].accountHoldersCharges)
-                buffer.append(""+ recordList[i].accountHoldersApproved)
-                buffer.append(""+ recordList[i].accountHoldersAsset)
-                buffer.append(""+ recordList[i].accountHoldersLiability)
-                buffer.append("\n")
-            }
-
-            AlertDialog.Builder(this)
-                    .setMessage(buffer.toString())
-                    .show()
-
-
-            Toast.makeText(this, "Backup exported", Toast.LENGTH_SHORT).show()
-        }catch (e: Exception){
-            Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
-        }*/
 
     }
 

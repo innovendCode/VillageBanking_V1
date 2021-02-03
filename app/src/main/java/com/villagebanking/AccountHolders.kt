@@ -6,11 +6,9 @@ import android.content.Context
 import android.content.DialogInterface
 import android.os.Build
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuItem
-import android.view.View
+import android.view.*
 import android.widget.*
+import androidx.appcompat.widget.SearchView
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -32,6 +30,7 @@ import java.math.RoundingMode
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.roundToLong
 
 class AccountHolders: AppCompatActivity() {
@@ -40,6 +39,8 @@ class AccountHolders: AppCompatActivity() {
         lateinit var dbHandler: DBHandler
     }
 
+
+
     //Format date to day Month Year
     //Get date to insert
     val date = Calendar.getInstance().time
@@ -47,6 +48,7 @@ class AccountHolders: AppCompatActivity() {
     val dateFormat: DateFormat = SimpleDateFormat.getDateInstance()
     @RequiresApi(Build.VERSION_CODES.N)
     val transactionDate: String = dateFormat.format(date)
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,6 +67,7 @@ class AccountHolders: AppCompatActivity() {
         availableCash()
         getLiabilities()
         firstTime()
+
     }
 
 
@@ -86,8 +89,128 @@ class AccountHolders: AppCompatActivity() {
         if (menu is MenuBuilder) {
             menu.setOptionalIconsVisible(true)
         }
+
+
+
+        val menuItem = menu!!.findItem(R.id.searchName)
+        val searchview = menuItem.actionView as SearchView
+
+        searchview.maxWidth = Int.MAX_VALUE
+
+        searchview.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(newText: String?): Boolean {
+
+                val query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = ?"
+                val db = dbHandler.readableDatabase
+                val cursor = db.rawQuery(query, arrayOf(searchview.toString()))
+                val searchModel = ArrayList<Model>()
+                if(cursor.count == 0)
+                    Toast.makeText(this@AccountHolders, searchview.toString(), Toast.LENGTH_SHORT).show() else
+                {while (cursor.moveToNext()){
+                    val search = Model()
+                    search.accountHoldersID = cursor.getInt(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ID_COL))
+                    search.accountHoldersName = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_NAME_COL))
+                    search.accountHoldersAdmin = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ADMIN_COL))
+                    search.accountHoldersShare = cursor.getInt(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_SHARE_COL))
+                    search.accountHoldersLoanApp = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL))
+                    search.accountHolderBankInfo = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL))
+                    search.accountHolderContact = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CONTACT_COL))
+                    search.accountHoldersCharges = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
+                    search.accountHoldersApproved = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL))
+                    search.accountHoldersAsset = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ASSET_COL))
+                    search.accountHoldersLiability = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LIABILITY_COL))
+                    searchModel.add(search)
+                }
+                }
+                cursor.close()
+                db.close()
+
+                val adapter = CustomAdapter(this@AccountHolders, searchModel)
+                val rv: RecyclerView = recyclerView1
+                rv.setHasFixedSize(true)
+                rv.layoutManager = LinearLayoutManager(this@AccountHolders, RecyclerView.VERTICAL, false) as RecyclerView.LayoutManager
+                rv.adapter = adapter
+                availableCash()
+
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+
+
+                val query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = ?"
+                val db = dbHandler.readableDatabase
+                val cursor = db.rawQuery(query, arrayOf(searchview.toString()))
+                val searchModel = ArrayList<Model>()
+                if(cursor.count == 0)
+                    Toast.makeText(this@AccountHolders, searchview.toString(), Toast.LENGTH_SHORT).show() else
+                {while (cursor.moveToNext()){
+                    val search = Model()
+                    search.accountHoldersID = cursor.getInt(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ID_COL))
+                    search.accountHoldersName = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_NAME_COL))
+                    search.accountHoldersAdmin = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ADMIN_COL))
+                    search.accountHoldersShare = cursor.getInt(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_SHARE_COL))
+                    search.accountHoldersLoanApp = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL))
+                    search.accountHolderBankInfo = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL))
+                    search.accountHolderContact = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CONTACT_COL))
+                    search.accountHoldersCharges = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
+                    search.accountHoldersApproved = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL))
+                    search.accountHoldersAsset = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ASSET_COL))
+                    search.accountHoldersLiability = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LIABILITY_COL))
+                    searchModel.add(search)
+                }
+                }
+                cursor.close()
+                db.close()
+
+                val adapter = CustomAdapter(this@AccountHolders, searchModel)
+                val rv: RecyclerView = recyclerView1
+                rv.setHasFixedSize(true)
+                rv.layoutManager = LinearLayoutManager(this@AccountHolders, RecyclerView.VERTICAL, false) as RecyclerView.LayoutManager
+                rv.adapter = adapter
+                availableCash()
+
+                return true
+            }
+
+        })
         return true
     }
+
+
+
+    fun searched(menu: Menu?): ArrayList<Model>{
+
+        val menuItem = menu!!.findItem(R.id.searchName)
+        val searchName = menuItem.actionView as SearchView
+
+        val query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = ?"
+        val db = dbHandler.readableDatabase
+        val cursor = db.rawQuery(query, arrayOf(searchName.toString()))
+        val searchModel = ArrayList<Model>()
+        if(cursor.count == 0)
+            Toast.makeText(this, searchName.toString(), Toast.LENGTH_SHORT).show() else
+        {while (cursor.moveToNext()){
+            val search = Model()
+            search.accountHoldersID = cursor.getInt(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ID_COL))
+            search.accountHoldersName = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_NAME_COL))
+            search.accountHoldersAdmin = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ADMIN_COL))
+            search.accountHoldersShare = cursor.getInt(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_SHARE_COL))
+            search.accountHoldersLoanApp = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL))
+            search.accountHolderBankInfo = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL))
+            search.accountHolderContact = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CONTACT_COL))
+            search.accountHoldersCharges = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
+            search.accountHoldersApproved = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL))
+            search.accountHoldersAsset = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ASSET_COL))
+            search.accountHoldersLiability = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LIABILITY_COL))
+            searchModel.add(search)
+        }
+        }
+        cursor.close()
+        db.close()
+        return searchModel
+    }
+
 
 
 
@@ -95,11 +218,6 @@ class AccountHolders: AppCompatActivity() {
         when(item.itemId){
             R.id.addAccountHolder -> {
                 addAccountHolder(this)
-            }
-            R.id.searchName ->{
-
-
-
             }
             R.id.approve ->{
                 createMonthIfNotExists()
@@ -918,7 +1036,6 @@ class AccountHolders: AppCompatActivity() {
                     getLiabilities()
                 }
                 .setNeutralButton("Loans") {_,_->
-
                     approveLoans()
                     payLoan()
                     getLiabilities()
@@ -1192,7 +1309,17 @@ class AccountHolders: AppCompatActivity() {
     }
 
 
+    @SuppressLint("SimpleDateFormat")
     private fun availableCash(){
+        val c: Calendar = GregorianCalendar()
+        c.time = Date()
+        val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+        //println(sdf.format(c.time)) // NOW
+        val transactionMonth = (sdf.format(c.time))
+        c.add(Calendar.MONTH, -1)
+        //println(sdf.format(c.time)) // One month ago
+        val transactionLastMonth = (sdf.format(c.time))
+
         var sharePayment = 0.0
         var loanApplication = 0.0
         var loanPayout = 0.0
@@ -1211,8 +1338,10 @@ class AccountHolders: AppCompatActivity() {
             chargePayment += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL))
         }
 
-        val availableCash ="Avail Balance: ${(sharePayment + loanRepayment + chargePayment - loanPayout).roundToLong()*10.00/10.00}"
-        tvCashAvailable.text = availableCash
+
+        val availableCash ="Avail Balance: ${BigDecimal(sharePayment + loanRepayment + chargePayment - loanPayout).setScale(2, RoundingMode.HALF_EVEN)}"
+
+        tvAvailableCash.text = availableCash
         cursor.close()
     }
 

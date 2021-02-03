@@ -89,7 +89,6 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
         holder.tvTransactionChargePayment.text = BigDecimal(transactionsModelPosition.transactionChargePayment).setScale(2, RoundingMode.HALF_EVEN).toString()
         holder.tvTransactionChargePaymentDate.text = transactionsModelPosition.transactionChargePaymentDate
 
-
         val c: Calendar = GregorianCalendar()
         c.time = Date()
         val sdf = java.text.SimpleDateFormat("MMMM yyyy")
@@ -105,9 +104,12 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
         val dateFormat: DateFormat = SimpleDateFormat.getDateInstance()
         val transactionDate: String = dateFormat.format(date)
 
+        var totalShareSubmitted = 0.0
         var totalSharePayment = 0.0
+        var totalLoanSubmitted = 0.0
         var totalLoanPayout = 0.0
         var totalLoanRepayment = 0.0
+        var totalChargeSubmitted = 0.0
         var totalChargePayment = 0.0
         var availableCash  = 0.0
 
@@ -122,8 +124,29 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
             totalLoanPayout += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
         }
 
-        availableCash = totalSharePayment + totalLoanRepayment + totalChargePayment - totalLoanPayout
 
+        var previousLoanPayouts = 0.0
+
+        query = "SELECT * FROM ${DBHandler.TRANSACTION_TABLE} WHERE ${DBHandler.TRANSACTION_MONTH_COL} != ?"
+        db = Home.dbHandler.readableDatabase
+        cursor = db.rawQuery(query, arrayOf(transactionMonth))
+        while (cursor.moveToNext()) {
+            previousLoanPayouts += cursor.getDouble(cursor.getColumnIndex(DBHandler.TRANSACTION_LOAN_PAYMENT_COL))
+        }
+
+
+        query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
+        db = Home.dbHandler.readableDatabase
+        cursor = db.rawQuery(query, null)
+        while (cursor.moveToNext()) {
+            totalShareSubmitted += cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_SHARE_COL))
+            totalLoanSubmitted += cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL))
+            totalChargeSubmitted += cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
+        }
+
+
+        val virtualBalance = totalSharePayment + totalLoanRepayment + totalChargePayment - totalLoanSubmitted - previousLoanPayouts
+        availableCash = totalSharePayment + totalLoanRepayment + totalChargePayment - totalLoanPayout
 
 
 
@@ -155,7 +178,6 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
 
 
 
-
         holder.itemView.setOnLongClickListener{
 
             val c: Calendar = GregorianCalendar()
@@ -172,6 +194,21 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
                         .setMessage("Delete $transactionMonth transactions?")
                         .setNegativeButton("No") {_,_->}
                         .setPositiveButton("Yes") {_,_->
+
+
+                            if (virtualBalance < transactionsModelPosition.transactionSharePayment - transactionsModelPosition.transactionLoanPayment){
+                                AlertDialog.Builder(mContext2)
+                                        .setTitle("Insufficient funds: ${transactionsModelPosition.transactionSharePayment - transactionsModelPosition.transactionLoanPayment}")
+                                        .setMessage("Insufficient cash to refund${transactionsModelPosition.transactionName}.\n\n" +
+                                                "To resolve this deficit, return loan applications amounting to" +
+                                                " ${transactionsModelPosition.transactionSharePayment - transactionsModelPosition.transactionLoanPayment}.")
+                                        .setNegativeButton("Got it") {_,_->}
+                                        .show()
+                                return@setPositiveButton
+                            }
+
+
+
 
                             //Zero Share Payment
                             val zeroShare : Boolean = dbHandler.sharePayment(mContext2, transactionsModelPosition.transactionID,
@@ -298,8 +335,8 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
 
         holder.btnSharePayment.setOnLongClickListener {
 
-            if (transactionsModelPosition.transactionSharePayment > availableCash){
-                Toast.makeText(mContext2, "Insufficient cash for a refund", Toast.LENGTH_SHORT).show()
+            if (transactionsModelPosition.transactionSharePayment > virtualBalance){
+                Toast.makeText(mContext2, "Insufficient cash for a refund. Check Loan Applications", Toast.LENGTH_SHORT).show()
                 return@setOnLongClickListener true
             }
 

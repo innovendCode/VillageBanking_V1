@@ -274,7 +274,7 @@ class AccountDetails : AppCompatActivity() {
         transactionModel.statementsShareAmount = shareValue * share
         transactionModel.statementsLoan = BigDecimal(loan).setScale(2, RoundingMode.HALF_EVEN).toDouble()
         transactionModel.statementsCharge = BigDecimal(charge).setScale(2, RoundingMode.HALF_EVEN).toDouble()
-        dbHandler.getStatementApproveMember(this, transactionModel)
+        dbHandler.getStatements(this, transactionModel)
 
     }
 
@@ -282,6 +282,14 @@ class AccountDetails : AppCompatActivity() {
 
      @SuppressLint("SimpleDateFormat")
      private fun updateMonth(){
+
+         val c: Calendar = GregorianCalendar()
+         c.time = Date()
+         val sdf = java.text.SimpleDateFormat("MMMM yyyy")
+         val stf = java.text.SimpleDateFormat("kk:mm")
+         //println(sdf.format(c.time)) // NOW
+         val transactionMonth = (sdf.format(c.time))
+         val currentTime = (stf.format(c.time))
 
         val name = tvDetailsName.text
         var share = 0
@@ -297,24 +305,13 @@ class AccountDetails : AppCompatActivity() {
         }
 
         query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = ?"
-        db = dbHandler.readableDatabase
         cursor =  db.rawQuery(query, arrayOf(name.toString()))
         if(cursor.moveToFirst()){
             share = cursor.getInt(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_SHARE_COL))
             loan = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL))
             charge = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
         }
-        cursor.close()
-        db.close()
 
-
-         val c: Calendar = GregorianCalendar()
-         c.time = Date()
-         val sdf = java.text.SimpleDateFormat("MMMM yyyy")
-         val stf = java.text.SimpleDateFormat("kk:mm")
-         //println(sdf.format(c.time)) // NOW
-         val transactionMonth = (sdf.format(c.time))
-         val currentTime = (stf.format(c.time))
 
         val transactionModel = Model()
         transactionModel.transactionName = name.toString()
@@ -334,7 +331,10 @@ class AccountDetails : AppCompatActivity() {
         transactionModel.statementsShareAmount = BigDecimal(shareValue * share).setScale(2, RoundingMode.HALF_EVEN).toDouble()
         transactionModel.statementsLoan = BigDecimal(loan).setScale(2, RoundingMode.HALF_EVEN).toDouble()
         transactionModel.statementsCharge = BigDecimal(charge).setScale(2, RoundingMode.HALF_EVEN).toDouble()
-        dbHandler.getStatementApproveMember(this, transactionModel)
+        dbHandler.getStatements(this, transactionModel)
+
+         cursor.close()
+         db.close()
     }
 
 

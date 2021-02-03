@@ -194,6 +194,28 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
 
 
+
+    fun getTransactions(mContext: Context): ArrayList<Model>{
+        val query = "SELECT * FROM $TRANSACTION_TABLE"
+        val db = this.readableDatabase
+        val cursor = db.rawQuery(query, null)
+        val accountHolderModel = ArrayList<Model>()
+        while (cursor.moveToNext()){
+            val accountHolders = Model()
+            accountHolders.transactionID = cursor.getInt(cursor.getColumnIndex(TRANSACTION_ID_COL))
+            accountHolders.transactionMonth = cursor.getString(cursor.getColumnIndex(TRANSACTION_MONTH_COL))
+            accountHolders.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(TRANSACTION_SHARE_AMOUNT_COL))
+            accountHolders.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(TRANSACTION_SHARE_PAYMENT_COL))
+
+            accountHolderModel.add(accountHolders)
+        }
+        cursor.close()
+        db.close()
+        return accountHolderModel
+    }
+
+
+
     fun getAccountAdmins(mContext: Context): ArrayList<Model>{
         val query = "SELECT * FROM $ACCOUNT_HOLDERS_TABLE WHERE $ACCOUNT_HOLDERS_ADMIN_COL != ?"
         val db = this.readableDatabase
@@ -499,7 +521,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
 
 
 
-    fun getStatementApproveMember(mContext: Context, statements: Model){
+    fun getStatements(mContext: Context, statements: Model){
         val contentValues = ContentValues()
         contentValues.put(STATEMENT_MONTH, statements.statementsMonth)
         contentValues.put(STATEMENT_DATE, statements.statementsDate)
