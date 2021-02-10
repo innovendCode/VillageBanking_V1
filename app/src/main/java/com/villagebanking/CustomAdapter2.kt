@@ -100,9 +100,9 @@ class CustomAdapter2(mContext2: Context, private val transactionsModel: ArrayLis
         val transactionLastMonth = (sdf.format(c.time))
         val currentTime = (stf.format(c.time))
 
-        val date = Calendar.getInstance().time
-        val dateFormat: DateFormat = SimpleDateFormat.getDateInstance()
-        val transactionDate: String = dateFormat.format(date)
+        @SuppressLint("SimpleDateFormat")
+        val sdf2 = SimpleDateFormat("dd MMM yyyy")
+        val transactionDate: String = sdf2.format(Date())
 
         var totalShareSubmitted = 0.0
         var totalSharePayment = 0.0

@@ -42,11 +42,11 @@ class AccountHolders: AppCompatActivity() {
 
     //Format date to day Month Year
     //Get date to insert
-    val date = Calendar.getInstance().time
+    @SuppressLint("SimpleDateFormat")
     @RequiresApi(Build.VERSION_CODES.N)
-    val dateFormat: DateFormat = SimpleDateFormat.getDateInstance()
+    val sdf = android.icu.text.SimpleDateFormat("dd MMM yyyy")
     @RequiresApi(Build.VERSION_CODES.N)
-    val transactionDate: String = dateFormat.format(date)
+    val transactionDate: String = sdf.format(Date())
 
 
 

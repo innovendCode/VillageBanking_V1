@@ -2,12 +2,16 @@ package com.villagebanking
 
 import android.annotation.SuppressLint
 import android.content.*
+import android.icu.text.DateFormat
+import android.icu.text.SimpleDateFormat
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
@@ -34,6 +38,7 @@ class Home: AppCompatActivity() {
 
 
 
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home)
@@ -62,12 +67,17 @@ class Home: AppCompatActivity() {
 
 
 
+    @SuppressLint("SimpleDateFormat")
+    @RequiresApi(Build.VERSION_CODES.N)
     fun test(){
         btTest.setOnClickListener{
 
-            val folder = filesDir
-            val f = File(folder, "Backup")
-            f.mkdir()
+
+
+
+            val sdf = SimpleDateFormat("dd MMM yyyy")
+            val transactionDate = sdf.format(Date())
+
 
 
         }
@@ -87,10 +97,9 @@ class Home: AppCompatActivity() {
 
         for (i in reader){
 
-            var accountHoldersTable = i[1]
+            var table = i[1]
 
-            if (accountHoldersTable == "Account Holders Table") {
-
+            if (table == "Account Holders") {
 
                 val accountHoldersName = i[2]
                 val accountHoldersAdmin = i[3]
@@ -120,10 +129,61 @@ class Home: AppCompatActivity() {
 
                 db.insert(DBHandler.ACCOUNT_HOLDERS_TABLE, null, contentValues)
 
-
                 Toast.makeText(this, "Accounts Backup", Toast.LENGTH_SHORT).show()
-
             }
+
+
+            if (table == "Transactions") {
+
+                val transactionName = i[2]
+                val transactionMonth = i[3]
+                val transactionShare = i[4]
+                val transactionShareAmount = i[5]
+                val transactionSharePayment = i[6]
+                val transactionShareDate = i[7]
+                val transactionLoanApp = i[8]
+                val transactionLoanPayment = i[9]
+                val transactionLoanPaymentDate = i[10]
+                val transactionLoanToRepay = i[11]
+                val transactionLoanRepayment = i[12]
+                val transactionLoanRepaymentDate = i[13]
+                val transactionChargeName = i[14]
+                val transactionCharge = i[15]
+                val transactionChargePayment = i[16]
+                val transactionChargePaymentDate = i[17]
+                val transactionInterest = i[18]
+                val transactionShareOut = i[19]
+                val transactionArrears = i[20]
+
+                val contentValues2 = ContentValues()
+                contentValues2.put(DBHandler.TRANSACTION_NAME_COL, transactionName)
+                contentValues2.put(DBHandler.TRANSACTION_MONTH_COL, transactionMonth)
+                contentValues2.put(DBHandler.TRANSACTION_SHARE_COL, transactionShare)
+                contentValues2.put(DBHandler.TRANSACTION_SHARE_AMOUNT_COL, transactionShareAmount)
+                contentValues2.put(DBHandler.TRANSACTION_SHARE_PAYMENT_COL, transactionSharePayment)
+                contentValues2.put(DBHandler.TRANSACTION_SHARE_DATE_COL, transactionShareDate)
+                contentValues2.put(DBHandler.TRANSACTION_LOAN_APP_COL, transactionLoanApp)
+                contentValues2.put(DBHandler.TRANSACTION_LOAN_PAYMENT_COL, transactionLoanPayment)
+                contentValues2.put(DBHandler.TRANSACTION_LOAN_PAYMENT_DATE_COL, transactionLoanPaymentDate)
+                contentValues2.put(DBHandler.TRANSACTION_LOAN_TO_REPAY_COL, transactionLoanToRepay)
+                contentValues2.put(DBHandler.TRANSACTION_LOAN_REPAYMENT_COL, transactionLoanRepayment)
+                contentValues2.put(DBHandler.TRANSACTION_LOAN_REPAYMENT_DATE_COL, transactionLoanRepaymentDate)
+                contentValues2.put(DBHandler.TRANSACTION_CHARGE_NAME_COL, transactionChargeName)
+                contentValues2.put(DBHandler.TRANSACTION_CHARGE_COL, transactionCharge)
+                contentValues2.put(DBHandler.TRANSACTION_CHARGE_PAYMENT_COL, transactionChargePayment)
+                contentValues2.put(DBHandler.TRANSACTION_CHARGE_DATE_COL, transactionChargePaymentDate)
+                contentValues2.put(DBHandler.TRANSACTION_INTEREST_COL, transactionInterest)
+                contentValues2.put(DBHandler.TRANSACTION_SHARE_OUT_COL, transactionShareOut)
+                contentValues2.put(DBHandler.TRANSACTION_ARREARS_COL, transactionArrears)
+
+                db.insert(DBHandler.TRANSACTION_TABLE, null, contentValues2)
+
+                Toast.makeText(this, "Transaction Backup", Toast.LENGTH_SHORT).show()
+            }
+
+
+
+
         }
 
 
@@ -163,12 +223,12 @@ class Home: AppCompatActivity() {
 
         model = dbHandler.getTransactions(this)
 
-        backup.append("\n")
+       //backup.append("\n")
 
         for (i in model.indices) {
             backup.append(
-                            "Transaction Table," +
                             "${model[i].transactionID}," +
+                            "Transactions," +
                             "${model[i].transactionName}," +
                             "${model[i].transactionMonth}," +
                             "${model[i].transactionShares}," +
