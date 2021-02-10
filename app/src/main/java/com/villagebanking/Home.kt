@@ -56,34 +56,75 @@ class Home: AppCompatActivity() {
             true
         }
 
+        test()
+
     }
 
+
+
+    fun test(){
+        btTest.setOnClickListener{
+
+            val folder = filesDir
+            val f = File(folder, "Backup")
+            f.mkdir()
+
+
+        }
+    }
 
 
 
     @SuppressLint("SdCardPath")
     private fun importDB() {
 
-        val model = Model()
+        val contentValues = ContentValues()
+        val db = dbHandler.writableDatabase
 
-        val reader = CSVReaderHeaderAware(FileReader("/data/data/com.villagebanking/files/Account Holders.csv"))
+        val reader = CSVReaderHeaderAware(FileReader("/data/data/com.villagebanking/files/Database.csv"))
+
+
 
         for (i in reader){
 
-            if (model.accountHoldersName == "Transactions"){
+            var accountHoldersTable = i[1]
 
-                reader.readNext()
-                Toast.makeText(this, model.accountHoldersName, Toast.LENGTH_SHORT).show()
+            if (accountHoldersTable == "Account Holders Table") {
+
+
+                val accountHoldersName = i[2]
+                val accountHoldersAdmin = i[3]
+                val accountHoldersContact = i[4]
+                val accountHoldersBankInfo = i[5]
+                val accountHoldersPin = i[6]
+                val accountHoldersPinHint = i[7]
+                val accountHoldersShares = i[8]
+                val accountHoldersLoanApp = i[9]
+                val accountHoldersCharges = i[10]
+                val accountHoldersArrears = i[11]
+                val accountHoldersAsset = i[12]
+                val accountHoldersLiabilities = i[13]
+
+                contentValues.put(DBHandler.ACCOUNT_HOLDERS_NAME_COL, accountHoldersName)
+                contentValues.put(DBHandler.ACCOUNT_HOLDERS_ADMIN_COL, accountHoldersAdmin)
+                contentValues.put(DBHandler.ACCOUNT_HOLDERS_CONTACT_COL, accountHoldersContact)
+                contentValues.put(DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL, accountHoldersBankInfo)
+                contentValues.put(DBHandler.ACCOUNT_HOLDERS_PIN_COL, accountHoldersPin)
+                contentValues.put(DBHandler.ACCOUNT_HOLDERS_PIN_HINT_COL, accountHoldersPinHint)
+                contentValues.put(DBHandler.ACCOUNT_HOLDERS_SHARE_COL, accountHoldersShares)
+                contentValues.put(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL, accountHoldersLoanApp)
+                contentValues.put(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL, accountHoldersCharges)
+                contentValues.put(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL, accountHoldersArrears)
+                contentValues.put(DBHandler.ACCOUNT_HOLDERS_ASSET_COL, accountHoldersAsset)
+                contentValues.put(DBHandler.ACCOUNT_HOLDERS_LIABILITY_COL, accountHoldersLiabilities)
+
+                db.insert(DBHandler.ACCOUNT_HOLDERS_TABLE, null, contentValues)
+
+
+                Toast.makeText(this, "Accounts Backup", Toast.LENGTH_SHORT).show()
+
             }
-
-            model.accountHoldersName = i[1]
-
-
-
-            Toast.makeText(this, model.accountHoldersName, Toast.LENGTH_SHORT).show()
-
         }
-
 
 
 
@@ -98,12 +139,13 @@ class Home: AppCompatActivity() {
         model.clear()
         model = dbHandler.getAccountHolders(this)
 
-            val accountHolders = StringBuffer()
-            accountHolders.append("\n")
+        val backup = StringBuffer()
+        backup.append("\n")
 
              for (i in model.indices) {
-                accountHolders.append(
-                        "${model[i].accountHoldersID}," +
+                backup.append(
+                                "${model[i].accountHoldersID}," +
+                                "Account Holders," +
                                 "${model[i].accountHoldersName}," +
                                 "${model[i].accountHoldersAdmin}," +
                                 "${model[i].accountHolderContact}," +
@@ -113,24 +155,40 @@ class Home: AppCompatActivity() {
                                 "${model[i].accountHoldersShare}," +
                                 "${model[i].accountHoldersLoanApp}," +
                                 "${model[i].accountHoldersCharges}," +
-                                "${model[i].accountHoldersApproved}," +
+                                "${model[i].accountHoldersArrears}," +
                                 "${model[i].accountHoldersAsset}," +
                                 "${model[i].accountHoldersLiability}")
-                accountHolders.append("\n")
+                backup.append("\n")
             }
 
         model = dbHandler.getTransactions(this)
 
-        val transactions = StringBuffer()
-        transactions.append("\n")
+        backup.append("\n")
 
         for (i in model.indices) {
-            transactions.append(
-                    "${model[i].transactionID}," +
+            backup.append(
+                            "Transaction Table," +
+                            "${model[i].transactionID}," +
+                            "${model[i].transactionName}," +
                             "${model[i].transactionMonth}," +
+                            "${model[i].transactionShares}," +
                             "${model[i].transactionShareAmount}," +
-                            "${model[i].transactionSharePayment},")
-            transactions.append("\n")
+                            "${model[i].transactionSharePayment}," +
+                            "${model[i].transactionShareDate}," +
+                            "${model[i].transactionLoanApp}," +
+                            "${model[i].transactionLoanPayment}," +
+                            "${model[i].transactionLoanPaymentDate}," +
+                            "${model[i].transactionLoanToRepay}," +
+                            "${model[i].transactionLoanRepayment}," +
+                            "${model[i].transactionLoanRepaymentDate}," +
+                            "${model[i].transactionChargeName}," +
+                            "${model[i].transactionCharge}," +
+                            "${model[i].transactionChargePayment}," +
+                            "${model[i].transactionChargePaymentDate}," +
+                            "${model[i].transactionInterest}," +
+                            "${model[i].transactionShareOut}," +
+                            "${model[i].transactionArrears},")
+            backup.append("\n")
         }
 
 
@@ -139,16 +197,16 @@ class Home: AppCompatActivity() {
 
         try {
             //saving the file into device
-            val accountHoldersOut: FileOutputStream = openFileOutput("Account Holders.csv", MODE_PRIVATE)
-            accountHoldersOut.write(accountHolders.toString().toByteArray())
+            val accountHoldersOut: FileOutputStream = openFileOutput("Database.csv", MODE_PRIVATE)
+            accountHoldersOut.write(backup.toString().toByteArray())
             accountHoldersOut.close()
 
-            val transactionsOut: FileOutputStream = openFileOutput("Transactions.csv", MODE_PRIVATE)
+/*            val transactionsOut: FileOutputStream = openFileOutput("Transactions.csv", MODE_PRIVATE)
             transactionsOut.write(transactions.toString().toByteArray())
-            transactionsOut.close()
-/*
+            transactionsOut.close()*/
 
             //exporting
+/*
             val context = applicationContext
             val fileLocation = File(filesDir, "Account Holders.csv")
             val path: Uri = FileProvider.getUriForFile(context, "com.villagebanking.fileprovider", fileLocation)
@@ -158,15 +216,16 @@ class Home: AppCompatActivity() {
             fileIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             fileIntent.putExtra(Intent.EXTRA_STREAM, path)
             startActivity(Intent.createChooser(fileIntent,"Google Drive Backup"))
-
 */
+
 
             //exporting
             val context = applicationContext
-            val fileLocation = File(filesDir, "Account Holders.csv")
-            val path: Uri = FileProvider.getUriForFile(context, "com.villagebanking.fileprovider", fileLocation)
+/*            val fileLocation = File(filesDir, "Account Holders.csv")
+            val path: Uri = FileProvider.getUriForFile(context, "com.villagebanking.fileprovider", fileLocation)*/
+            val path = "file://data/data/com.villagebanking/files"
             val fileIntent = Intent(Intent.ACTION_SEND_MULTIPLE)
-            fileIntent.type = "message/rfc822"
+            fileIntent.type = "text/csv"
             fileIntent.putExtra(Intent.EXTRA_SUBJECT, "Village Banking Backup")
             fileIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             fileIntent.putExtra(Intent.EXTRA_STREAM, path)
@@ -211,7 +270,7 @@ class Home: AppCompatActivity() {
                     "${recordList[i].accountHoldersShare}," +
                     "${recordList[i].accountHoldersLoanApp}," +
                     "${recordList[i].accountHoldersCharges}," +
-                    "${recordList[i].accountHoldersApproved}," +
+                    "${recordList[i].accountHoldersArrears}," +
                     "${recordList[i].accountHoldersAsset}," +
                     "${recordList[i].accountHoldersLiability}")
             accountHolders.append("\n")
@@ -229,7 +288,7 @@ class Home: AppCompatActivity() {
                     "${recordList[i].accountHoldersShare}," +
                     "${recordList[i].accountHoldersLoanApp}," +
                     "${recordList[i].accountHoldersCharges}," +
-                    "${recordList[i].accountHoldersApproved}," +
+                    "${recordList[i].accountHoldersArrears}," +
                     "${recordList[i].accountHoldersAsset}," +
                     "${recordList[i].accountHoldersLiability}")
             account.append("\n")

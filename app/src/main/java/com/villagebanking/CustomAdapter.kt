@@ -75,9 +75,9 @@ class CustomAdapter(mContext: Context, private var accountHolderModel: ArrayList
         holder.tvCharges.text = BigDecimal(accountHolderModelPosition.accountHoldersCharges).setScale(2, RoundingMode.HALF_EVEN).toString()
         holder.tvAsset.text = BigDecimal(accountHolderModelPosition.accountHoldersAsset).setScale(2, RoundingMode.HALF_EVEN).toString()
         holder.tvLiability.text = BigDecimal(accountHolderModelPosition.accountHoldersLiability).setScale(2, RoundingMode.HALF_EVEN).toString()
-        holder.tvApproved.text = accountHolderModelPosition.accountHoldersApproved
+        holder.tvApproved.text = accountHolderModelPosition.accountHoldersArrears
 
-        holder.imgClearedAll.isGone = accountHolderModel[position].accountHoldersApproved != "No Arrears"
+        holder.imgClearedAll.isGone = accountHolderModel[position].accountHoldersArrears != "No Arrears"
 
         if (holder.tvLiability.text.toString().toDouble() > -1) {
             holder.tvLiability.setTextColor(Color.parseColor("#09AA9B"))
@@ -242,7 +242,7 @@ class CustomAdapter(mContext: Context, private var accountHolderModel: ArrayList
             db.update(DBHandler.ACCOUNT_HOLDERS_TABLE, contentValues, "${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = ?",
                     arrayOf(accountHolderModel[position].accountHoldersName))
 
-            holder.imgClearedAll.isGone = accountHolderModel[position].accountHoldersApproved != "No Arrears"
+            holder.imgClearedAll.isGone = accountHolderModel[position].accountHoldersArrears != "No Arrears"
         }
 
 

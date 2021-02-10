@@ -31,7 +31,6 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.math.roundToLong
 
 class AccountHolders: AppCompatActivity() {
 
@@ -116,7 +115,7 @@ class AccountHolders: AppCompatActivity() {
                     search.accountHolderBankInfo = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL))
                     search.accountHolderContact = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CONTACT_COL))
                     search.accountHoldersCharges = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
-                    search.accountHoldersApproved = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL))
+                    search.accountHoldersArrears = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL))
                     search.accountHoldersAsset = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ASSET_COL))
                     search.accountHoldersLiability = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LIABILITY_COL))
                     searchModel.add(search)
@@ -154,7 +153,7 @@ class AccountHolders: AppCompatActivity() {
                     search.accountHolderBankInfo = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL))
                     search.accountHolderContact = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CONTACT_COL))
                     search.accountHoldersCharges = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
-                    search.accountHoldersApproved = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL))
+                    search.accountHoldersArrears = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL))
                     search.accountHoldersAsset = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ASSET_COL))
                     search.accountHoldersLiability = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LIABILITY_COL))
                     searchModel.add(search)
@@ -200,7 +199,7 @@ class AccountHolders: AppCompatActivity() {
             search.accountHolderBankInfo = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_BANK_INFO_COL))
             search.accountHolderContact = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CONTACT_COL))
             search.accountHoldersCharges = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
-            search.accountHoldersApproved = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL))
+            search.accountHoldersArrears = cursor.getString(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ARREARS_COL))
             search.accountHoldersAsset = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_ASSET_COL))
             search.accountHoldersLiability = cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LIABILITY_COL))
             searchModel.add(search)
@@ -470,7 +469,7 @@ class AccountHolders: AppCompatActivity() {
                                                     accountHolderModel.accountHolderBankInfo = addAccountHolderDialogLayout.etAccountInfo.text.toString()
                                                     accountHolderModel.accountHolderPin = insertPinDialogLayout.etInsertPIN.text.toString()
                                                     accountHolderModel.accountHolderPinHint = insertPinDialogLayout.etPinHint.text.toString()
-                                                    accountHolderModel.accountHoldersApproved = ""
+                                                    accountHolderModel.accountHoldersArrears = ""
                                                     dbHandler.addAccountHolder(yContext, accountHolderModel)
                                                     viewAccountHolders()
                                                     addAccountHolderDialogLayout.etFullNames.text.clear()

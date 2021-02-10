@@ -14,7 +14,7 @@ class Model {
     var accountHoldersShare: Int = 0
     var accountHoldersLoanApp: Double = 0.0
     var accountHoldersCharges: Double = 0.0
-    var accountHoldersApproved: String = ""
+    var accountHoldersArrears: String = ""
     var accountHoldersAsset: Double = 0.0
     var accountHoldersLiability: Double = 0.0
 
@@ -37,6 +37,7 @@ class Model {
     var transactionChargePaymentDate: String = ""
     var transactionShareOut: Double = 0.00
     var transactionInterest: Double = 0.00
+    var transactionArrears: Double = 0.00
 
     var settingsShareValue: Double = 0.00
     var settingsInterestRate: Int = 0

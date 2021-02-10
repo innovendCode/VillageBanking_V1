@@ -46,7 +46,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val TRANSACTION_LOAN_APP_COL = "loan"
         const val TRANSACTION_LOAN_PAYMENT_COL = "loan_payment"
         const val TRANSACTION_LOAN_PAYMENT_DATE_COL = "loan_payment_date"
-        const val TRANSACTION_LOAN_TO_REPAY_COL = "loan_to_repay_date"
+        const val TRANSACTION_LOAN_TO_REPAY_COL = "loan_to_repay"
         const val TRANSACTION_LOAN_REPAYMENT_COL = "loan_repayment"
         const val TRANSACTION_LOAN_REPAYMENT_DATE_COL = "loan_repayment_date"
         const val TRANSACTION_CHARGE_NAME_COL = "charge_name"
@@ -182,7 +182,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             accountHolders.accountHolderBankInfo = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_BANK_INFO_COL))
             accountHolders.accountHolderContact = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_CONTACT_COL))
             accountHolders.accountHoldersCharges = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_CHARGES_COL))
-            accountHolders.accountHoldersApproved = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ARREARS_COL))
+            accountHolders.accountHoldersArrears = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ARREARS_COL))
             accountHolders.accountHoldersAsset = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_ASSET_COL))
             accountHolders.accountHoldersLiability = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_LIABILITY_COL))
             accountHolderModel.add(accountHolders)
@@ -203,9 +203,25 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         while (cursor.moveToNext()){
             val accountHolders = Model()
             accountHolders.transactionID = cursor.getInt(cursor.getColumnIndex(TRANSACTION_ID_COL))
+            accountHolders.transactionName = cursor.getString(cursor.getColumnIndex(TRANSACTION_NAME_COL))
             accountHolders.transactionMonth = cursor.getString(cursor.getColumnIndex(TRANSACTION_MONTH_COL))
+            accountHolders.transactionShares = cursor.getInt(cursor.getColumnIndex(TRANSACTION_SHARE_COL))
             accountHolders.transactionShareAmount = cursor.getDouble(cursor.getColumnIndex(TRANSACTION_SHARE_AMOUNT_COL))
             accountHolders.transactionSharePayment = cursor.getDouble(cursor.getColumnIndex(TRANSACTION_SHARE_PAYMENT_COL))
+            accountHolders.transactionShareDate = cursor.getString(cursor.getColumnIndex(TRANSACTION_SHARE_DATE_COL))
+            accountHolders.transactionLoanApp = cursor.getDouble(cursor.getColumnIndex(TRANSACTION_LOAN_APP_COL))
+            accountHolders.transactionLoanPayment = cursor.getDouble(cursor.getColumnIndex(TRANSACTION_LOAN_PAYMENT_COL))
+            accountHolders.transactionLoanPaymentDate = cursor.getString(cursor.getColumnIndex(TRANSACTION_LOAN_PAYMENT_DATE_COL))
+            accountHolders.transactionLoanToRepay = cursor.getDouble(cursor.getColumnIndex(TRANSACTION_LOAN_TO_REPAY_COL))
+            accountHolders.transactionLoanRepayment = cursor.getDouble(cursor.getColumnIndex(TRANSACTION_LOAN_REPAYMENT_COL))
+            accountHolders.transactionLoanRepaymentDate = cursor.getString(cursor.getColumnIndex(TRANSACTION_LOAN_REPAYMENT_DATE_COL))
+            accountHolders.transactionChargeName = cursor.getString(cursor.getColumnIndex(TRANSACTION_CHARGE_NAME_COL))
+            accountHolders.transactionCharge = cursor.getDouble(cursor.getColumnIndex(TRANSACTION_CHARGE_COL))
+            accountHolders.transactionChargePayment = cursor.getDouble(cursor.getColumnIndex(TRANSACTION_CHARGE_PAYMENT_COL))
+            accountHolders.transactionChargePaymentDate = cursor.getString(cursor.getColumnIndex(TRANSACTION_CHARGE_DATE_COL))
+            accountHolders.transactionInterest = cursor.getDouble(cursor.getColumnIndex(TRANSACTION_INTEREST_COL))
+            accountHolders.transactionShareOut = cursor.getDouble(cursor.getColumnIndex(TRANSACTION_SHARE_OUT_COL))
+            accountHolders.transactionArrears = cursor.getDouble(cursor.getColumnIndex(TRANSACTION_ARREARS_COL))
 
             accountHolderModel.add(accountHolders)
         }
@@ -233,7 +249,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             accountAdmins.accountHolderBankInfo = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_BANK_INFO_COL))
             accountAdmins.accountHolderContact = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_CONTACT_COL))
             accountAdmins.accountHoldersCharges = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_CHARGES_COL))
-            accountAdmins.accountHoldersApproved = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ARREARS_COL))
+            accountAdmins.accountHoldersArrears = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ARREARS_COL))
             accountAdmins.accountHoldersAsset = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_ASSET_COL))
             accountAdmins.accountHoldersLiability = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_LIABILITY_COL))
             accountHolderModel.add(accountAdmins)
@@ -261,7 +277,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             accountAdmins.accountHolderBankInfo = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_BANK_INFO_COL))
             accountAdmins.accountHolderContact = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_CONTACT_COL))
             accountAdmins.accountHoldersCharges = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_CHARGES_COL))
-            accountAdmins.accountHoldersApproved = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ARREARS_COL))
+            accountAdmins.accountHoldersArrears = cursor.getString(cursor.getColumnIndex(ACCOUNT_HOLDERS_ARREARS_COL))
             accountAdmins.accountHoldersAsset = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_ASSET_COL))
             accountAdmins.accountHoldersLiability = cursor.getDouble(cursor.getColumnIndex(ACCOUNT_HOLDERS_LIABILITY_COL))
             accountHolderModel.add(accountAdmins)
@@ -325,7 +341,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         contentValues.put(ACCOUNT_HOLDERS_SHARE_COL, accountHolderModel.accountHoldersShare)
         contentValues.put(ACCOUNT_HOLDERS_LOAN_APP_COL, accountHolderModel.accountHoldersLoanApp)
         contentValues.put(ACCOUNT_HOLDERS_CHARGES_COL, accountHolderModel.accountHoldersCharges)
-        contentValues.put(ACCOUNT_HOLDERS_ARREARS_COL, accountHolderModel.accountHoldersApproved)
+        contentValues.put(ACCOUNT_HOLDERS_ARREARS_COL, accountHolderModel.accountHoldersArrears)
 
        db = this.writableDatabase
         try {
