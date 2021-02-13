@@ -2,7 +2,6 @@ package com.villagebanking
 
 import android.annotation.SuppressLint
 import android.content.*
-import android.icu.text.DateFormat
 import android.icu.text.SimpleDateFormat
 import android.net.Uri
 import android.os.Build
@@ -93,14 +92,16 @@ class Home: AppCompatActivity() {
 
         val reader = CSVReaderHeaderAware(FileReader("/data/data/com.villagebanking/files/Database.csv"))
 
-
+        db.delete(DBHandler.ACCOUNT_HOLDERS_TABLE, null, null)
+        db.delete(DBHandler.TRANSACTION_TABLE, null, null)
+        db.delete(DBHandler.SETTINGS_TABLE, null, null)
+        db.delete(DBHandler.STATEMENT_TABLE, null, null)
 
         for (i in reader){
 
             var table = i[1]
 
             if (table == "Account Holders") {
-
                 val accountHoldersName = i[2]
                 val accountHoldersAdmin = i[3]
                 val accountHoldersContact = i[4]
@@ -128,13 +129,11 @@ class Home: AppCompatActivity() {
                 contentValues.put(DBHandler.ACCOUNT_HOLDERS_LIABILITY_COL, accountHoldersLiabilities)
 
                 db.insert(DBHandler.ACCOUNT_HOLDERS_TABLE, null, contentValues)
-
                 Toast.makeText(this, "Accounts Backup", Toast.LENGTH_SHORT).show()
             }
 
 
             if (table == "Transactions") {
-
                 val transactionName = i[2]
                 val transactionMonth = i[3]
                 val transactionShare = i[4]
@@ -177,18 +176,53 @@ class Home: AppCompatActivity() {
                 contentValues2.put(DBHandler.TRANSACTION_ARREARS_COL, transactionArrears)
 
                 db.insert(DBHandler.TRANSACTION_TABLE, null, contentValues2)
-
                 Toast.makeText(this, "Transaction Backup", Toast.LENGTH_SHORT).show()
             }
 
+            if (table == "Settings") {
+                val settingsShareValue = i[2]
+                val settingsInterestRate = i[3]
+                val settingsNotes = i[4]
+
+                val contentValues3 = ContentValues()
+                contentValues3.put(DBHandler.SETTINGS_ID_COL, 1)
+                contentValues3.put(DBHandler.SETTINGS_SHARE_VALUE_COL, settingsShareValue)
+                contentValues3.put(DBHandler.SETTINGS_INTEREST_RATE_COL, settingsInterestRate)
+                contentValues3.put(DBHandler.SETTINGS_NOTES_COL, settingsNotes)
+
+                db.insert(DBHandler.SETTINGS_TABLE, null, contentValues3)
+                Toast.makeText(this, "Settings Backup", Toast.LENGTH_SHORT).show()
+            }
 
 
+            if (table == "Statements") {
+                val statementsMonth = i[2]
+                val statementsDate = i[3]
+                val statementsTime = i[4]
+                val statementsName = i[5]
+                val statementsAction = i[6]
+                val statementsShare = i[7]
+                val statementsShareAmount = i[8]
+                val statementsLoan = i[9]
+                val statementChargeName = i[10]
+                val statementsCharge = i[11]
 
+                val contentValues4 = ContentValues()
+                contentValues4.put(DBHandler.STATEMENT_MONTH, statementsMonth)
+                contentValues4.put(DBHandler.STATEMENT_DATE, statementsDate)
+                contentValues4.put(DBHandler.STATEMENT_TIME, statementsTime)
+                contentValues4.put(DBHandler.STATEMENT_NAME, statementsName)
+                contentValues4.put(DBHandler.STATEMENT_ACTION, statementsAction)
+                contentValues4.put(DBHandler.STATEMENT_SHARE, statementsShare)
+                contentValues4.put(DBHandler.STATEMENT_SHARE_AMOUNT, statementsShareAmount)
+                contentValues4.put(DBHandler.STATEMENT_LOAN, statementsLoan)
+                contentValues4.put(DBHandler.STATEMENT_CHARGE_NAME, statementChargeName)
+                contentValues4.put(DBHandler.STATEMENT_CHARGE, statementsCharge)
+
+                db.insert(DBHandler.STATEMENT_TABLE, null, contentValues)
+                Toast.makeText(this, "Statements Backup", Toast.LENGTH_SHORT).show()
+            }
         }
-
-
-
-
     }
 
 
@@ -223,8 +257,6 @@ class Home: AppCompatActivity() {
 
         model = dbHandler.getTransactions(this)
 
-       //backup.append("\n")
-
         for (i in model.indices) {
             backup.append(
                             "${model[i].transactionID}," +
@@ -248,6 +280,37 @@ class Home: AppCompatActivity() {
                             "${model[i].transactionInterest}," +
                             "${model[i].transactionShareOut}," +
                             "${model[i].transactionArrears},")
+            backup.append("\n")
+        }
+
+        model = dbHandler.getSettings(this)
+
+        for (i in model.indices) {
+            backup.append(
+                            "1," +
+                            "Settings," +
+                            "${model[i].settingsShareValue}," +
+                            "${model[i].settingsInterestRate}," +
+                            "${model[i].settingsNotes},")
+            backup.append("\n")
+        }
+
+        model = dbHandler.getStatements(this)
+
+        for (i in model.indices) {
+            backup.append(
+                            "${model[i].statementsID}," +
+                            "Statements," +
+                            "${model[i].statementsMonth}," +
+                            "${model[i].statementsDate}," +
+                            "${model[i].statementsTime}," +
+                            "${model[i].statementsName}," +
+                            "${model[i].statementsAction}," +
+                            "${model[i].statementsShare}," +
+                            "${model[i].statementsShareAmount}," +
+                            "${model[i].statementsLoan}," +
+                            "${model[i].statementChargeName}," +
+                            "${model[i].statementsCharge},")
             backup.append("\n")
         }
 
@@ -534,7 +597,7 @@ class Home: AppCompatActivity() {
 
 
 
-            val totalShares = "Shares: ${(sharePayment / shareValue).roundToInt()}"
+            val totalShares = "Shares: ${(sharePayment / shareValue)}"
             val totalShareAmount = "Investment: ${BigDecimal(sharePayment).setScale(2, RoundingMode.HALF_EVEN)}"
             val totalInvestment = "Return on Investment: ${BigDecimal(currentShareOut).setScale(2, RoundingMode.HALF_EVEN)}"
 

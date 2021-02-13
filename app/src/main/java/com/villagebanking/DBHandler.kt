@@ -72,14 +72,9 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         const val STATEMENT_ACTION = "action"
         const val STATEMENT_SHARE = "st_share"
         const val STATEMENT_SHARE_AMOUNT = "st_share_amount"
-        const val STATEMENT_SHARE_PAYMENT = "st_share_payment"
         const val STATEMENT_LOAN = "st_loan_application"
-        const val STATEMENT_LOAN_PAYMENT = "st_loan_payment"
-        const val STATEMENT_LOAN_REPAYMENT = "st_loan_repayment"
         const val STATEMENT_CHARGE_NAME = "st_charge_name"
         const val STATEMENT_CHARGE = "st_charge"
-        const val STATEMENT_CHARGE_PAYMENT = "st_charge_payment"
-
     }
 
 
@@ -138,16 +133,9 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
                 "$STATEMENT_ACTION TEXT, " +
                 "$STATEMENT_SHARE DOUBLE, " +
                 "$STATEMENT_SHARE_AMOUNT DOUBLE, " +
-                "$STATEMENT_SHARE_PAYMENT DOUBLE, " +
                 "$STATEMENT_LOAN DOUBLE, " +
-                "$STATEMENT_LOAN_PAYMENT DOUBLE, " +
-                "$STATEMENT_LOAN_REPAYMENT DOUBLE, " +
                 "$STATEMENT_CHARGE_NAME TEXT, " +
-                "$STATEMENT_CHARGE DOUBLE, " +
-                "$STATEMENT_CHARGE_PAYMENT DOUBLE)")
-
-
-
+                "$STATEMENT_CHARGE DOUBLE)")
 
         db?.execSQL(createAccountHoldersTable)
         db?.execSQL(createTransactionTable)
@@ -215,7 +203,7 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
             accountHolders.transactionLoanToRepay = cursor.getDouble(cursor.getColumnIndex(TRANSACTION_LOAN_TO_REPAY_COL))
             accountHolders.transactionLoanRepayment = cursor.getDouble(cursor.getColumnIndex(TRANSACTION_LOAN_REPAYMENT_COL))
             accountHolders.transactionLoanRepaymentDate = cursor.getString(cursor.getColumnIndex(TRANSACTION_LOAN_REPAYMENT_DATE_COL))
-            accountHolders.transactionChargeName = cursor.getString(cursor.getColumnIndex(TRANSACTION_CHARGE_NAME_COL))
+            //accountHolders.transactionChargeName = cursor.getString(cursor.getColumnIndex(TRANSACTION_CHARGE_NAME_COL))
             accountHolders.transactionCharge = cursor.getDouble(cursor.getColumnIndex(TRANSACTION_CHARGE_COL))
             accountHolders.transactionChargePayment = cursor.getDouble(cursor.getColumnIndex(TRANSACTION_CHARGE_PAYMENT_COL))
             accountHolders.transactionChargePaymentDate = cursor.getString(cursor.getColumnIndex(TRANSACTION_CHARGE_DATE_COL))
@@ -230,6 +218,49 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         return accountHolderModel
     }
 
+
+    fun getSettings(mContext: Context): ArrayList<Model>{
+        val query = "SELECT * FROM $SETTINGS_TABLE"
+        val db = this.readableDatabase
+        val cursor = db.rawQuery(query, null)
+        val settingsModel = ArrayList<Model>()
+        //while (cursor.moveToFirst()){
+        cursor.moveToFirst()
+            val settings = Model()
+            settings.settingsShareValue = cursor.getDouble(cursor.getColumnIndex(SETTINGS_SHARE_VALUE_COL))
+            settings.settingsInterestRate = cursor.getInt(cursor.getColumnIndex(SETTINGS_INTEREST_RATE_COL))
+            settings.settingsNotes = cursor.getString(cursor.getColumnIndex(SETTINGS_NOTES_COL))
+            settingsModel.add(settings)
+        //}
+        cursor.close()
+        db.close()
+        return settingsModel
+    }
+
+
+    fun getStatements(mContext: Context): ArrayList<Model>{
+        val query = "SELECT * FROM $STATEMENT_TABLE"
+        val db = this.readableDatabase
+        val cursor = db.rawQuery(query, null)
+        val statementsModel = ArrayList<Model>()
+        while (cursor.moveToNext()){
+            val statement = Model()
+            statement.statementsID = cursor.getInt(cursor.getColumnIndex(STATEMENT_ID))
+            statement.statementsMonth = cursor.getString(cursor.getColumnIndex(STATEMENT_MONTH))
+            statement.statementsDate = cursor.getString(cursor.getColumnIndex(STATEMENT_DATE))
+            statement.statementsTime = cursor.getString(cursor.getColumnIndex(STATEMENT_TIME))
+            statement.statementsName = cursor.getString(cursor.getColumnIndex(STATEMENT_NAME))
+            statement.statementsShare = cursor.getInt(cursor.getColumnIndex(STATEMENT_SHARE))
+            statement.statementsShareAmount = cursor.getDouble(cursor.getColumnIndex(STATEMENT_SHARE_AMOUNT))
+            statement.statementsLoan = cursor.getDouble(cursor.getColumnIndex(STATEMENT_LOAN))
+            statement.statementChargeName = cursor.getString(cursor.getColumnIndex(STATEMENT_NAME))
+            statement.statementsCharge = cursor.getDouble(cursor.getColumnIndex(STATEMENT_CHARGE))
+            statementsModel.add(statement)
+        }
+        cursor.close()
+        db.close()
+        return statementsModel
+    }
 
 
     fun getAccountAdmins(mContext: Context): ArrayList<Model>{

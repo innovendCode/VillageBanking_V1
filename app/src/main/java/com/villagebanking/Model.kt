@@ -52,16 +52,8 @@ class Model {
     var statementsShare: Int = 0
     var statementsShareAmount: Double = 0.0
     var statementsLoan: Double = 0.0
+    var statementChargeName: String = ""
     var statementsCharge: Double = 0.0
-
-
-
-    fun holder(){
-
-    }
-
-
-
 
 }
 
