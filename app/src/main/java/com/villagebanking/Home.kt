@@ -1,20 +1,25 @@
 package com.villagebanking
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.*
-import android.icu.text.SimpleDateFormat
+import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
-import android.os.Bundle
+import android.os.*
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.view.isVisible
 import com.opencsv.CSVReaderHeaderAware
 import kotlinx.android.synthetic.main.dialog_payments.view.*
 import kotlinx.android.synthetic.main.home.*
@@ -25,7 +30,6 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.math.roundToInt
 
 
 class Home: AppCompatActivity() {
@@ -34,6 +38,7 @@ class Home: AppCompatActivity() {
         lateinit var dbHandler: DBHandler
     }
 
+    private var STORAGE_PERMISSION_CODE = 1
 
 
 
@@ -60,26 +65,344 @@ class Home: AppCompatActivity() {
             true
         }
 
+        homeProgressBar.isVisible = false
         test()
+
+        test2()
 
     }
 
 
 
-    @SuppressLint("SimpleDateFormat")
+
+    private fun test2() {
+        btTest2.setOnClickListener {
+
+            val dl = "/sdcard/Download"
+            val localDownload = Environment.getExternalStorageDirectory().path + "/sdcard/Download"
+            val fl = "/data/data/com.villagebanking/files"
+
+            File(localDownload, "/Database").let { sourceFile ->
+                sourceFile.copyTo(File(fl, "/Database.csv"))
+                sourceFile.delete()
+            }
+
+
+            Toast.makeText(this, localDownload.toString(), Toast.LENGTH_LONG).show()
+
+        }
+    }
+
+
+
+    @SuppressLint("SimpleDateFormat", "SdCardPath")
     @RequiresApi(Build.VERSION_CODES.N)
     fun test(){
-        btTest.setOnClickListener{
+
+        btTest.setOnClickListener {
 
 
 
 
-            val sdf = SimpleDateFormat("dd MMM yyyy")
-            val transactionDate = sdf.format(Date())
+            if (ContextCompat.checkSelfPermission(this,
+                            Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "You have already granted this permission!", Toast.LENGTH_SHORT).show();
+
+                val intent = Intent()
+                        .setType("*/*")
+                        .setAction(Intent.ACTION_GET_CONTENT)
+                startActivityForResult(Intent.createChooser(intent, "Select a file"), 111)
+
+
+
+
+
+
+            } else {
+                requestStoragePermission();
+            }
 
 
 
         }
+
+
+    }
+
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+
+/*        if (requestCode == 111) {
+
+            val uri = data?.data //The uri with the location of the file
+
+            val selectedFile = uri?.path
+
+            val fileLocation = File(filesDir, "Database.csv")
+            val path: Uri = FileProvider.getUriForFile(this, "com.villagebanking.fileprovider", fileLocation)
+            val fl = "/data/data/com.villagebanking/files"
+
+
+            File(selectedFile, "/Database").let { sourceFile ->
+                sourceFile.copyTo(File(fl, "/Database.csv"))
+                sourceFile.delete()
+            }
+
+
+            Toast.makeText(this, selectedFile, Toast.LENGTH_LONG).show();
+
+
+
+
+        }*/
+
+
+
+        // Selected a file to load
+        if ((requestCode == 111) && (resultCode == RESULT_OK)) {
+            val selectedFilename = data?.data //The uri with the location of the file
+            if (selectedFilename != null) {
+                contentResolver.openInputStream(selectedFilename)?.bufferedReader()?.forEachLine {
+
+
+
+
+
+                    Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+
+
+                }
+
+                //Toast.makeText(this, selectedFilename, Toast.LENGTH_SHORT).show()
+
+            } else {
+                val msg = "Null filename data received!"
+                val toast = Toast.makeText(applicationContext, msg, Toast.LENGTH_LONG)
+                toast.show()
+            }
+        }
+
+
+    }
+
+
+
+
+
+
+    private fun requestStoragePermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                        Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            AlertDialog.Builder(this)
+                    .setTitle("Permission needed")
+                    .setMessage("This permission is needed because of this and that")
+                    .setPositiveButton("ok") { dialog, which -> ActivityCompat.requestPermissions(this@Home, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), STORAGE_PERMISSION_CODE) }
+                    .setNegativeButton("cancel") { dialog, which -> dialog.dismiss() }
+                    .create().show()
+        } else {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), STORAGE_PERMISSION_CODE)
+        }
+    }
+
+
+    @SuppressLint("SdCardPath")
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String?>, grantResults: IntArray) {
+        if (requestCode == STORAGE_PERMISSION_CODE) {
+            if (grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Permission GRANTED", Toast.LENGTH_SHORT).show()
+
+                val intent = Intent()
+                        .setType("*/*")
+                        .setAction(Intent.ACTION_GET_CONTENT)
+                startActivityForResult(Intent.createChooser(intent, "Select a file"), 111)
+
+                val dl = "/sdcard/Download"
+                val fl = "/data/data/com.villagebanking/files"
+
+            File(dl, "/Database").let { sourceFile ->
+                sourceFile.copyTo(File(fl, "/data/data/com.villagebanking/files/Database.csv"))
+                sourceFile.delete()
+
+            }
+
+            } else {
+                Toast.makeText(this, "Permission DENIED", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+
+
+
+    private fun restore(){
+
+        val fileLocation = File(filesDir, "Database.csv")
+        if (!fileLocation.exists()){
+           AlertDialog.Builder(this)
+                   .setIcon(R.drawable.ic_info)
+                   .setTitle("Backup missing. Please download backup file.")
+                   .setNegativeButton("Ok") { _, _->}
+                   .show()
+            return
+        }
+
+        AlertDialog.Builder(this)
+                .setTitle("System Restore?")
+                .setNegativeButton("No") { _, _->}
+                .setPositiveButton("Yes") { _, _->
+
+                    homeProgressBar.isVisible = true
+                    val mCountDownTimer: CountDownTimer
+                    var i = 0
+                    val mProgressBar: ProgressBar = homeProgressBar
+                    mProgressBar.progress = i
+                    mCountDownTimer = object : CountDownTimer(5000, 1000) {
+                        override fun onTick(millisUntilFinished: Long) {
+                            Log.v("Log_tag", "Tick of Progress$i$millisUntilFinished")
+                            i++
+                            mProgressBar.progress = i as Int * 100 / (5000 / 1000)
+                        }
+                        override fun onFinish() {
+
+                            importDB()
+
+                            homeProgressBar.isVisible = false
+                            i++
+                            mProgressBar.progress = 100
+                            finish()
+
+                            Toast.makeText(this@Home, "Restore Successful", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@Home, "chairperson PIN reset", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    mCountDownTimer.start()
+                }
+
+                .show()
+    }
+
+
+
+
+
+
+
+
+    @SuppressLint("SdCardPath")
+    private fun export() {
+        //generate data
+
+        var model = ArrayList<Model>()
+        model.clear()
+        model = dbHandler.getAccountHolders(this)
+
+        val backup = StringBuffer()
+        backup.append("\n")
+
+             for (i in model.indices) {
+                backup.append(
+                        "${model[i].accountHoldersID}," +
+                                "Account Holders," +
+                                "${model[i].accountHoldersName}," +
+                                "${model[i].accountHoldersAdmin}," +
+                                "${model[i].accountHolderContact}," +
+                                "${model[i].accountHolderBankInfo}," +
+                                "${model[i].accountHolderPin}," +
+                                "${model[i].accountHolderPinHint}," +
+                                "${model[i].accountHoldersShare}," +
+                                "${model[i].accountHoldersLoanApp}," +
+                                "${model[i].accountHoldersCharges}," +
+                                "${model[i].accountHoldersArrears}," +
+                                "${model[i].accountHoldersAsset}," +
+                                "${model[i].accountHoldersLiability}")
+                backup.append("\n")
+            }
+
+        model = dbHandler.getTransactions(this)
+
+        for (i in model.indices) {
+            backup.append(
+                    "${model[i].transactionID}," +
+                            "Transactions," +
+                            "${model[i].transactionName}," +
+                            "${model[i].transactionMonth}," +
+                            "${model[i].transactionShares}," +
+                            "${model[i].transactionShareAmount}," +
+                            "${model[i].transactionSharePayment}," +
+                            "${model[i].transactionShareDate}," +
+                            "${model[i].transactionLoanApp}," +
+                            "${model[i].transactionLoanPayment}," +
+                            "${model[i].transactionLoanPaymentDate}," +
+                            "${model[i].transactionLoanToRepay}," +
+                            "${model[i].transactionLoanRepayment}," +
+                            "${model[i].transactionLoanRepaymentDate}," +
+                            "${model[i].transactionChargeName}," +
+                            "${model[i].transactionCharge}," +
+                            "${model[i].transactionChargePayment}," +
+                            "${model[i].transactionChargePaymentDate}," +
+                            "${model[i].transactionInterest}," +
+                            "${model[i].transactionShareOut}," +
+                            "${model[i].transactionArrears},")
+            backup.append("\n")
+        }
+
+        model = dbHandler.getSettings(this)
+
+        for (i in model.indices) {
+            backup.append(
+                    "1," +
+                            "Settings," +
+                            "${model[i].settingsShareValue}," +
+                            "${model[i].settingsInterestRate}," +
+                            "${model[i].settingsNotes},")
+            backup.append("\n")
+        }
+
+        model = dbHandler.getStatements(this)
+
+        for (i in model.indices) {
+            backup.append(
+                    "${model[i].statementsID}," +
+                            "Statements," +
+                            "${model[i].statementsMonth}," +
+                            "${model[i].statementsDate}," +
+                            "${model[i].statementsTime}," +
+                            "${model[i].statementsName}," +
+                            "${model[i].statementsAction}," +
+                            "${model[i].statementsShare}," +
+                            "${model[i].statementsShareAmount}," +
+                            "${model[i].statementsLoan}," +
+                            "${model[i].statementChargeName}," +
+                            "${model[i].statementsCharge},")
+            backup.append("\n")
+        }
+
+
+
+        try {
+            //saving the file into device
+            val accountHoldersOut: FileOutputStream = openFileOutput("Database.csv", MODE_PRIVATE)
+            accountHoldersOut.write(backup.toString().toByteArray())
+            accountHoldersOut.close()
+
+            //exporting
+            val context = applicationContext
+            val fileLocation = File(filesDir, "Database.csv")
+            val path: Uri = FileProvider.getUriForFile(context, "com.villagebanking.fileprovider", fileLocation)
+            val fileIntent = Intent(Intent.ACTION_SEND)
+            fileIntent.type = "text/csv"
+            fileIntent.putExtra(Intent.EXTRA_SUBJECT, "Database")
+            fileIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            fileIntent.putExtra(Intent.EXTRA_STREAM, path)
+            startActivity(Intent.createChooser(fileIntent, "Google Drive Backup"))
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
     }
 
 
@@ -99,7 +422,7 @@ class Home: AppCompatActivity() {
 
         for (i in reader){
 
-            var table = i[1]
+            val table = i[1]
 
             if (table == "Account Holders") {
                 val accountHoldersName = i[2]
@@ -129,7 +452,6 @@ class Home: AppCompatActivity() {
                 contentValues.put(DBHandler.ACCOUNT_HOLDERS_LIABILITY_COL, accountHoldersLiabilities)
 
                 db.insert(DBHandler.ACCOUNT_HOLDERS_TABLE, null, contentValues)
-                Toast.makeText(this, "Accounts Backup", Toast.LENGTH_SHORT).show()
             }
 
 
@@ -176,7 +498,6 @@ class Home: AppCompatActivity() {
                 contentValues2.put(DBHandler.TRANSACTION_ARREARS_COL, transactionArrears)
 
                 db.insert(DBHandler.TRANSACTION_TABLE, null, contentValues2)
-                Toast.makeText(this, "Transaction Backup", Toast.LENGTH_SHORT).show()
             }
 
             if (table == "Settings") {
@@ -191,7 +512,6 @@ class Home: AppCompatActivity() {
                 contentValues3.put(DBHandler.SETTINGS_NOTES_COL, settingsNotes)
 
                 db.insert(DBHandler.SETTINGS_TABLE, null, contentValues3)
-                Toast.makeText(this, "Settings Backup", Toast.LENGTH_SHORT).show()
             }
 
 
@@ -219,232 +539,13 @@ class Home: AppCompatActivity() {
                 contentValues4.put(DBHandler.STATEMENT_CHARGE_NAME, statementChargeName)
                 contentValues4.put(DBHandler.STATEMENT_CHARGE, statementsCharge)
 
-                db.insert(DBHandler.STATEMENT_TABLE, null, contentValues)
-                Toast.makeText(this, "Statements Backup", Toast.LENGTH_SHORT).show()
+                db.insert(DBHandler.STATEMENT_TABLE, null, contentValues4)
             }
         }
-    }
-
-
-    @SuppressLint("SdCardPath")
-    private fun export() {
-        //generate data
-        var model = ArrayList<Model>()
-        model.clear()
-        model = dbHandler.getAccountHolders(this)
-
-        val backup = StringBuffer()
-        backup.append("\n")
-
-             for (i in model.indices) {
-                backup.append(
-                                "${model[i].accountHoldersID}," +
-                                "Account Holders," +
-                                "${model[i].accountHoldersName}," +
-                                "${model[i].accountHoldersAdmin}," +
-                                "${model[i].accountHolderContact}," +
-                                "${model[i].accountHolderBankInfo}," +
-                                "${model[i].accountHolderPin}," +
-                                "${model[i].accountHolderPinHint}," +
-                                "${model[i].accountHoldersShare}," +
-                                "${model[i].accountHoldersLoanApp}," +
-                                "${model[i].accountHoldersCharges}," +
-                                "${model[i].accountHoldersArrears}," +
-                                "${model[i].accountHoldersAsset}," +
-                                "${model[i].accountHoldersLiability}")
-                backup.append("\n")
-            }
-
-        model = dbHandler.getTransactions(this)
-
-        for (i in model.indices) {
-            backup.append(
-                            "${model[i].transactionID}," +
-                            "Transactions," +
-                            "${model[i].transactionName}," +
-                            "${model[i].transactionMonth}," +
-                            "${model[i].transactionShares}," +
-                            "${model[i].transactionShareAmount}," +
-                            "${model[i].transactionSharePayment}," +
-                            "${model[i].transactionShareDate}," +
-                            "${model[i].transactionLoanApp}," +
-                            "${model[i].transactionLoanPayment}," +
-                            "${model[i].transactionLoanPaymentDate}," +
-                            "${model[i].transactionLoanToRepay}," +
-                            "${model[i].transactionLoanRepayment}," +
-                            "${model[i].transactionLoanRepaymentDate}," +
-                            "${model[i].transactionChargeName}," +
-                            "${model[i].transactionCharge}," +
-                            "${model[i].transactionChargePayment}," +
-                            "${model[i].transactionChargePaymentDate}," +
-                            "${model[i].transactionInterest}," +
-                            "${model[i].transactionShareOut}," +
-                            "${model[i].transactionArrears},")
-            backup.append("\n")
-        }
-
-        model = dbHandler.getSettings(this)
-
-        for (i in model.indices) {
-            backup.append(
-                            "1," +
-                            "Settings," +
-                            "${model[i].settingsShareValue}," +
-                            "${model[i].settingsInterestRate}," +
-                            "${model[i].settingsNotes},")
-            backup.append("\n")
-        }
-
-        model = dbHandler.getStatements(this)
-
-        for (i in model.indices) {
-            backup.append(
-                            "${model[i].statementsID}," +
-                            "Statements," +
-                            "${model[i].statementsMonth}," +
-                            "${model[i].statementsDate}," +
-                            "${model[i].statementsTime}," +
-                            "${model[i].statementsName}," +
-                            "${model[i].statementsAction}," +
-                            "${model[i].statementsShare}," +
-                            "${model[i].statementsShareAmount}," +
-                            "${model[i].statementsLoan}," +
-                            "${model[i].statementChargeName}," +
-                            "${model[i].statementsCharge},")
-            backup.append("\n")
-        }
-
-
-
-
-
-        try {
-            //saving the file into device
-            val accountHoldersOut: FileOutputStream = openFileOutput("Database.csv", MODE_PRIVATE)
-            accountHoldersOut.write(backup.toString().toByteArray())
-            accountHoldersOut.close()
-
-/*            val transactionsOut: FileOutputStream = openFileOutput("Transactions.csv", MODE_PRIVATE)
-            transactionsOut.write(transactions.toString().toByteArray())
-            transactionsOut.close()*/
-
-            //exporting
-/*
-            val context = applicationContext
-            val fileLocation = File(filesDir, "Account Holders.csv")
-            val path: Uri = FileProvider.getUriForFile(context, "com.villagebanking.fileprovider", fileLocation)
-            val fileIntent = Intent(Intent.ACTION_SEND)
-            fileIntent.type = "message/rfc822"
-            fileIntent.putExtra(Intent.EXTRA_SUBJECT, "Village Banking Backup")
-            fileIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            fileIntent.putExtra(Intent.EXTRA_STREAM, path)
-            startActivity(Intent.createChooser(fileIntent,"Google Drive Backup"))
-*/
-
-
-            //exporting
-            val context = applicationContext
-/*            val fileLocation = File(filesDir, "Account Holders.csv")
-            val path: Uri = FileProvider.getUriForFile(context, "com.villagebanking.fileprovider", fileLocation)*/
-            val path = "file://data/data/com.villagebanking/files"
-            val fileIntent = Intent(Intent.ACTION_SEND_MULTIPLE)
-            fileIntent.type = "text/csv"
-            fileIntent.putExtra(Intent.EXTRA_SUBJECT, "Village Banking Backup")
-            fileIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            fileIntent.putExtra(Intent.EXTRA_STREAM, path)
-            startActivity(Intent.createChooser(fileIntent,"Google Drive Backup"))
-
-
-
-
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
 
     }
 
 
-
-
-
-
-
-
-    private fun exportDB() {
-
-        //generate data
-
-        var recordList = ArrayList<Model>()
-        recordList.clear()
-        recordList = dbHandler.getAccountHolders(this)
-
-        val accountHolders = StringBuffer()
-
-        val account = StringBuffer()
-
-        for (i in recordList.indices) {
-            accountHolders.append("${recordList[i].accountHoldersID}," +
-                    "${recordList[i].accountHoldersName}," +
-                    "${recordList[i].accountHoldersAdmin}," +
-                    "${recordList[i].accountHolderContact}," +
-                    "${recordList[i].accountHolderBankInfo}," +
-                    "${recordList[i].accountHolderPin}," +
-                    "${recordList[i].accountHolderPinHint}," +
-                    "${recordList[i].accountHoldersShare}," +
-                    "${recordList[i].accountHoldersLoanApp}," +
-                    "${recordList[i].accountHoldersCharges}," +
-                    "${recordList[i].accountHoldersArrears}," +
-                    "${recordList[i].accountHoldersAsset}," +
-                    "${recordList[i].accountHoldersLiability}")
-            accountHolders.append("\n")
-        }
-
-
-        for (i in recordList.indices) {
-            account.append("${recordList[i].accountHoldersID}," +
-                    "${recordList[i].accountHoldersName}," +
-                    "${recordList[i].accountHoldersAdmin}," +
-                    "${recordList[i].accountHolderContact}," +
-                    "${recordList[i].accountHolderBankInfo}," +
-                    "${recordList[i].accountHolderPin}," +
-                    "${recordList[i].accountHolderPinHint}," +
-                    "${recordList[i].accountHoldersShare}," +
-                    "${recordList[i].accountHoldersLoanApp}," +
-                    "${recordList[i].accountHoldersCharges}," +
-                    "${recordList[i].accountHoldersArrears}," +
-                    "${recordList[i].accountHoldersAsset}," +
-                    "${recordList[i].accountHoldersLiability}")
-            account.append("\n")
-        }
-
-
-
-        try {
-            //saving the file into device
-            val out: FileOutputStream = openFileOutput("Account Holders.csv", MODE_PRIVATE)
-            out.write(accountHolders.toString().toByteArray())
-            out.close()
-
-            //saving the file into device
-            val out2: FileOutputStream = openFileOutput("Account.csv", MODE_PRIVATE)
-            out2.write(account.toString().toByteArray())
-            out2.close()
-
-            //exporting
-            val context = applicationContext
-            val fileLocation = File(filesDir, "Account Holders.csv")
-            val path: Uri = FileProvider.getUriForFile(context, "com.villagebanking.fileprovider", fileLocation)
-            val fileIntent = Intent(Intent.ACTION_SEND)
-            fileIntent.type = "text/csv"
-            fileIntent.putExtra(Intent.EXTRA_SUBJECT, "Data")
-            fileIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            fileIntent.putExtra(Intent.EXTRA_STREAM, path)
-            startActivity(Intent.createChooser(fileIntent, "Send mail"))
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-
-    }
 
 
 
@@ -755,7 +856,7 @@ class Home: AppCompatActivity() {
                 startActivity(intent)
             }
             R.id.importDB -> {
-                importDB()
+                restore()
             }
             R.id.exportDB -> {
                 //exportDB()

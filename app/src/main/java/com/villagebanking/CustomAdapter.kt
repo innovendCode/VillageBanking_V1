@@ -155,7 +155,6 @@ class CustomAdapter(mContext: Context, private var accountHolderModel: ArrayList
         }
 
 
-
         query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}"
         db = dbHandler.readableDatabase
         cursor = db.rawQuery(query, null)
@@ -164,7 +163,6 @@ class CustomAdapter(mContext: Context, private var accountHolderModel: ArrayList
             totalLoanSubmitted += cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_LOAN_APP_COL))
             totalChargeSubmitted += cursor.getDouble(cursor.getColumnIndex(DBHandler.ACCOUNT_HOLDERS_CHARGES_COL))
         }
-
 
         virtualBalance = sharePayment + loanRepayment + chargePayment - totalLoanSubmitted - previousLoanPayouts
         actualBalance = sharePayment + loanRepayment + chargePayment - loanPayout
@@ -459,13 +457,51 @@ class CustomAdapter(mContext: Context, private var accountHolderModel: ArrayList
                                 }
 
                                 if (selectedAdmin != "Account Holder") {
+                                    query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_ADMIN_COL} = ?"
+                                    db = dbHandler.readableDatabase
+                                    cursor = db.rawQuery(query, arrayOf(selectedAdmin))
+
+
+                                    if (selectedAdmin == accountHolderModelPosition.accountHoldersAdmin){
+                                        if (cursor.count > 1){
+                                            Toast.makeText(mContext, "Duplicate $selectedAdmin", Toast.LENGTH_LONG).show()
+                                            return@setOnClickListener
+                                        }
+                                    }
+
+                                    if (selectedAdmin != accountHolderModelPosition.accountHoldersAdmin){
+                                        if (cursor.count > 0){
+                                            Toast.makeText(mContext, "Duplicate $selectedAdmin", Toast.LENGTH_LONG).show()
+                                            return@setOnClickListener
+                                        }
+                                    }
+
+
+
+/*                                if (selectedAdmin != "Account Holder") {
                                     val query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_ADMIN_COL} = ?"
                                     val db = dbHandler.readableDatabase
                                     val cursor = db.rawQuery(query, arrayOf(selectedAdmin))
                                     if (cursor.count > 0){
                                         Toast.makeText(mContext, "Duplicate $selectedAdmin", Toast.LENGTH_LONG).show()
                                         return@setOnClickListener
+                                    }*/
+
+
+
+ /*                               if (selectedAdmin != "Account Holder") {
+
+                                    if (selectedAdmin == "Chairperson" && accountHolderModelPosition.accountHoldersAdmin != "Chairperson" ||
+                                            selectedAdmin == "Secretary" && accountHolderModelPosition.accountHoldersAdmin != "Secretary" ||
+                                            selectedAdmin == "Vice Chairperson" && accountHolderModelPosition.accountHoldersAdmin != "Vice Chairperson" ||
+                                            selectedAdmin == "Money Counter 1" && accountHolderModelPosition.accountHoldersAdmin != "Money Counter 1" ||
+                                            selectedAdmin == "Money Counter 2" && accountHolderModelPosition.accountHoldersAdmin != "Money Counter 2"
+                                            ) {
+                                        Toast.makeText(mContext, "Duplicate $selectedAdmin", Toast.LENGTH_LONG).show()
+                                        return@setOnClickListener
                                     }
+                                        */
+
 
                                     val update: Boolean = dbHandler.editAccountHolder(mContext,
                                             accountHolderModelPosition.accountHoldersID.toString().toInt(),
@@ -485,6 +521,7 @@ class CustomAdapter(mContext: Context, private var accountHolderModel: ArrayList
                                         notifyDataSetChanged()
                                         dismiss()
                                     }
+                                    Toast.makeText(mContext, "Update successful",Toast.LENGTH_SHORT).show()
                                 }
 
 
@@ -507,6 +544,7 @@ class CustomAdapter(mContext: Context, private var accountHolderModel: ArrayList
                                         notifyDataSetChanged()
                                         dismiss()
                                     }
+                                    Toast.makeText(mContext, "Update successful",Toast.LENGTH_SHORT).show()
                                 }
 
 
@@ -581,6 +619,7 @@ class CustomAdapter(mContext: Context, private var accountHolderModel: ArrayList
                                                             accountHolderModel[position].accountHolderPinHint = etPinHint.text.toString()
                                                             notifyDataSetChanged()
                                                             dismiss()
+                                                            Toast.makeText(context, "PIN updated", Toast.LENGTH_SHORT).show()
                                                         }
                                                     }
                                                 }

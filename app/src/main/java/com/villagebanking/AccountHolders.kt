@@ -58,6 +58,7 @@ class AccountHolders: AppCompatActivity() {
 
         viewAccountHolders()
         securityWarning()
+        checkChairpersonPIN()
 
         val actionBar = supportActionBar
         actionBar!!.title = "Accounts"
@@ -66,7 +67,6 @@ class AccountHolders: AppCompatActivity() {
         availableCash()
         getLiabilities()
         firstTime()
-
     }
 
 
@@ -135,7 +135,6 @@ class AccountHolders: AppCompatActivity() {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-
 
                 val query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE} WHERE ${DBHandler.ACCOUNT_HOLDERS_NAME_COL} = ?"
                 val db = dbHandler.readableDatabase
@@ -1289,6 +1288,18 @@ class AccountHolders: AppCompatActivity() {
         }
         cursor.close()
     }
+
+
+    private fun checkChairpersonPIN(){
+            val query = "SELECT * FROM ${DBHandler.ACCOUNT_HOLDERS_TABLE}  WHERE ${DBHandler.ACCOUNT_HOLDERS_ADMIN_COL} = 'Chairperson' AND ${DBHandler.ACCOUNT_HOLDERS_PIN_COL} = ''"
+            val db = dbHandler.readableDatabase
+            val cursor = db.rawQuery(query, null)
+            if (cursor.count == 1) {
+                Toast.makeText(this, "Chairperson PIN not set", Toast.LENGTH_LONG).show()
+            }
+        cursor.close()
+    }
+
 
     private fun firstTime(){
         //No Chairperson Account

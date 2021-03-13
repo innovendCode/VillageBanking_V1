@@ -399,7 +399,6 @@ class DBHandler(context: Context, name: String?, factory: SQLiteDatabase.CursorF
         try {
             db.update(ACCOUNT_HOLDERS_TABLE, contentValues, "$ACCOUNT_HOLDERS_ID_COL = ?", arrayOf(AccountID.toString()))
             result = true
-            Toast.makeText(mContext, "Update successful",Toast.LENGTH_SHORT).show()
         } catch (e : Exception){
             Toast.makeText(mContext, e.message,Toast.LENGTH_SHORT).show()
             result = false

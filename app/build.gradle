@@ -49,4 +49,5 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     compile 'com.opencsv:opencsv:4.6'
     compile("com.opencsv:opencsv:4.6")
+    implementation 'com.mikhaellopez:circularprogressbar:3.0.3'
 }
