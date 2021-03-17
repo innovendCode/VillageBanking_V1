@@ -17,6 +17,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.menu.MenuBuilder
 import androidx.core.app.ActivityCompat
+import androidx.core.app.ShareCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
@@ -40,7 +41,7 @@ class Home: AppCompatActivity() {
 
     private var STORAGE_PERMISSION_CODE = 1
 
-
+    var myDownloadId : Long = 0
 
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,28 +71,62 @@ class Home: AppCompatActivity() {
 
         test2()
 
+
+
+        btTest3.setOnClickListener {
+
+
+        startOpenGoogleDriveApp()
+
+
+        }
+
+
+
+
+
+    }
+
+
+    fun startOpenGoogleDriveApp() {
+        val intent = Intent("com.google.android.apps.docs.DRIVE_OPEN")
+        if (intent.resolveActivity(packageManager) != null) {
+            startActivity(intent)
+        }
     }
 
 
 
 
     private fun test2() {
+
         btTest2.setOnClickListener {
 
+
             val dl = "/sdcard/Download"
-            val localDownload = Environment.getExternalStorageDirectory().path + "/sdcard/Download"
             val fl = "/data/data/com.villagebanking/files"
 
-            File(localDownload, "/Database").let { sourceFile ->
-                sourceFile.copyTo(File(fl, "/Database.csv"))
-                sourceFile.delete()
+            if(!File(dl, "/Database").exists()){
+                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com"))
+                startActivity(browserIntent)
+            }else{
+
+                File(dl, "/Database").let { sourceFile ->
+                    sourceFile.copyTo(File(fl, "/Database.csv"))
+                    sourceFile.delete()
+
+                    restore()
+
+                }
             }
 
 
-            Toast.makeText(this, localDownload.toString(), Toast.LENGTH_LONG).show()
-
         }
     }
+
+
+
+
 
 
 
@@ -104,23 +139,7 @@ class Home: AppCompatActivity() {
 
 
 
-            if (ContextCompat.checkSelfPermission(this,
-                            Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "You have already granted this permission!", Toast.LENGTH_SHORT).show();
 
-                val intent = Intent()
-                        .setType("*/*")
-                        .setAction(Intent.ACTION_GET_CONTENT)
-                startActivityForResult(Intent.createChooser(intent, "Select a file"), 111)
-
-
-
-
-
-
-            } else {
-                requestStoragePermission();
-            }
 
 
 
@@ -131,61 +150,20 @@ class Home: AppCompatActivity() {
 
 
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-
-/*        if (requestCode == 111) {
-
-            val uri = data?.data //The uri with the location of the file
-
-            val selectedFile = uri?.path
-
-            val fileLocation = File(filesDir, "Database.csv")
-            val path: Uri = FileProvider.getUriForFile(this, "com.villagebanking.fileprovider", fileLocation)
-            val fl = "/data/data/com.villagebanking/files"
-
-
-            File(selectedFile, "/Database").let { sourceFile ->
-                sourceFile.copyTo(File(fl, "/Database.csv"))
-                sourceFile.delete()
-            }
-
-
-            Toast.makeText(this, selectedFile, Toast.LENGTH_LONG).show();
 
 
 
 
-        }*/
+    private fun importBackupPermission(){
+        if (ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "You have already granted this permission!", Toast.LENGTH_SHORT).show();
 
+            askRestore()
 
-
-        // Selected a file to load
-        if ((requestCode == 111) && (resultCode == RESULT_OK)) {
-            val selectedFilename = data?.data //The uri with the location of the file
-            if (selectedFilename != null) {
-                contentResolver.openInputStream(selectedFilename)?.bufferedReader()?.forEachLine {
-
-
-
-
-
-                    Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
-
-
-                }
-
-                //Toast.makeText(this, selectedFilename, Toast.LENGTH_SHORT).show()
-
-            } else {
-                val msg = "Null filename data received!"
-                val toast = Toast.makeText(applicationContext, msg, Toast.LENGTH_LONG)
-                toast.show()
-            }
+        } else {
+            requestStoragePermission();
         }
-
-
     }
 
 
@@ -198,7 +176,6 @@ class Home: AppCompatActivity() {
                         Manifest.permission.READ_EXTERNAL_STORAGE)) {
             AlertDialog.Builder(this)
                     .setTitle("Permission needed")
-                    .setMessage("This permission is needed because of this and that")
                     .setPositiveButton("ok") { dialog, which -> ActivityCompat.requestPermissions(this@Home, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), STORAGE_PERMISSION_CODE) }
                     .setNegativeButton("cancel") { dialog, which -> dialog.dismiss() }
                     .create().show()
@@ -214,19 +191,7 @@ class Home: AppCompatActivity() {
             if (grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "Permission GRANTED", Toast.LENGTH_SHORT).show()
 
-                val intent = Intent()
-                        .setType("*/*")
-                        .setAction(Intent.ACTION_GET_CONTENT)
-                startActivityForResult(Intent.createChooser(intent, "Select a file"), 111)
-
-                val dl = "/sdcard/Download"
-                val fl = "/data/data/com.villagebanking/files"
-
-            File(dl, "/Database").let { sourceFile ->
-                sourceFile.copyTo(File(fl, "/data/data/com.villagebanking/files/Database.csv"))
-                sourceFile.delete()
-
-            }
+                    askRestore()
 
             } else {
                 Toast.makeText(this, "Permission DENIED", Toast.LENGTH_SHORT).show()
@@ -237,51 +202,76 @@ class Home: AppCompatActivity() {
 
 
 
+
+
+
     private fun restore(){
 
-        val fileLocation = File(filesDir, "Database.csv")
-        if (!fileLocation.exists()){
-           AlertDialog.Builder(this)
-                   .setIcon(R.drawable.ic_info)
-                   .setTitle("Backup missing. Please download backup file.")
-                   .setNegativeButton("Ok") { _, _->}
-                   .show()
+
+
+        homeProgressBar.isVisible = true
+        val mCountDownTimer: CountDownTimer
+        var i = 0
+        val mProgressBar: ProgressBar = homeProgressBar
+        mProgressBar.progress = i
+        mCountDownTimer = object : CountDownTimer(5000, 1000) {
+            override fun onTick(millisUntilFinished: Long) {
+                Log.v("Log_tag", "Tick of Progress$i$millisUntilFinished")
+                i++
+                mProgressBar.progress = i as Int * 100 / (5000 / 1000)
+            }
+            override fun onFinish() {
+
+                importDB()
+
+                homeProgressBar.isVisible = false
+                i++
+                mProgressBar.progress = 100
+                finish()
+
+                Toast.makeText(this@Home, "Restore Successful", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@Home, "chairperson PIN reset", Toast.LENGTH_SHORT).show()
+                File("/data/data/com.villagebanking/files", "/Database.csv").delete()
+
+                File("/sdcard/Download", "/Database.csv").let { sourceFile ->
+                    sourceFile.deleteOnExit()}
+
+            }
+        }
+        mCountDownTimer.start()
+    }
+
+
+
+
+
+
+    private fun askRestore(){
+
+        val dl = "/sdcard/Download"
+        val fl = "/data/data/com.villagebanking/files"
+
+        if(!File(dl, "/Database.csv").exists()){
+            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://drive.google.com"))
+            startActivity(browserIntent)
             return
         }
 
-        AlertDialog.Builder(this)
-                .setTitle("System Restore?")
-                .setNegativeButton("No") { _, _->}
-                .setPositiveButton("Yes") { _, _->
+                AlertDialog.Builder(this)
+                    .setTitle("System Restore?")
+                    .setNegativeButton("No") { _, _->}
+                    .setPositiveButton("Yes") { _, _->
 
-                    homeProgressBar.isVisible = true
-                    val mCountDownTimer: CountDownTimer
-                    var i = 0
-                    val mProgressBar: ProgressBar = homeProgressBar
-                    mProgressBar.progress = i
-                    mCountDownTimer = object : CountDownTimer(5000, 1000) {
-                        override fun onTick(millisUntilFinished: Long) {
-                            Log.v("Log_tag", "Tick of Progress$i$millisUntilFinished")
-                            i++
-                            mProgressBar.progress = i as Int * 100 / (5000 / 1000)
-                        }
-                        override fun onFinish() {
+                        File("/data/data/com.villagebanking/files", "/Database.csv").delete()
 
-                            importDB()
+                        File(dl, "/Database.csv").let { sourceFile ->
+                            sourceFile.copyTo(File(fl, "/Database.csv"))
+                        sourceFile.delete()}
 
-                            homeProgressBar.isVisible = false
-                            i++
-                            mProgressBar.progress = 100
-                            finish()
+                        restore()
 
-                            Toast.makeText(this@Home, "Restore Successful", Toast.LENGTH_SHORT).show()
-                            Toast.makeText(this@Home, "chairperson PIN reset", Toast.LENGTH_SHORT).show()
-                        }
                     }
-                    mCountDownTimer.start()
-                }
-
-                .show()
+                    .show()
     }
 
 
@@ -389,20 +379,35 @@ class Home: AppCompatActivity() {
             accountHoldersOut.close()
 
             //exporting
-            val context = applicationContext
+/*            val context = applicationContext
             val fileLocation = File(filesDir, "Database.csv")
             val path: Uri = FileProvider.getUriForFile(context, "com.villagebanking.fileprovider", fileLocation)
             val fileIntent = Intent(Intent.ACTION_SEND)
             fileIntent.type = "text/csv"
-            fileIntent.putExtra(Intent.EXTRA_SUBJECT, "Database")
+            fileIntent.putExtra(Intent.EXTRA_SUBJECT, "Database.csv")
             fileIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             fileIntent.putExtra(Intent.EXTRA_STREAM, path)
-            startActivity(Intent.createChooser(fileIntent, "Google Drive Backup"))
+            startActivity(Intent.createChooser(fileIntent, "Google Drive Backup"))*/
+
+            val context = applicationContext
+            val fileLocation = File(filesDir, "Database.csv")
+            val path: Uri = FileProvider.getUriForFile(context, "com.villagebanking.fileprovider", fileLocation)
+
+            val shareIntent = ShareCompat.IntentBuilder.from(this)
+                    .setText("Share PDF doc")
+                    .setType("text/csv")
+                    .setStream(path)
+                    .intent
+                    .setPackage("com.google.android.apps.docs")
+            startActivity(shareIntent)
+
+
+
+
 
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
     }
 
 
@@ -856,7 +861,7 @@ class Home: AppCompatActivity() {
                 startActivity(intent)
             }
             R.id.importDB -> {
-                restore()
+                importBackupPermission()
             }
             R.id.exportDB -> {
                 //exportDB()
